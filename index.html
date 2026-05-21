@@ -71,7 +71,7 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
     border:1px solid #1d4ed8;
 }
 .advisor p{ margin-bottom:10px; line-height:1.5; }
-.chart-box{ height:350px; }
+.chart-box{ height:320px; margin-bottom:20px; }
 .footer{ margin-top:25px; text-align:center; color:var(--muted); font-size:13px; }
 .log-entry{ padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
@@ -83,7 +83,7 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
     <div class="header">
         <div class="title">
             <h1>RunnerOS Elite</h1>
-            <p>Advanced Running Intelligence Platform — FIT + GPX</p>
+            <p>Advanced Running Intelligence Platform — Pace Oriented</p>
         </div>
         <div class="actions">
             <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Accedi con Google</button>
@@ -98,9 +98,9 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
             <div class="stat-sub" style="color:var(--green)">Dati reali estratti</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">VO2 Max Stimato</div>
-            <div class="stat-value" id="vo2Value">—</div>
-            <div class="stat-sub" style="color:var(--green)">Calcolo fisiologico</div>
+            <div class="stat-title">Ritmo Medio Globale</div>
+            <div class="stat-value" id="avgPaceValue">—</div>
+            <div class="stat-sub" style="color:var(--accent)">min/km su totali</div>
         </div>
         <div class="stat-card">
             <div class="stat-title">Training Load</div>
@@ -108,9 +108,9 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
             <div class="stat-sub" style="color:var(--accent)">Basato su Km e BPM</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">Race Readiness</div>
-            <div class="stat-value" id="readinessValue">—</div>
-            <div class="stat-sub" style="color:var(--orange)">Indice efficienza</div>
+            <div class="stat-title">Pace Consistency</div>
+            <div class="stat-value" id="consistencyValue">—</div>
+            <div class="stat-sub" style="color:var(--orange)">Indice regolarità ritmo</div>
         </div>
     </div>
 
@@ -134,12 +134,15 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
         </div>
         <div>
             <div class="card advisor">
-                <h3>AI Marathon Advisor</h3>
-                <div id="advisorBox">Connetti Google Drive per analizzare i tuoi file reali.</div>
+                <h3>AI Pace & Race Intelligence</h3>
+                <div id="advisorBox">Connetti Google Drive per sbloccare l'analisi avanzata dei ritmi.</div>
             </div>
             <div class="card">
-                <h3>Trend Performance</h3>
+                <h3>Trend Carico vs Ritmo Medio</h3>
                 <div class="chart-box"><canvas id="performanceChart"></canvas></div>
+                
+                <h3>Distribuzione Zone di Ritmo (Km Totali)</h3>
+                <div class="chart-box"><canvas id="zonesChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -152,11 +155,11 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
                 <thead>
                     <tr>
                         <th>Data</th><th>Distanza</th><th>Durata</th>
-                        <th>Passo</th><th>BPM</th><th>Cadenza</th><th>Potenza</th><th>VO2</th><th>Scarpa</th><th>Fonte</th>
+                        <th>Ritmo Medio</th><th>BPM Medio</th><th>Cadenza</th><th>Potenza</th><th>Scarpa</th><th>Fonte</th>
                     </tr>
                 </thead>
                 <tbody id="runsTable">
-                    <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px;">
+                    <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">
                         Nessuna attività caricata. Connetti Drive per iniziare.
                     </td></tr>
                 </tbody>
@@ -164,35 +167,11 @@ td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px;
         </div>
     </div>
 
-    <div class="footer">RunnerOS Elite • FIT + GPX Native Parser • No fake data</div>
+    <div class="footer">RunnerOS Elite • FIT + GPX Native Pace Parser • No fake data</div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════════
-   SELF-CONTAINED FIT BINARY PARSER
-   Implements the Flexible and Interoperable Data Transfer (FIT) protocol.
-   No external library needed — works entirely in the browser.
-
-   FIT format summary:
-   - 14-byte file header
-   - Series of records, each starting with a 1-byte record header
-   - Record header bit 6 = 1 → Definition message (describes field layout)
-   - Record header bit 6 = 0 → Data message (actual values)
-   - Local message number (bits 0-3) links data messages to their definition
-   - Global message number 20 = "record" (the per-second activity data)
-
-   Field numbers for global message 20 (record):
-     253 = timestamp  (uint32, seconds since 1989-12-31)
-       0 = position_lat (sint32, semicircles → degrees * 180/2^31)
-       1 = position_long (sint32, semicircles)
-       5 = distance  (uint32, cm → metres / 100)
-       6 = speed     (uint16, mm/s → km/h * 3.6 / 1000)
-       3 = heart_rate (uint8, bpm)
-       4 = cadence   (uint8, rpm → spm * 2)
-       7 = power     (uint16, watts)
-═══════════════════════════════════════════════════════════════════ */
-
-const FIT_EPOCH = 631065600000; // 1989-12-31 00:00:00 UTC in ms
+const FIT_EPOCH = 631065600000;
 
 function parseFIT(buffer) {
     const bytes = new Uint8Array(buffer);
@@ -214,7 +193,6 @@ function parseFIT(buffer) {
         const isCompTs = !!(recHdr & 0x80);
 
         if(isCompTs) {
-            // Compressed timestamp record — skip data bytes
             const localNum = (recHdr >> 5) & 0x03;
             if(definitions[localNum]) pos += definitions[localNum].size;
             continue;
@@ -225,9 +203,9 @@ function parseFIT(buffer) {
         const hasDev   = !!(recHdr & 0x20);
 
         if(isDef) {
-            pos++;                                          // reserved byte
+            pos++; 
             const littleEndian = bytes[pos++] === 0;
-            const globalNum    = dv.getUint16(pos, true); pos += 2;
+            const globalNum    = dv.getUint16(pos, littleEndian); pos += 2;
             const nFields      = bytes[pos++];
 
             const fields = [];
@@ -235,77 +213,60 @@ function parseFIT(buffer) {
             for(let i = 0; i < nFields; i++) {
                 const fNum  = bytes[pos++];
                 const fSize = bytes[pos++];
-                pos++;                                      // base type byte (unused here)
+                pos++; 
                 fields.push({ fNum, fSize, littleEndian });
                 size += fSize;
             }
 
-            // Developer fields — skip their definitions
             if(hasDev) {
                 const nDev = bytes[pos++];
                 pos += nDev * 3;
             }
-
             definitions[localNum] = { globalNum, fields, size };
-
         } else {
-            // Data message
             const defn  = definitions[localNum];
             if(!defn) break;
             const start = pos;
 
             if(defn.globalNum === 20) {
-                // Activity record message — extract our metrics
                 const rec = {};
                 for(const { fNum, fSize, littleEndian } of defn.fields) {
                     if(pos + fSize > bytes.length) break;
 
                     switch(fNum) {
-                        case 253: // timestamp (uint32)
+                        case 253:
                             if(fSize === 4) {
-                                const v = dv.getUint32(pos, true);
+                                const v = dv.getUint32(pos, littleEndian);
                                 if(v < 0xFFFFFFFE) rec.ts = v * 1000 + FIT_EPOCH;
                             }
                             break;
-                        case 0:   // position_lat (sint32 semicircles)
+                        case 5:
                             if(fSize === 4) {
-                                const v = dv.getInt32(pos, true);
-                                if(v !== 0x7FFFFFFF) rec.lat = v * (180 / 2147483648);
+                                const v = dv.getUint32(pos, littleEndian);
+                                if(v !== 0xFFFFFFFF) rec.dist = v / 100;
                             }
                             break;
-                        case 1:   // position_long (sint32 semicircles)
-                            if(fSize === 4) {
-                                const v = dv.getInt32(pos, true);
-                                if(v !== 0x7FFFFFFF) rec.lon = v * (180 / 2147483648);
-                            }
-                            break;
-                        case 5:   // distance (uint32, cm)
-                            if(fSize === 4) {
-                                const v = dv.getUint32(pos, true);
-                                if(v !== 0xFFFFFFFF) rec.dist = v / 100; // metres
-                            }
-                            break;
-                        case 6:   // speed (uint16, mm/s)
+                        case 6:
                             if(fSize === 2) {
-                                const v = dv.getUint16(pos, true);
-                                if(v !== 0xFFFF) rec.speed = v * 3.6 / 1000; // km/h
+                                const v = dv.getUint16(pos, littleEndian);
+                                if(v !== 0xFFFF) rec.speed = v * 3.6 / 1000;
                             }
                             break;
-                        case 3:   // heart_rate (uint8, bpm)
+                        case 3:
                             if(fSize === 1) {
                                 const v = bytes[pos];
                                 if(v !== 0xFF && v > 0) rec.hr = v;
                             }
                             break;
-                        case 4:   // cadence (uint8, rpm — multiply by 2 for spm)
+                        case 4:
                             if(fSize === 1) {
                                 const v = bytes[pos];
                                 if(v !== 0xFF) rec.cad = v * 2;
                             }
                             break;
-                        case 7:   // power (uint16, watts)
+                        case 7:
                             if(fSize === 2) {
-                                const v = dv.getUint16(pos, true);
+                                const v = dv.getUint16(pos, littleEndian);
                                 if(v !== 0xFFFF) rec.power = v;
                             }
                             break;
@@ -314,71 +275,56 @@ function parseFIT(buffer) {
                 }
                 if(Object.keys(rec).length > 0) records.push(rec);
             }
-
-            pos = start + defn.size; // always advance by the full definition size
+            pos = start + defn.size;
         }
     }
 
-    if(records.length < 2) return { error: 'Nessun dato di attività trovato nel file FIT' };
+    if(records.length < 2) return { error: 'Nessun dato trovato nel file FIT' };
 
-    // Compute summary stats from records
     const withTs    = records.filter(r => r.ts);
     const firstTs   = withTs[0]?.ts;
     const lastTs    = withTs[withTs.length-1]?.ts;
     const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
 
-    // Distance: prefer device-recorded value (last dist record) over GPS calculation
     const withDist  = records.filter(r => r.dist != null);
     const distM     = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
     const distKm    = distM / 1000;
 
-    if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
+    if(distKm < 0.1) return { error: `Distanza breve: ${distKm.toFixed(2)} km` };
 
     const withHr  = records.filter(r => r.hr && r.hr > 30 && r.hr < 250);
-    const avgHr   = withHr.length
-        ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+    const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
 
     const withCad = records.filter(r => r.cad != null && r.cad > 0);
-    const avgCad  = withCad.length
-        ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+    const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
 
     const withPow = records.filter(r => r.power != null && r.power > 0);
-    const avgPow  = withPow.length
-        ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+    const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
-    let vo2 = null;
-    if(avgHr && durationSec > 0) {
-        const speedKmH = distKm / (durationSec / 3600);
-        vo2 = Number(Math.min(75, Math.max(30, (speedKmH * 3.5) * (150 / avgHr))).toFixed(1));
-    }
+    // Calcolo del passo al chilometro in secondi/km reali per l'attività corrente
+    const rawPaceSec = durationSec > 0 && distKm > 0 ? (durationSec / distKm) : 0;
 
-    const dateStr = firstTs
-        ? new Date(firstTs).toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+    const dateStr = firstTs ? new Date(firstTs).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
     return {
         date: dateStr,
         distance: Number(distKm.toFixed(2)),
         duration: secondsToTime(durationSec),
         durationSec,
+        paceSec: rawPaceSec,
         hr:    avgHr,
         cad:   avgCad,
         power: avgPow,
-        vo2,
-        hrCount: withHr.length,
         source: 'FIT'
     };
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   GPX PARSER (namespace-safe, kept as fallback for .gpx files)
-═══════════════════════════════════════════════════════════════════ */
 function parseFallbackGPX(xmlText, fileName) {
     const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
     if(doc.querySelector('parsererror')) return { error: 'XML non valido: ' + fileName };
 
     const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
-    if(trkpts.length < 2) return { error: 'Meno di 2 trackpoint: ' + fileName };
+    if(trkpts.length < 2) return { error: 'Tracciato vuoto: ' + fileName };
 
     let totalDist = 0, hrSum = 0, hrCount = 0;
     let firstTime = null, lastTime = null;
@@ -404,59 +350,41 @@ function parseFallbackGPX(xmlText, fileName) {
     }
 
     const distKm = totalDist / 1000;
-    if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
+    if(distKm < 0.1) return { error: `Distanza breve: ${distKm.toFixed(2)} km` };
 
-    const durationSec = (firstTime && lastTime)
-        ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
+    const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
     const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
-
-    let vo2 = null;
-    if(avgHr && durationSec > 0) {
-        const speedKmH = distKm / (durationSec / 3600);
-        vo2 = Number(Math.min(75, Math.max(30, (speedKmH * 3.5) * (150 / avgHr))).toFixed(1));
-    }
+    const rawPaceSec = durationSec > 0 && distKm > 0 ? (durationSec / distKm) : 0;
 
     return {
         date: firstTime ? firstTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         distance: Number(distKm.toFixed(2)),
         duration: secondsToTime(durationSec),
         durationSec,
+        paceSec: rawPaceSec,
         hr: avgHr,
         cad: null,
         power: null,
-        vo2,
-        hrCount,
         source: 'GPX'
     };
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371e3, r = x => x * Math.PI / 180;
-    const a = Math.sin(r(lat2-lat1)/2)**2 +
-              Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
+    const a = Math.sin(r(lat2-lat1)/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   GOOGLE DRIVE INTEGRATION
-═══════════════════════════════════════════════════════════════════ */
 const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
 const SCOPES    = 'https://www.googleapis.com/auth/drive.readonly';
 const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
-let tokenClient, chart;
+let tokenClient, chart, zonesChartInstance;
 
 function gapiLoaded(){ gapi.load('client', async () => {
-    await gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-    });
+    await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
 }); }
-function gisLoaded(){
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID, scope: SCOPES, callback: ''
-    });
-}
+function gisLoaded(){ tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' }); }
 function handleAuthClick(){
     tokenClient.callback = async (resp) => {
         if(resp.error) throw resp;
@@ -480,12 +408,10 @@ async function listFiles(){
     document.getElementById('parseLog').innerText = '';
 
     try{
-        // Query both .fit and .gpx files
         const resp = await gapi.client.drive.files.list({
             pageSize: 200,
             q: `'${FOLDER_ID}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-            fields: 'files(id,name)',
-            orderBy: 'name'
+            fields: 'files(id,name)', orderBy: 'name'
         });
         const files = resp.result.files || [];
 
@@ -505,10 +431,7 @@ async function listFiles(){
             if(!isFit && !isGpx) continue;
 
             try{
-                const r = await fetch(
-                    `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
-                    { headers: { Authorization: 'Bearer ' + token } }
-                );
+                const r = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
                 if(!r.ok){ warnings.push(`⚠ ${file.name}: HTTP ${r.status}`); continue; }
 
                 let parsed;
@@ -523,88 +446,76 @@ async function listFiles(){
                 if(parsed.error){ warnings.push('⚠ ' + parsed.error); continue; }
 
                 parsed.shoe = extractShoeName(file.name);
-                if(!parsed.hr) warnings.push(`ℹ ${file.name}: nessun dato HR`);
                 runs.push(parsed);
-
             } catch(e){
                 warnings.push(`⚠ ${file.name}: ${e.message}`);
-                console.error(file.name, e);
             }
         }
 
-        if(warnings.length)
-            document.getElementById('parseLog').innerHTML =
-                warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
-
-        if(!runs.length){
-            st.innerText = 'Nessun file valido trovato.';
-            setEmptyTable(); return;
-        }
+        if(warnings.length) document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
+        if(!runs.length){ st.innerText = 'Nessun file valido trovato.'; setEmptyTable(); return; }
 
         renderDashboard(runs);
-        const fitCount = runs.filter(r=>r.source==='FIT').length;
-        const gpxCount = runs.filter(r=>r.source==='GPX').length;
-        st.innerText = `${runs.length} attività caricate ✓  (${fitCount} FIT · ${gpxCount} GPX)`;
+        st.innerText = `${runs.length} attività caricate ✓ (${runs.filter(r=>r.source==='FIT').length} FIT · ${runs.filter(r=>r.source==='GPX').length} GPX)`;
         st.style.color = '#22c55e';
-
     } catch(err){
-        console.error(err);
         st.innerText = 'Errore: ' + (err.message || JSON.stringify(err));
         st.style.color = 'var(--red)';
     }
 }
 
 function setEmptyTable(){
-    document.getElementById('runsTable').innerHTML =
-        `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px;">
-            Nessun file valido trovato nella cartella.</td></tr>`;
+    document.getElementById('runsTable').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">Nessun file valido trovato.</td></tr>`;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RENDER
-═══════════════════════════════════════════════════════════════════ */
 function renderDashboard(data){
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    const totalKm   = data.reduce((s,r) => s + r.distance, 0);
-    const withVo2   = data.filter(r => r.vo2 !== null);
-    const avgVo2    = withVo2.length
-        ? (withVo2.reduce((s,r) => s+r.vo2, 0) / withVo2.length).toFixed(1) : null;
-    const withHr    = data.filter(r => r.hr !== null);
-    const avgHrAll  = withHr.length
-        ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : 0;
-    const load      = Math.round(totalKm * 1.6 + avgHrAll * 0.2);
-    const readiness = avgVo2 ? Math.min(99, Math.round(avgVo2 * 1.9)) : null;
+    const totalKm = data.reduce((s,r) => s + r.distance, 0);
+    const totalSec = data.reduce((s,r) => s + r.durationSec, 0);
+    
+    // Calcolo Ritmo Medio Globale ponderato sui KM percorsi
+    const globalAvgPaceSec = totalKm > 0 ? (totalSec / totalKm) : 0;
+    
+    const withHr = data.filter(r => r.hr !== null);
+    const avgHrAll = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : 0;
+    const load = Math.round(totalKm * 1.6 + avgHrAll * 0.2);
 
-    document.getElementById('monthlyKm').innerText      = totalKm.toFixed(1) + ' km';
-    document.getElementById('vo2Value').innerText       = avgVo2 ?? 'N/D';
-    document.getElementById('loadValue').innerText      = load;
-    document.getElementById('readinessValue').innerText = readiness ? readiness + '%' : 'N/D';
+    // Calcolo della deviazione standard del ritmo per stimare la regolarità (Consistency)
+    let consistency = "N/D";
+    if(data.length > 1) {
+        const variances = data.map(r => Math.pow(r.paceSec - globalAvgPaceSec, 2));
+        const stdDev = Math.sqrt(variances.reduce((s,v)=>s+v, 0) / data.length);
+        const score = Math.max(50, Math.min(99, Math.round(100 - (stdDev / 10))));
+        consistency = score + "%";
+    }
+
+    document.getElementById('monthlyKm').innerText = totalKm.toFixed(1) + ' km';
+    document.getElementById('avgPaceValue').innerText = globalAvgPaceSec > 0 ? formatPaceFromSec(globalAvgPaceSec) : '—';
+    document.getElementById('loadValue').innerText = load;
+    document.getElementById('consistencyValue').innerText = consistency;
 
     renderTable(data);
     renderShoes(data);
-    renderAdvisor(data, avgVo2);
-    renderChart(data);
+    renderPaceIntelligence(data, globalAvgPaceSec);
+    renderCharts(data);
 }
 
 function renderTable(data){
     const tbody = document.getElementById('runsTable');
     tbody.innerHTML = '';
     data.forEach(r => {
-        const pace = r.durationSec > 0 && r.distance > 0 ? paceStr(r.durationSec, r.distance) : '—';
-        const srcBadge = r.source === 'FIT'
-            ? `<span class="badge badge-fit">FIT</span>`
-            : `<span class="badge badge-gpx">GPX</span>`;
+        const pace = r.paceSec > 0 ? formatPaceFromSec(r.paceSec) : '—';
+        const srcBadge = r.source === 'FIT' ? `<span class="badge badge-fit">FIT</span>` : `<span class="badge badge-gpx">GPX</span>`;
         tbody.innerHTML += `
         <tr>
             <td>${r.date}</td>
             <td><b>${r.distance} km</b></td>
             <td>${r.duration}</td>
-            <td>${pace}</td>
+            <td><b>${pace} /km</b></td>
             <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
             <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
             <td>${r.power !== null ? r.power + ' W' : nd()}</td>
-            <td>${r.vo2 !== null ? r.vo2 : nd()}</td>
             <td><span class="badge">${r.shoe}</span></td>
             <td>${srcBadge}</td>
         </tr>`;
@@ -616,91 +527,144 @@ function nd(){ return `<span style="color:var(--muted)">N/D</span>`; }
 function renderShoes(data){
     const shoes = {};
     data.forEach(r => {
-        if(!shoes[r.shoe]) shoes[r.shoe] = { km:0, hrSum:0, hrCount:0 };
+        if(!shoes[r.shoe]) shoes[r.shoe] = { km:0 };
         shoes[r.shoe].km += r.distance;
-        if(r.hr){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
     });
     let html = '';
     for(const [name,s] of Object.entries(shoes)){
         const wear = Math.min(100, (s.km/500)*100);
-        const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
         html += `
         <div class="shoe-card">
-            <div class="shoe-header"><strong>👟 ${name}</strong><span>${s.km.toFixed(1)} km</span></div>
-            <div style="font-size:13px;color:var(--muted)">BPM medio: ${bpm ?? 'N/D'}</div>
+            <div class="shoe-header"><strong>¼ ${name}</strong><span>${s.km.toFixed(1)} km</span></div>
             <div class="bar"><div class="fill" style="width:${wear}%"></div></div>
             <div style="margin-top:6px;font-size:12px;color:var(--muted)">Usura stimata ${wear.toFixed(0)}% (su 500 km)</div>
         </div>`;
     }
-    document.getElementById('shoeContainer').innerHTML = html ||
-        '<p style="color:var(--muted);font-size:14px;">Nessuna scarpa rilevata.</p>';
+    document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:14px;">Nessuna scarpa rilevata.</p>';
 }
 
-function renderAdvisor(data, avgVo2){
+function renderPaceIntelligence(data, globalAvgPaceSec){
     const box = document.getElementById('advisorBox');
-    if(!avgVo2){
-        box.innerHTML = '<p style="color:var(--muted)">Nessun dato HR disponibile — impossibile calcolare VO2 Max.</p>';
+    if(!globalAvgPaceSec || data.length === 0){
+        box.innerHTML = '<p style="color:var(--muted)">In attesa di dati per calcolare l\'analisi dei ritmi.</p>';
         return;
     }
-    const vo2 = parseFloat(avgVo2);
-    const sPerKm  = 315 - (vo2 - 42) * 5;
-    const totSec  = sPerKm * 42.195;
-    const h  = Math.floor(totSec/3600);
-    const m  = Math.floor((totSec%3600)/60);
-    const pM = Math.floor(sPerKm/60);
-    const pS = Math.round(sPerKm%60).toString().padStart(2,'0');
 
-    // best cadence and power from FIT files only
-    const fitRuns = data.filter(r=>r.source==='FIT' && r.cad);
-    const avgCad  = fitRuns.length
-        ? Math.round(fitRuns.reduce((s,r)=>s+r.cad,0)/fitRuns.length) : null;
-    const fitPow  = data.filter(r=>r.source==='FIT' && r.power);
-    const avgPow  = fitPow.length
-        ? Math.round(fitPow.reduce((s,r)=>s+r.power,0)/fitPow.length) : null;
+    // Estrazione del passo migliore assoluto salvato nelle corse (con distanza > 2km per evitare anomalie di GPS e scatti isolati)
+    const validRuns = data.filter(r => r.distance > 2);
+    const bestPaceSec = validRuns.length ? Math.min(...validRuns.map(r => r.paceSec)) : globalAvgPaceSec;
+
+    // Calcolo tempi proiettati sulle distanze standard partendo dal tuo ritmo medio registrato
+    const halfTimeSec = globalAvgPaceSec * 21.0975;
+    const marathonTimeSec = (globalAvgPaceSec * 1.06) * 42.195; // Incremento prudenziale del 6% per fatica su distanza doppia
+
+    const hH = Math.floor(halfTimeSec/3600), hM = Math.floor((halfTimeSec%3600)/60);
+    const mH = Math.floor(maratonaTimeSec/3600), mM = Math.floor((maratonaTimeSec%3600)/60);
 
     box.innerHTML = `
-        <p><b>VO2 Max medio:</b> ${avgVo2}</p>
-        <p><b>Maratona stimata:</b> ${h}h ${m}m &nbsp;·&nbsp; Ritmo: ${pM}:${pS} /km</p>
-        ${avgCad ? `<p><b>Cadenza media (FIT):</b> ${avgCad} spm</p>` : ''}
-        ${avgPow ? `<p><b>Potenza media (FIT):</b> ${avgPow} W</p>` : ''}
-        <p style="color:#93c5fd;margin-top:10px;font-size:13px;">
-            Basato esclusivamente su dati reali. Cadenza e potenza solo da file FIT.
+        <p><b>Miglior Ritmo registrato (su uscite >2km):</b> ${formatPaceFromSec(bestPaceSec)} /km</p>
+        <p><b>Proiezione Mezza Maratona (21.097 km):</b> ${hH}h ${hM}m (a ${formatPaceFromSec(globalAvgPaceSec)} /km)</p>
+        <p><b>Proiezione Maratona (42.195 km):</b> ${mH}h ${mM}m (passo stimato: ${formatPaceFromSec(globalAvgPaceSec * 1.06)} /km)</p>
+        <p style="color:#38bdf8;margin-top:10px;font-size:13px;">
+            *Le proiezioni si basano sulla media matematica del carico e dei ritmi estratti dai tuoi file reali.
         </p>`;
 }
 
-function renderChart(data){
+function renderCharts(data){
     if(chart) chart.destroy();
-    const ctx    = document.getElementById('performanceChart').getContext('2d');
+    if(zonesChartInstance) zonesChartInstance.destroy();
+
+    const ctx = document.getElementById('performanceChart').getContext('2d');
     const sorted = [...data].sort((a,b) => new Date(a.date)-new Date(b.date));
+
+    // Grafico 1: Carico vs Ritmo Medio
     chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: sorted.map(r => r.date),
             datasets: [
-                { label:'VO2 Max',    data: sorted.map(r=>r.vo2),  borderColor:'#38bdf8', spanGaps:true, tension:0.35, yAxisID:'yVo2' },
-                { label:'BPM Medi',   data: sorted.map(r=>r.hr),   borderColor:'#ef4444', spanGaps:true, tension:0.35, yAxisID:'yBpm' },
-                { label:'Km',         data: sorted.map(r=>r.distance), borderColor:'#22c55e', tension:0.35, yAxisID:'yDist' },
-                { label:'Potenza (W)',data: sorted.map(r=>r.power), borderColor:'#fb923c', spanGaps:true, tension:0.35, yAxisID:'yBpm', borderDash:[4,4] }
+                { label:'Carico Allenamento', data: sorted.map(r => Math.round(r.distance * 1.6 + (r.hr || 140) * 0.2)), borderColor:'#38bdf8', tension:0.3, yAxisID:'yLoad' },
+                { 
+                    label:'Ritmo Medio (min/km)', 
+                    data: sorted.map(r => (r.paceSec / 60)), // Convertito in formato decimale per asse Y grafico
+                    borderColor:'#fb923c', tension:0.3, yAxisID:'yPace' 
+                }
             ]
         },
         options:{
             responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ labels:{ color:'#f8fafc' } } },
+            plugins:{ 
+                legend:{ labels:{ color:'#f8fafc' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.datasetIndex === 1) {
+                                let totalSecs = context.raw * 60;
+                                let mins = Math.floor(totalSecs / 60);
+                                let secs = Math.round(totalSecs % 60).toString().padStart(2, '0');
+                                return `Ritmo Medio: ${mins}:${secs} /km`;
+                            }
+                            return `${context.dataset.label}: ${context.raw}`;
+                        }
+                    }
+                }
+            },
             scales:{
-                x:    { ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.05)'} },
-                yVo2: { type:'linear', position:'left',  ticks:{color:'#38bdf8'}, grid:{color:'rgba(255,255,255,0.05)'} },
-                yBpm: { type:'linear', position:'right', ticks:{color:'#ef4444'}, grid:{drawOnChartArea:false} },
-                yDist:{ type:'linear', position:'right', ticks:{color:'#22c55e'}, grid:{drawOnChartArea:false}, display:false }
+                x: { ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.05)'} },
+                yLoad: { type:'linear', position:'left', ticks:{color:'#38bdf8'}, grid:{color:'rgba(255,255,255,0.05)'} },
+                yPace: { 
+                    type:'linear', position:'right', ticks:{
+                        color:'#fb923c',
+                        callback: function(value) {
+                            let mins = Math.floor(value);
+                            let secs = Math.round((value - mins) * 60).toString().padStart(2, '0');
+                            return `${mins}:${secs}`;
+                        }
+                    }, 
+                    grid:{drawOnChartArea:false} 
+                }
+            }
+        }
+    });
+
+    // Grafico 2: Calcolo della distribuzione reale dei chilometri percorsi nelle zone di ritmo
+    let zones = { veloce: 0, medioVeloce: 0, fondoMedio: 0, rigenerante: 0 };
+    data.forEach(r => {
+        if(r.paceSec < 270) zones.veloce += r.distance;         // Sotto i 4:30 min/km
+        else if(r.paceSec < 290) zones.medioVeloce += r.distance; // Tra 4:30 e 4:50 min/km
+        else if(r.paceSec < 325) zones.fondoMedio += r.distance;  // Tra 4:50 e 5:25 min/km
+        else zones.rigenerante += r.distance;                    // Sopra i 5:25 min/km
+    });
+
+    const ctxZones = document.getElementById('zonesChart').getContext('2d');
+    zonesChartInstance = new Chart(ctxZones, {
+        type: 'bar',
+        data: {
+            labels: ['Veloce (<4:30)', 'Medio-Veloce (4:30-4:50)', 'Fondo Medio (4:55-5:25)', 'Rigenerante (>5:25)'],
+            datasets: [{
+                label: 'Km totali trascorsi nella zona',
+                data: [zones.veloce.toFixed(1), zones.medioVeloce.toFixed(1), zones.fondoMedio.toFixed(1), zones.rigenerante.toFixed(1)],
+                backgroundColor: ['#ef4444', '#fb923c', '#22c55e', '#38bdf8'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#f8fafc' }, grid: { display: false } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
     });
 }
 
-/* ── Utils ── */
-function paceStr(sec, km){
-    const p = sec/km;
-    return `${Math.floor(p/60)}:${Math.round(p%60).toString().padStart(2,'0')} /km`;
+function formatPaceFromSec(totalSecs){
+    const mins = Math.floor(totalSecs / 60);
+    const secs = Math.round(totalSecs % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
 }
+
 function secondsToTime(s){
     const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=Math.floor(s%60);
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
