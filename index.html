@@ -234,7 +234,7 @@ td{
     <div class="header">
         <div class="title">
             <h1>RunnerOS Elite</h1>
-            <p>Advanced Running Intelligence Platform (Real GPX Engine)</p>
+            <p>Advanced Running Intelligence Platform (100% Real GPX Engine)</p>
         </div>
 
         <div class="actions">
@@ -366,12 +366,11 @@ function handleAuthClick(){
 
 function extractShoeName(fileName){
     const matches = fileName.match(/\[(.*?)\]/);
-    return (matches && matches[1]) ? matches[1].trim() : 'Generica';
+    return (matches && matches[1]) ? matches[1].trim() : 'Nessuna scarpa indicata';
 }
 
-// Calcolo distanza reale tra coordinate GPS (Formula di Haversine)
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Raggio della terra in metri
+    const R = 6371e3; 
     const phi1 = lat1 * Math.PI/180;
     const phi2 = lat2 * Math.PI/180;
     const deltaPhi = (lat2-lat1) * Math.PI/180;
@@ -379,7 +378,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
               Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // in metri
+    return R * c; 
 }
 
 async function parseGPX(xmlText) {
@@ -394,7 +393,6 @@ async function parseGPX(xmlText) {
     let hrCount = 0;
 
     for (let i = 0; i < trackpoints.length; i++) {
-        // Calcolo distanza progressiva
         if (i > 0) {
             const lat1 = parseFloat(trackpoints[i-1].getAttribute("lat"));
             const lon1 = parseFloat(trackpoints[i-1].getAttribute("lon"));
@@ -402,7 +400,6 @@ async function parseGPX(xmlText) {
             const lon2 = parseFloat(trackpoints[i].getAttribute("lon"));
             totalDistanceMeters += calculateDistance(lat1, lon1, lat2, lon2);
         }
-        // Estrazione Cardio (compatibile con Garmin e Apple Watch Extensions)
         const hrTags = trackpoints[i].getElementsByTagName("hr");
         if(hrTags.length > 0) {
             totalHeartRate += parseInt(hrTags[0].textContent);
@@ -416,12 +413,10 @@ async function parseGPX(xmlText) {
         }
     }
 
-    // Calcolo tempi d'esecuzione veri
     const timeTags = xmlDoc.getElementsByTagName("time");
     let durationSeconds = 0;
     let dateStr = new Date().toISOString().split('T')[0];
     if (timeTags.length >= 2) {
-        // Troviamo il primo e l'ultimo tag temporale all'interno dei trkpt
         const firstTime = new Date(trackpoints[0].getElementsByTagName("time")[0]?.textContent || timeTags[0].textContent);
         const lastTime = new Date(trackpoints[trackpoints.length-1].getElementsByTagName("time")[0]?.textContent || timeTags[timeTags.length-1].textContent);
         durationSeconds = Math.max(0, (lastTime - firstTime) / 1000);
@@ -429,9 +424,9 @@ async function parseGPX(xmlText) {
     }
 
     const distanceKm = totalDistanceMeters / 1000;
-    const avgHr = hrCount > 0 ? Math.round(totalHeartRate / hrCount) : 150;
+    if(distanceKm <= 0.05 || durationSeconds <= 10) return null; // Salta file corrotti o di test vuoti
 
-    // Calcolo Fisiologico del VO2 Max stimato basato sul rapporto Passo/Cardio
+    const avgHr = hrCount > 0 ? Math.round(totalHeartRate / hrCount) : 150;
     const paceMinPerKm = (durationSeconds / 60) / distanceKm;
     const speedKmH = 60 / paceMinPerKm;
     const vo2Estimated = (speedKmH * 3.5) * (150 / avgHr);
@@ -449,10 +444,9 @@ async function parseGPX(xmlText) {
 async function listFiles(){
     document.getElementById('status-text').innerText = 'Lettura file reali su Drive...';
     try{
-        // Chiediamo a Google di elencarci l'id e il nome dei file .gpx
         const response = await gapi.client.drive.files.list({
             pageSize: 50,
-            q: "name contains '.gpx'",
+            q: "name contains '.gpx' and trashed = false",
             fields: 'files(id,name,createdTime)'
         });
 
@@ -465,7 +459,6 @@ async function listFiles(){
 
         let runs = [];
         
-        // Scarichiamo e analizziamo il contenuto XML interno di ciascun file trovato
         for (let file of files) {
             try {
                 const fileData = await gapi.client.drive.files.get({
@@ -479,12 +472,13 @@ async function listFiles(){
                     runs.push(parsed);
                 }
             } catch(e) {
-                console.error("Errore nel parsing del file singolo: " + file.name, e);
+                console.error("Errore nel parsing del file: " + file.name, e);
             }
         }
 
         if(runs.length === 0) {
-            document.getElementById('status-text').innerText = 'I file GPX su Drive non contengono tracce valide.';
+            document.getElementById('runsTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">I file GPX trovati non contengono tracce valide.</td></tr>`;
+            document.getElementById('status-text').innerText = 'Nessuna traccia valida rilevata.';
             return;
         }
 
