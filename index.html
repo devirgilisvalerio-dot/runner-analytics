@@ -556,10 +556,10 @@ function renderPaceIntelligence(data, globalAvgPaceSec){
 
     // Calcolo tempi proiettati sulle distanze standard partendo dal tuo ritmo medio registrato
     const halfTimeSec = globalAvgPaceSec * 21.0975;
-    const marathonTimeSec = (globalAvgPaceSec * 1.06) * 42.195; // Incremento prudenziale del 6% per fatica su distanza doppia
+    const marathonTimeSec = (globalAvgPaceSec * 1.06) * 42.195;
 
     const hH = Math.floor(halfTimeSec/3600), hM = Math.floor((halfTimeSec%3600)/60);
-    const mH = Math.floor(maratonaTimeSec/3600), mM = Math.floor((maratonaTimeSec%3600)/60);
+    const mH = Math.floor(marathonTimeSec/3600), mM = Math.floor((marathonTimeSec%3600)/60);
 
     box.innerHTML = `
         <p><b>Miglior Ritmo registrato (su uscite >2km):</b> ${formatPaceFromSec(bestPaceSec)} /km</p>
