@@ -4,9 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RunnerOS Elite</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 :root{
     --bg:#0f172a;
@@ -20,25 +18,14 @@
     --red:#ef4444;
     --border:#334155;
 }
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
+*{ margin:0; padding:0; box-sizing:border-box; }
 body{
     background:linear-gradient(to bottom,#020617,#0f172a);
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,sans-serif;
     padding:20px;
 }
-
-.container{
-    max-width:1500px;
-    margin:auto;
-}
-
+.container{ max-width:1500px; margin:auto; }
 .header{
     display:flex;
     justify-content:space-between;
@@ -47,22 +34,9 @@ body{
     flex-wrap:wrap;
     gap:15px;
 }
-
-.title h1{
-    font-size:34px;
-    font-weight:800;
-}
-
-.title p{
-    color:var(--muted);
-    margin-top:5px;
-}
-
-.actions{
-    display:flex;
-    gap:10px;
-}
-
+.title h1{ font-size:34px; font-weight:800; }
+.title p{ color:var(--muted); margin-top:5px; }
+.actions{ display:flex; gap:10px; }
 .btn{
     border:none;
     padding:12px 18px;
@@ -72,27 +46,15 @@ body{
     color:white;
     transition:0.2s;
 }
-
-.btn:hover{
-    transform:translateY(-1px);
-    opacity:0.95;
-}
-
-.primary{
-    background:var(--accent);
-}
-
-.success{
-    background:var(--green);
-}
-
+.btn:hover{ transform:translateY(-1px); opacity:0.95; }
+.primary{ background:var(--accent); }
+.success{ background:var(--green); }
 .stats-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:20px;
     margin-bottom:25px;
 }
-
 .stat-card{
     background:rgba(17,24,39,0.8);
     border:1px solid var(--border);
@@ -100,30 +62,14 @@ body{
     padding:22px;
     backdrop-filter:blur(12px);
 }
-
-.stat-title{
-    color:var(--muted);
-    font-size:14px;
-    margin-bottom:10px;
-}
-
-.stat-value{
-    font-size:32px;
-    font-weight:800;
-}
-
-.stat-sub{
-    margin-top:8px;
-    color:var(--green);
-    font-size:13px;
-}
-
+.stat-title{ color:var(--muted); font-size:14px; margin-bottom:10px; }
+.stat-value{ font-size:32px; font-weight:800; }
+.stat-sub{ margin-top:8px; color:var(--green); font-size:13px; }
 .main-grid{
     display:grid;
     grid-template-columns:1.2fr 2fr;
     gap:20px;
 }
-
 .card{
     background:rgba(17,24,39,0.82);
     border:1px solid var(--border);
@@ -132,65 +78,25 @@ body{
     margin-bottom:20px;
     backdrop-filter:blur(10px);
 }
-
-.card h3{
-    margin-bottom:18px;
-    font-size:20px;
-}
-
-.status{
-    font-weight:700;
-    color:var(--orange);
-}
-
+.card h3{ margin-bottom:18px; font-size:20px; }
+.status{ font-weight:700; color:var(--orange); }
 .shoe-card{
     background:var(--card2);
     border-radius:14px;
     padding:14px;
     margin-bottom:12px;
 }
-
 .shoe-header{
     display:flex;
     justify-content:space-between;
     margin-bottom:8px;
 }
-
-.bar{
-    height:8px;
-    background:#1e293b;
-    border-radius:999px;
-    overflow:hidden;
-    margin-top:8px;
-}
-
-.fill{
-    height:100%;
-    background:linear-gradient(to right,var(--green),var(--orange));
-}
-
-.table-wrapper{
-    overflow:auto;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th{
-    text-align:left;
-    color:var(--muted);
-    font-size:13px;
-    padding-bottom:12px;
-}
-
-td{
-    padding:14px 0;
-    border-top:1px solid rgba(255,255,255,0.05);
-    font-size:14px;
-}
-
+.bar{ height:8px; background:#1e293b; border-radius:999px; overflow:hidden; margin-top:8px; }
+.fill{ height:100%; background:linear-gradient(to right,var(--green),var(--orange)); }
+.table-wrapper{ overflow:auto; }
+table{ width:100%; border-collapse:collapse; }
+th{ text-align:left; color:var(--muted); font-size:13px; padding-bottom:12px; }
+td{ padding:14px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px; }
 .badge{
     background:#0ea5e920;
     color:#7dd3fc;
@@ -199,44 +105,25 @@ td{
     font-size:12px;
     font-weight:700;
 }
-
 .advisor{
     background:linear-gradient(135deg,#0f172a,#1e293b);
     border:1px solid #1d4ed8;
 }
-
-.advisor p{
-    margin-bottom:10px;
-    line-height:1.5;
-}
-
-.chart-box{
-    height:350px;
-}
-
-.footer{
-    margin-top:25px;
-    text-align:center;
-    color:var(--muted);
-    font-size:13px;
-}
-
-@media(max-width:1100px){
-    .main-grid{ grid-template-columns:1fr; }
-}
+.advisor p{ margin-bottom:10px; line-height:1.5; }
+.chart-box{ height:350px; }
+.footer{ margin-top:25px; text-align:center; color:var(--muted); font-size:13px; }
+.warn{ color:var(--orange); font-size:12px; margin-top:6px; }
+@media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
 </style>
 </head>
-
 <body>
-
 <div class="container">
 
     <div class="header">
         <div class="title">
             <h1>RunnerOS Elite</h1>
-            <p>Advanced Running Intelligence Platform (Target Folder Engine)</p>
+            <p>Advanced Running Intelligence Platform</p>
         </div>
-
         <div class="actions">
             <button id="auth-btn" class="btn primary" onclick="handleAuthClick()">Accedi con Google</button>
             <button id="sync-btn" class="btn success" style="display:none;" onclick="listFiles()">Sincronizza Drive</button>
@@ -246,25 +133,22 @@ td{
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-title">KM Totali Rilevati</div>
-            <div class="stat-value" id="monthlyKm">0</div>
-            <div class="stat-sub" style="color:var(--green)">Dati reali estratti</div>
+            <div class="stat-value" id="monthlyKm">—</div>
+            <div class="stat-sub">Dati reali estratti</div>
         </div>
-
         <div class="stat-card">
-            <div class="stat-title">Max VO2 Stimato</div>
-            <div class="stat-value" id="vo2Value">0</div>
-            <div class="stat-sub" style="color:var(--green)">Calcolo fisiologico attivo</div>
+            <div class="stat-title">VO2 Max Stimato</div>
+            <div class="stat-value" id="vo2Value">—</div>
+            <div class="stat-sub">Calcolo fisiologico attivo</div>
         </div>
-
         <div class="stat-card">
-            <div class="stat-title">Training Load (Sforzo)</div>
-            <div class="stat-value" id="loadValue">0</div>
+            <div class="stat-title">Training Load</div>
+            <div class="stat-value" id="loadValue">—</div>
             <div class="stat-sub" style="color:var(--accent)">Basato su Km e BPM</div>
         </div>
-
         <div class="stat-card">
             <div class="stat-title">Race Readiness</div>
-            <div class="stat-value" id="readinessValue">0%</div>
+            <div class="stat-value" id="readinessValue">—</div>
             <div class="stat-sub" style="color:var(--orange)">Indice efficienza</div>
         </div>
     </div>
@@ -275,14 +159,14 @@ td{
                 <h3>Connessione</h3>
                 <p id="status-text" class="status">Non connesso</p>
                 <div style="margin-top:14px;color:var(--muted);font-size:14px;">
-                    Sincronizzazione bloccata sulla cartella dedicata.<br>Rinomina i file come <b>Corsa_[Nome Scarpa].gpx</b>.
+                    Legge i file <b>.gpx</b> dalla cartella Drive dedicata.<br>
+                    Per attribuire la scarpa: rinomina come <b>Corsa_[NomeScarpa].gpx</b>
                 </div>
             </div>
-
             <div class="card">
                 <h3>Rotazione Scarpe</h3>
                 <div id="shoeContainer">
-                    <p style="color:var(--muted); font-size:14px;">Sincronizza per analizzare l'usura reale delle scarpe.</p>
+                    <p style="color:var(--muted);font-size:14px;">Sincronizza per analizzare l'usura reale.</p>
                 </div>
             </div>
         </div>
@@ -290,9 +174,8 @@ td{
         <div>
             <div class="card advisor">
                 <h3>AI Marathon Advisor</h3>
-                <div id="advisorBox">Connetti Google Drive per analizzare la tua capacità cardiopolmonare sui file reali.</div>
+                <div id="advisorBox">Connetti Google Drive per analizzare i tuoi file GPX reali.</div>
             </div>
-
             <div class="card">
                 <h3>Trend Performance</h3>
                 <div class="chart-box">
@@ -304,6 +187,7 @@ td{
 
     <div class="card">
         <h3>Storico Allenamenti Reali</h3>
+        <div id="parseLog" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -319,7 +203,9 @@ td{
                 </thead>
                 <tbody id="runsTable">
                     <tr>
-                        <td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">Nessuna attività caricata. Connetti Drive per iniziare.</td>
+                        <td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">
+                            Nessuna attività caricata. Connetti Drive per iniziare.
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -327,204 +213,298 @@ td{
     </div>
 
     <div class="footer">RunnerOS Elite • Real-Time Performance Analytics Engine</div>
-
 </div>
 
 <script>
-const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
-const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
-const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3'; // La tua cartella specifica
+const CLIENT_ID  = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
+const API_KEY    = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
+const SCOPES     = 'https://www.googleapis.com/auth/drive.readonly';
+const FOLDER_ID  = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
 
-let tokenClient;
-let gapiInited = false;
-let gsiInited = false;
-let chart;
+let tokenClient, chart;
+let gapiInited = false, gsiInited = false;
 
+/* ── Google API bootstrap ── */
 function gapiLoaded(){ gapi.load('client', initializeGapiClient); }
 async function initializeGapiClient(){
-    await gapi.client.init({ apiKey: API_KEY, discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+    await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    });
     gapiInited = true;
 }
 function gisLoaded(){
-    tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback:'' });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID, scope: SCOPES, callback: ''
+    });
     gsiInited = true;
 }
-
 function handleAuthClick(){
-    tokenClient.callback = async(resp)=>{
-        if(resp.error !== undefined){ throw(resp); }
+    tokenClient.callback = async (resp) => {
+        if(resp.error) throw resp;
         document.getElementById('auth-btn').style.display = 'none';
         document.getElementById('sync-btn').style.display = 'inline-block';
-        const status = document.getElementById('status-text');
-        status.innerText = 'Connesso con successo';
-        status.style.color = '#22c55e';
+        const st = document.getElementById('status-text');
+        st.innerText = 'Connesso ✓';
+        st.style.color = '#22c55e';
         await listFiles();
     };
-    if(gapi.client.getToken() === null){ tokenClient.requestAccessToken({prompt:'consent'}); }
-    else { tokenClient.requestAccessToken({prompt:''}); }
+    const prompt = gapi.client.getToken() === null ? 'consent' : '';
+    tokenClient.requestAccessToken({ prompt });
 }
 
-function extractShoeName(fileName){
-    const matches = fileName.match(/\[(.*?)\]/);
-    return (matches && matches[1]) ? matches[1].trim() : 'Nessuna scarpa indicata';
+/* ── Shoe name from filename ── */
+function extractShoeName(name){
+    const m = name.match(/\[([^\]]+)\]/);
+    return m ? m[1].trim() : 'Sconosciuta';
 }
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; 
-    const phi1 = lat1 * Math.PI/180;
-    const phi2 = lat2 * Math.PI/180;
-    const deltaPhi = (lat2-lat1) * Math.PI/180;
-    const deltaLambda = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
-              Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; 
+/* ── Haversine distance (metres) ── */
+function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371e3, toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-async function parseGPX(xmlText) {
+/* ── Get text content of the FIRST matching element regardless of namespace ──
+   GPX files from Garmin/Strava use namespaced tags like <gpxtpx:hr> or <ns3:hr>.
+   getElementsByTagName only matches exact local names in many parsers, so we
+   must walk the tree and compare localName instead.                           */
+function findFirst(node, localName){
+    if(node.localName === localName) return node;
+    for(const child of node.children){
+        const found = findFirst(child, localName);
+        if(found) return found;
+    }
+    return null;
+}
+function allByLocalName(root, localName){
+    const results = [];
+    const walk = node => {
+        if(node.localName === localName) results.push(node);
+        for(const child of node.children) walk(child);
+    };
+    walk(root);
+    return results;
+}
+
+/* ── Core GPX parser ── */
+async function parseGPX(xmlText, fileName){
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-    const trackpoints = xmlDoc.getElementsByTagName("trkpt");
-    
-    if (trackpoints.length < 2) return null;
+    const doc    = parser.parseFromString(xmlText, 'application/xml');
 
-    let totalDistanceMeters = 0;
-    let totalHeartRate = 0;
-    let hrCount = 0;
+    // Detect parse error
+    const parseErr = doc.querySelector('parsererror');
+    if(parseErr) return { error: 'XML non valido in ' + fileName };
 
-    for (let i = 0; i < trackpoints.length; i++) {
-        if (i > 0) {
-            const lat1 = parseFloat(trackpoints[i-1].getAttribute("lat"));
-            const lon1 = parseFloat(trackpoints[i-1].getAttribute("lon"));
-            const lat2 = parseFloat(trackpoints[i].getAttribute("lat"));
-            const lon2 = parseFloat(trackpoints[i].getAttribute("lon"));
-            totalDistanceMeters += calculateDistance(lat1, lon1, lat2, lon2);
+    const trkpts = allByLocalName(doc.documentElement, 'trkpt');
+    if(trkpts.length < 2) return { error: 'Meno di 2 trackpoint in ' + fileName };
+
+    let totalDist = 0;
+    let hrSum = 0, hrCount = 0;
+    let firstTime = null, lastTime = null;
+
+    for(let i = 0; i < trkpts.length; i++){
+        const pt = trkpts[i];
+        const lat = parseFloat(pt.getAttribute('lat'));
+        const lon = parseFloat(pt.getAttribute('lon'));
+
+        // Distance
+        if(i > 0){
+            const prev = trkpts[i-1];
+            totalDist += haversine(
+                parseFloat(prev.getAttribute('lat')), parseFloat(prev.getAttribute('lon')),
+                lat, lon
+            );
         }
-        const hrTags = trackpoints[i].getElementsByTagName("hr");
-        if(hrTags.length > 0) {
-            totalHeartRate += parseInt(hrTags[0].textContent);
-            hrCount++;
-        } else {
-            const valueTags = trackpoints[i].getElementsByTagName("value");
-            if (valueTags.length > 0) {
-                totalHeartRate += parseInt(valueTags[0].textContent);
-                hrCount++;
+
+        // Heart rate — works with <hr>, <gpxtpx:hr>, <ns3:hr>, <value> etc.
+        const hrNode = findFirst(pt, 'hr') || findFirst(pt, 'value');
+        if(hrNode){
+            const v = parseInt(hrNode.textContent, 10);
+            if(!isNaN(v) && v > 30 && v < 250){ hrSum += v; hrCount++; }
+        }
+
+        // Time
+        const timeNode = findFirst(pt, 'time');
+        if(timeNode){
+            const t = new Date(timeNode.textContent.trim());
+            if(!isNaN(t)){
+                if(!firstTime) firstTime = t;
+                lastTime = t;
             }
         }
     }
 
-    const timeTags = xmlDoc.getElementsByTagName("time");
-    let durationSeconds = 0;
-    let dateStr = new Date().toISOString().split('T')[0];
-    if (timeTags.length >= 2) {
-        const firstTime = new Date(trackpoints[0].getElementsByTagName("time")[0]?.textContent || timeTags[0].textContent);
-        const lastTime = new Date(trackpoints[trackpoints.length-1].getElementsByTagName("time")[0]?.textContent || timeTags[timeTags.length-1].textContent);
-        durationSeconds = Math.max(0, (lastTime - firstTime) / 1000);
-        dateStr = firstTime.toISOString().split('T')[0];
+    // Fallback: grab times from <metadata> or top-level <time>
+    if(!firstTime){
+        const allTimes = allByLocalName(doc.documentElement, 'time');
+        for(const n of allTimes){
+            const t = new Date(n.textContent.trim());
+            if(!isNaN(t)){
+                if(!firstTime) firstTime = t;
+                lastTime = t;
+            }
+        }
     }
 
-    const distanceKm = totalDistanceMeters / 1000;
-    if(distanceKm <= 0.05 || durationSeconds <= 10) return null; 
+    const distKm = totalDist / 1000;
+    if(distKm < 0.1) return { error: `Distanza troppo breve (${distKm.toFixed(2)} km) in ` + fileName };
 
-    const avgHr = hrCount > 0 ? Math.round(totalHeartRate / hrCount) : 150;
-    const paceMinPerKm = (durationSeconds / 60) / distanceKm;
-    const speedKmH = 60 / paceMinPerKm;
-    const vo2Estimated = (speedKmH * 3.5) * (150 / avgHr);
+    const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
+    const dateStr = firstTime ? firstTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+    // VO2 estimation — only reliable when we have real HR data
+    const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
+    let vo2 = null;
+    if(avgHr && durationSec > 0){
+        const speedKmH = distKm / (durationSec / 3600);
+        // Jack Daniels–inspired formula, capped to plausible range
+        vo2 = Number(Math.min(75, Math.max(30, (speedKmH * 3.5) * (150 / avgHr))).toFixed(1));
+    }
 
     return {
-        date: dateStr,
-        distance: Number(distanceKm.toFixed(2)),
-        duration: secondsToTime(durationSeconds),
-        durationSec: durationSeconds,
-        hr: avgHr,
-        vo2: Number(Math.min(65, Math.max(35, vo2Estimated)).toFixed(1))
+        date:        dateStr,
+        distance:    Number(distKm.toFixed(2)),
+        duration:    secondsToTime(durationSec),
+        durationSec: durationSec,
+        hr:          avgHr,         // null when file has no HR data
+        vo2:         vo2,           // null when we can't compute it
+        hrCount:     hrCount,
+        points:      trkpts.length
     };
 }
 
+/* ── Drive: list & fetch GPX files ── */
 async function listFiles(){
-    document.getElementById('status-text').innerText = 'Lettura file nella cartella di Drive...';
+    const st = document.getElementById('status-text');
+    st.innerText = 'Lettura cartella Drive…';
+    st.style.color = 'var(--orange)';
+    document.getElementById('parseLog').innerText = '';
+
     try{
-        // Query modificata per cercare ESCLUSIVAMENTE all'interno della cartella FOLDER_ID
-        const response = await gapi.client.drive.files.list({
-            pageSize: 50,
+        const resp = await gapi.client.drive.files.list({
+            pageSize: 100,
             q: `'${FOLDER_ID}' in parents and name contains '.gpx' and trashed = false`,
             fields: 'files(id,name,createdTime)'
         });
+        const files = resp.result.files || [];
 
-        const files = response.result.files;
-
-        if(!files || files.length === 0){
-            document.getElementById('runsTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">Nessun file .gpx trovato nella cartella selezionata.</td></tr>`;
-            document.getElementById('status-text').innerText = 'Cartella vuota.';
+        if(files.length === 0){
+            st.innerText = 'Nessun file .gpx trovato nella cartella.';
+            document.getElementById('runsTable').innerHTML =
+                `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">
+                    Nessun file .gpx trovato nella cartella selezionata.</td></tr>`;
             return;
         }
 
-        let runs = [];
-        
-        for (let file of files) {
-            try {
-                const fileData = await gapi.client.drive.files.get({
-                    fileId: file.id,
-                    alt: 'media'
-                });
-                
-                const parsed = await parseGPX(fileData.body);
-                if (parsed) {
-                    parsed.shoe = extractShoeName(file.name);
-                    runs.push(parsed);
+        st.innerText = `Trovati ${files.length} file — parsing in corso…`;
+
+        const runs = [];
+        const warnings = [];
+
+        for(const file of files){
+            try{
+                // We request the raw bytes; Drive returns text in .body for text/* types.
+                // Using alt=media gives us the raw content; we must handle the token ourselves.
+                const token = gapi.client.getToken().access_token;
+                const fetchResp = await fetch(
+                    `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+                    { headers: { Authorization: 'Bearer ' + token } }
+                );
+                if(!fetchResp.ok){
+                    warnings.push(`⚠ ${file.name}: errore HTTP ${fetchResp.status}`);
+                    continue;
                 }
-            } catch(e) {
-                console.error("Errore nel parsing del file: " + file.name, e);
+                const xmlText = await fetchResp.text();
+
+                const parsed = await parseGPX(xmlText, file.name);
+
+                if(parsed.error){
+                    warnings.push('⚠ ' + parsed.error);
+                    continue;
+                }
+
+                parsed.shoe = extractShoeName(file.name);
+                if(parsed.hrCount === 0){
+                    warnings.push(`ℹ ${file.name}: nessun dato HR trovato (VO2 non calcolato)`);
+                }
+                runs.push(parsed);
+
+            } catch(e){
+                warnings.push(`⚠ ${file.name}: ${e.message}`);
+                console.error(file.name, e);
             }
         }
 
-        if(runs.length === 0) {
-            document.getElementById('runsTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">I file nella cartella non contengono tracce GPX valide.</td></tr>`;
-            document.getElementById('status-text').innerText = 'Nessuna traccia utilizzabile.';
+        if(warnings.length){
+            document.getElementById('parseLog').innerHTML =
+                warnings.map(w=>`<div>${w}</div>`).join('');
+        }
+
+        if(runs.length === 0){
+            st.innerText = 'Nessuna traccia GPX valida trovata.';
+            document.getElementById('runsTable').innerHTML =
+                `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">
+                    I file nella cartella non contengono tracce GPX valide o leggibili.</td></tr>`;
             return;
         }
 
         renderDashboard(runs);
-        document.getElementById('status-text').innerText = `${runs.length} attività sincronizzate dalla cartella!`;
+        st.innerText = `${runs.length} attività caricate ✓`;
+        st.style.color = '#22c55e';
+
     } catch(err){
         console.error(err);
-        document.getElementById('status-text').innerText = 'Errore durante l\'accesso alla cartella.';
+        st.innerText = 'Errore accesso cartella: ' + (err.message || JSON.stringify(err));
+        st.style.color = 'var(--red)';
     }
 }
 
+/* ── Render ── */
 function renderDashboard(data){
-    data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    const totalKm = data.reduce((sum,r)=>sum+r.distance,0);
-    const avgVo2 = (data.reduce((sum,r)=>sum+r.vo2,0) / data.length).toFixed(1);
-    const load = Math.round(totalKm * 1.6 + (data.reduce((sum,r)=>sum+r.hr,0)/data.length)*0.2);
-    const readiness = Math.min(99, Math.round(avgVo2 * 1.9));
+    const totalKm  = data.reduce((s,r) => s + r.distance, 0);
+    const withVo2  = data.filter(r => r.vo2 !== null);
+    const avgVo2   = withVo2.length
+        ? (withVo2.reduce((s,r) => s+r.vo2, 0) / withVo2.length).toFixed(1)
+        : null;
+    const withHr   = data.filter(r => r.hr !== null);
+    const avgHrAll = withHr.length
+        ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length)
+        : 0;
+    const load      = Math.round(totalKm * 1.6 + avgHrAll * 0.2);
+    const readiness = avgVo2 ? Math.min(99, Math.round(avgVo2 * 1.9)) : null;
 
-    document.getElementById('monthlyKm').innerText = totalKm.toFixed(1);
-    document.getElementById('vo2Value').innerText = avgVo2;
-    document.getElementById('loadValue').innerText = load;
-    document.getElementById('readinessValue').innerText = readiness + '%';
+    document.getElementById('monthlyKm').innerText     = totalKm.toFixed(1) + ' km';
+    document.getElementById('vo2Value').innerText      = avgVo2 ?? 'N/D';
+    document.getElementById('loadValue').innerText     = load;
+    document.getElementById('readinessValue').innerText = readiness ? readiness + '%' : 'N/D';
 
     renderTable(data);
     renderShoes(data);
-    renderAdvisor(data);
+    renderAdvisor(data, avgVo2);
     renderChart(data);
 }
 
 function renderTable(data){
     const tbody = document.getElementById('runsTable');
     tbody.innerHTML = '';
-    data.forEach(r=>{
-        const pace = paceString(r.duration, r.distance);
+    data.forEach(r => {
+        const pace = (r.durationSec > 0 && r.distance > 0)
+            ? paceString(r.durationSec, r.distance)
+            : '—';
         tbody.innerHTML += `
         <tr>
             <td>${r.date}</td>
             <td><b>${r.distance} km</b></td>
             <td>${r.duration}</td>
             <td>${pace}</td>
-            <td>${r.hr} BPM</td>
-            <td>${r.vo2}</td>
+            <td>${r.hr !== null ? r.hr + ' BPM' : '<span style="color:var(--muted)">N/D</span>'}</td>
+            <td>${r.vo2 !== null ? r.vo2 : '<span style="color:var(--muted)">N/D</span>'}</td>
             <td><span class="badge">${r.shoe}</span></td>
         </tr>`;
     });
@@ -532,93 +512,117 @@ function renderTable(data){
 
 function renderShoes(data){
     const shoes = {};
-    data.forEach(r=>{
-        if(!shoes[r.shoe]){ shoes[r.shoe] = { km:0, hr:0, count:0 }; }
+    data.forEach(r => {
+        if(!shoes[r.shoe]) shoes[r.shoe] = { km:0, hrSum:0, hrCount:0 };
         shoes[r.shoe].km += r.distance;
-        shoes[r.shoe].hr += r.hr;
-        shoes[r.shoe].count++;
+        if(r.hr !== null){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
     });
 
     let html = '';
-    Object.keys(shoes).forEach(shoe=>{
-        const s = shoes[shoe];
-        const wear = Math.min(100,(s.km / 400) * 100);
+    for(const [name, s] of Object.entries(shoes)){
+        const wear    = Math.min(100, (s.km / 400) * 100);
+        const avgBpm  = s.hrCount > 0 ? Math.round(s.hrSum / s.hrCount) : null;
         html += `
         <div class="shoe-card">
-            <div class="shoe-header"><strong>👟 ${shoe}</strong><span>${s.km.toFixed(1)} km</span></div>
-            <div style="font-size:13px;color:var(--muted);">BPM medio: ${Math.round(s.hr / s.count)}</div>
+            <div class="shoe-header"><strong>👟 ${name}</strong><span>${s.km.toFixed(1)} km</span></div>
+            <div style="font-size:13px;color:var(--muted)">
+                BPM medio: ${avgBpm !== null ? avgBpm : 'N/D'}
+            </div>
             <div class="bar"><div class="fill" style="width:${wear}%"></div></div>
-            <div style="margin-top:6px;font-size:12px;color:var(--muted);">Usura stimata ${wear.toFixed(0)}%</div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">Usura stimata ${wear.toFixed(0)}%</div>
         </div>`;
-    });
-    document.getElementById('shoeContainer').innerHTML = html;
+    }
+    document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:14px;">Nessuna scarpa rilevata.</p>';
 }
 
-function renderAdvisor(data){
-    const latestVo2 = data[0].vo2;
-    const marathonPace = 315 - (latestVo2 - 42) * 5;
-    const h = Math.floor((marathonPace * 42.195) / 3600);
-    const m = Math.floor(((marathonPace * 42.195) % 3600) / 60);
-    
+function renderAdvisor(data, avgVo2){
+    if(!avgVo2){
+        document.getElementById('advisorBox').innerHTML =
+            '<p style="color:var(--muted)">Nessun dato HR nei file GPX — VO2 Max non calcolabile. Esporta file GPX con dati cardio dal tuo dispositivo.</p>';
+        return;
+    }
+    const vo2     = parseFloat(avgVo2);
+    // Pace in sec/km based on VO2 — Daniels' formula approximation
+    const secPerKm = 315 - (vo2 - 42) * 5;
+    const totalSec = secPerKm * 42.195;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const pMin = Math.floor(secPerKm / 60);
+    const pSec = Math.round(secPerKm % 60).toString().padStart(2,'0');
+
     document.getElementById('advisorBox').innerHTML = `
-        <p><b>VO2 Attuale calcolato:</b> ${latestVo2}</p>
-        <p><b>Maratona stimata (Dati reali):</b> ${h}h ${m}m</p>
-        <p><b>Ritmo maratona target:</b> ${Math.floor(marathonPace/60)}:${Math.round(marathonPace%60).toString().padStart(2,'0')} /km</p>
-        <p style="color:#93c5fd; margin-top:10px; font-size:13px;">Analisi basata sulla scomposizione matematica delle tue tracce GPS caricate.</p>
-    `;
+        <p><b>VO2 Max medio (dati reali):</b> ${avgVo2}</p>
+        <p><b>Tempo maratona stimato:</b> ${h}h ${m}m</p>
+        <p><b>Ritmo target /km:</b> ${pMin}:${pSec}</p>
+        <p style="color:#93c5fd;margin-top:10px;font-size:13px;">
+            Analisi basata sulle tracce GPS caricate. VO2 calcolato solo su attività con dati cardio.
+        </p>`;
 }
 
-function renderChart(data) {
-    if(chart){ chart.destroy(); }
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    const chartData = [...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
+function renderChart(data){
+    if(chart) chart.destroy();
+    const ctx  = document.getElementById('performanceChart').getContext('2d');
+    const sorted = [...data].sort((a,b) => new Date(a.date)-new Date(b.date));
 
-    chart = new Chart(ctx,{
-        type:'line',
-        data:{
-            labels: chartData.map(r=>r.date),
-            datasets:[
-                { label:'VO2 Max', data: chartData.map(r=>r.vo2), borderColor:'#38bdf8', tension:0.35, yAxisID: 'yVo2' },
-                { label:'BPM Medi', data: chartData.map(r=>r.hr), borderColor:'#ef4444', tension:0.35, yAxisID: 'yBpm' },
-                { label:'Km Attività', data: chartData.map(r=>r.distance), borderColor:'#22c55e', tension:0.35, yAxisID: 'yDist' }
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sorted.map(r => r.date),
+            datasets: [
+                {
+                    label: 'VO2 Max',
+                    data:  sorted.map(r => r.vo2),
+                    borderColor: '#38bdf8',
+                    spanGaps: true,
+                    tension: 0.35,
+                    yAxisID: 'yVo2'
+                },
+                {
+                    label: 'BPM Medi',
+                    data:  sorted.map(r => r.hr),
+                    borderColor: '#ef4444',
+                    spanGaps: true,
+                    tension: 0.35,
+                    yAxisID: 'yBpm'
+                },
+                {
+                    label: 'Km Attività',
+                    data:  sorted.map(r => r.distance),
+                    borderColor: '#22c55e',
+                    tension: 0.35,
+                    yAxisID: 'yDist'
+                }
             ]
         },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            plugins:{ legend:{ labels:{ color:'#f8fafc' } } },
-            scales:{
-                x:{ ticks:{ color:'#94a3b8' }, grid:{ color:'rgba(255,255,255,0.05)' } },
-                yVo2:{ type: 'linear', position: 'left', ticks:{ color:'#38bdf8' }, grid:{ color:'rgba(255,255,255,0.05)' } },
-                yBpm:{ type: 'linear', position: 'right', ticks:{ color:'#ef4444' }, grid:{ drawOnChartArea: false } },
-                yDist:{ type: 'linear', position: 'right', ticks:{ color:'#22c55e' }, grid:{ drawOnChartArea: false } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#f8fafc' } } },
+            scales: {
+                x:    { ticks:{ color:'#94a3b8' }, grid:{ color:'rgba(255,255,255,0.05)' } },
+                yVo2: { type:'linear', position:'left',  ticks:{ color:'#38bdf8' }, grid:{ color:'rgba(255,255,255,0.05)' } },
+                yBpm: { type:'linear', position:'right', ticks:{ color:'#ef4444' }, grid:{ drawOnChartArea:false } },
+                yDist:{ type:'linear', position:'right', ticks:{ color:'#22c55e' }, grid:{ drawOnChartArea:false } }
             }
         }
     });
 }
 
-function paceString(duration, distance){
-    const sec = durationToSec(duration);
-    if (!distance || distance === 0) return "--:--";
-    const pace = sec / distance;
-    return `${Math.floor(pace / 60)}:${Math.round(pace % 60).toString().padStart(2,'0')} /km`;
+/* ── Utils ── */
+function paceString(durationSec, distKm){
+    if(!distKm) return '—';
+    const pace = durationSec / distKm;
+    return `${Math.floor(pace/60)}:${Math.round(pace%60).toString().padStart(2,'0')} /km`;
 }
-
-function durationToSec(str){
-    const p = str.split(':').map(Number);
-    return p.length === 3 ? p[0]*3600 + p[1]*60 + p[2] : p[0]*60 + p[1];
-}
-
 function secondsToTime(sec){
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = Math.floor(sec % 60);
+    const h = Math.floor(sec/3600);
+    const m = Math.floor((sec%3600)/60);
+    const s = Math.floor(sec%60);
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 </script>
 
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-
+<script src="https://accounts.google.com/gsi/client"  onload="gisLoaded()"></script>
 </body>
 </html>
