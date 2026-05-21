@@ -4,674 +4,1030 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RunnerOS Elite</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
-    --bg:#0f172a; --card:#111827; --card2:#1e293b; --text:#f8fafc;
-    --muted:#94a3b8; --accent:#38bdf8; --green:#22c55e;
-    --orange:#fb923c; --red:#ef4444; --border:#334155;
+  --bg:#080c10; --card:#0e1318; --card2:#131a22;
+  --text:#e8edf2; --muted:#5a6a7a; --muted2:#8a9aaa;
+  --accent:#00e5ff; --green:#00e676; --orange:#ff9100;
+  --red:#ff3d57; --purple:#bf40ff; --border:#1e2a34;
+  --pace-good:#00e676; --pace-mid:#ffea00; --pace-bad:#ff3d57;
+  --font-display:'Barlow Condensed',sans-serif;
+  --font-body:'Barlow',sans-serif;
+  --font-mono:'DM Mono',monospace;
 }
 *{ margin:0; padding:0; box-sizing:border-box; }
 body{
-    background:linear-gradient(to bottom,#020617,#0f172a);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-    padding:20px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  padding:24px 20px 40px;
 }
-.container{ max-width:1500px; margin:auto; }
+/* subtle grid overlay */
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size:40px 40px;
+  z-index:0;
+}
+.container{ max-width:1480px; margin:auto; position:relative; z-index:1; }
+
+/* ── HEADER ── */
 .header{
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:25px; flex-wrap:wrap; gap:15px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:32px; flex-wrap:wrap; gap:16px;
 }
-.title h1{ font-size:34px; font-weight:800; }
-.title p{ color:var(--muted); margin-top:5px; }
-.actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.logo{ display:flex; align-items:baseline; gap:10px; }
+.logo h1{
+  font-family:var(--font-display); font-size:42px; font-weight:800;
+  letter-spacing:-1px; color:var(--text);
+  text-transform:uppercase;
+}
+.logo-badge{
+  font-family:var(--font-mono); font-size:11px;
+  color:var(--accent); border:1px solid var(--accent);
+  padding:3px 8px; border-radius:4px; letter-spacing:1px;
+  position:relative; top:-2px;
+}
+.header-sub{ color:var(--muted); font-size:14px; margin-top:4px; font-family:var(--font-mono); }
+.actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .btn{
-    border:none; padding:12px 18px; border-radius:12px;
-    cursor:pointer; font-weight:700; color:white; transition:0.2s;
+  border:none; padding:11px 20px; border-radius:6px;
+  cursor:pointer; font-weight:700; color:white;
+  font-family:var(--font-display); font-size:16px; letter-spacing:.5px;
+  transition:all 0.15s; text-transform:uppercase;
 }
-.btn:hover{ transform:translateY(-1px); opacity:0.95; }
-.primary{ background:var(--accent); }
-.success{ background:var(--green); }
-.warning{ background:var(--orange); }
+.btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
+.primary{ background:var(--accent); color:#000; }
+.success{ background:var(--green); color:#000; }
+
+/* ── STATS GRID ── */
 .stats-grid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px; margin-bottom:25px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:14px; margin-bottom:24px;
 }
 .stat-card{
-    background:rgba(17,24,39,0.8); border:1px solid var(--border);
-    border-radius:18px; padding:22px; backdrop-filter:blur(12px);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px; padding:20px 22px;
+  position:relative; overflow:hidden;
 }
-.stat-title{ color:var(--muted); font-size:14px; margin-bottom:10px; }
-.stat-value{ font-size:32px; font-weight:800; }
-.stat-sub{ margin-top:8px; font-size:13px; }
-.main-grid{ display:grid; grid-template-columns:1.2fr 2fr; gap:20px; }
+.stat-card::after{
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.stat-card.c-pace::after{ background:var(--green); }
+.stat-card.c-km::after{ background:var(--accent); }
+.stat-card.c-hr::after{ background:var(--red); }
+.stat-card.c-cad::after{ background:var(--purple); }
+.stat-card.c-pow::after{ background:var(--orange); }
+.stat-card.c-dur::after{ background:var(--muted2); }
+.stat-title{
+  color:var(--muted); font-size:11px; letter-spacing:1.5px;
+  text-transform:uppercase; margin-bottom:10px; font-family:var(--font-mono);
+}
+.stat-value{
+  font-family:var(--font-display); font-size:36px; font-weight:700;
+  line-height:1; letter-spacing:-1px;
+}
+.stat-value.green{ color:var(--green); }
+.stat-value.cyan{ color:var(--accent); }
+.stat-value.red{ color:var(--red); }
+.stat-value.purple{ color:var(--purple); }
+.stat-value.orange{ color:var(--orange); }
+.stat-sub{ margin-top:8px; font-size:12px; color:var(--muted2); font-family:var(--font-mono); }
+
+/* ── MAIN GRID ── */
+.main-grid{ display:grid; grid-template-columns:340px 1fr; gap:20px; margin-bottom:20px; }
 .card{
-    background:rgba(17,24,39,0.82); border:1px solid var(--border);
-    border-radius:18px; padding:22px; margin-bottom:20px; backdrop-filter:blur(10px);
+  background:var(--card); border:1px solid var(--border);
+  border-radius:10px; padding:22px; margin-bottom:16px;
 }
-.card h3{ margin-bottom:18px; font-size:20px; }
-.status{ font-weight:700; color:var(--orange); }
-.shoe-card{ background:var(--card2); border-radius:14px; padding:14px; margin-bottom:12px; }
-.shoe-header{ display:flex; justify-content:space-between; margin-bottom:8px; }
-.bar{ height:8px; background:#1e293b; border-radius:999px; overflow:hidden; margin-top:8px; }
-.fill{ height:100%; background:linear-gradient(to right,var(--green),var(--orange)); }
+.card:last-child{ margin-bottom:0; }
+.card-title{
+  font-family:var(--font-display); font-size:18px; font-weight:700;
+  letter-spacing:.5px; text-transform:uppercase; margin-bottom:18px;
+  color:var(--muted2);
+}
+.card-title span{ color:var(--text); }
+
+/* ── PACE ZONES ── */
+.pace-zones{ display:flex; flex-direction:column; gap:8px; }
+.pz-row{ display:flex; align-items:center; gap:10px; }
+.pz-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.pz-label{ font-size:13px; color:var(--muted2); width:90px; font-family:var(--font-mono); }
+.pz-bar-wrap{ flex:1; height:6px; background:#1a2430; border-radius:3px; overflow:hidden; }
+.pz-bar{ height:100%; border-radius:3px; transition:width .6s; }
+.pz-val{ font-family:var(--font-mono); font-size:13px; color:var(--text); width:60px; text-align:right; }
+
+/* ── CONNECTION ── */
+.status-pill{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:6px 14px; border-radius:20px; font-size:13px;
+  font-family:var(--font-mono); border:1px solid;
+}
+.status-pill.disconnected{ border-color:var(--muted); color:var(--muted); }
+.status-pill.connected{ border-color:var(--green); color:var(--green); }
+.status-pill.loading{ border-color:var(--orange); color:var(--orange); }
+.dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+.dot.pulse{ animation:pulse 1.2s infinite; }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── SHOE CARD ── */
+.shoe-card{
+  background:var(--card2); border-radius:8px;
+  padding:14px 16px; margin-bottom:10px; border:1px solid var(--border);
+}
+.shoe-header{ display:flex; justify-content:space-between; margin-bottom:4px; font-size:14px; }
+.shoe-km{ font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
+.bar{ height:5px; background:#1a2430; border-radius:999px; overflow:hidden; margin-top:10px; }
+.fill{ height:100%; border-radius:999px; }
+
+/* ── KM SPLITS TABLE ── */
+.splits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+  gap:8px;
+}
+.split-cell{
+  background:var(--card2); border-radius:8px;
+  padding:10px 14px; border:1px solid var(--border);
+  transition:border-color .2s;
+}
+.split-cell:hover{ border-color:var(--accent); }
+.split-km{ font-size:11px; color:var(--muted); letter-spacing:1px; font-family:var(--font-mono); }
+.split-pace{
+  font-family:var(--font-display); font-size:22px; font-weight:700;
+  letter-spacing:-0.5px; margin-top:2px;
+}
+.split-hr{ font-size:11px; font-family:var(--font-mono); margin-top:3px; }
+.pace-fast{ color:var(--green); }
+.pace-mid{ color:#ffe566; }
+.pace-slow{ color:var(--red); }
+
+/* ── CHARTS ── */
+.chart-box{ height:280px; }
+.chart-box-lg{ height:320px; }
+
+/* ── TABLE ── */
 .table-wrapper{ overflow:auto; }
 table{ width:100%; border-collapse:collapse; }
-th{ text-align:left; color:var(--muted); font-size:13px; padding-bottom:12px; }
-td{ padding:12px 0; border-top:1px solid rgba(255,255,255,0.05); font-size:14px; }
+th{
+  text-align:left; color:var(--muted); font-size:11px;
+  padding-bottom:12px; letter-spacing:1px; text-transform:uppercase;
+  font-family:var(--font-mono); border-bottom:1px solid var(--border);
+}
+td{ padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
+td b{ font-family:var(--font-mono); }
 .badge{
-    background:#0ea5e920; color:#7dd3fc;
-    padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;
+  padding:3px 9px; border-radius:4px; font-size:11px;
+  font-weight:700; font-family:var(--font-mono); letter-spacing:.5px;
 }
-.badge-fit{ background:#22c55e20; color:#86efac; }
-.badge-gpx{ background:#38bdf820; color:#7dd3fc; }
-.advisor{
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    border:1px solid #1d4ed8;
+.badge-fit{ background:#00e67620; color:#00e676; border:1px solid #00e67640; }
+.badge-gpx{ background:#00e5ff20; color:#00e5ff; border:1px solid #00e5ff40; }
+.badge-shoe{ background:#bf40ff20; color:#bf40ff; border:1px solid #bf40ff40; }
+
+/* ── LOG ── */
+.parse-log{
+  font-size:11px; color:var(--muted); margin-bottom:14px;
+  max-height:60px; overflow:auto; font-family:var(--font-mono);
+  line-height:1.6;
 }
-.advisor p{ margin-bottom:10px; line-height:1.5; }
-.chart-box{ height:320px; margin-bottom:20px; }
-.footer{ margin-top:25px; text-align:center; color:var(--muted); font-size:13px; }
-.log-entry{ padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+.log-entry{ padding:2px 0; }
+
+/* ── TWO-COL ── */
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+.footer{
+  margin-top:30px; text-align:center; color:var(--muted);
+  font-size:11px; font-family:var(--font-mono); letter-spacing:1px;
+}
+
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
+@media(max-width:700px){ .two-col{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
 
-    <div class="header">
-        <div class="title">
-            <h1>RunnerOS Elite</h1>
-            <p>Advanced Running Intelligence Platform — Pace Oriented</p>
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo">
+        <h1>RunnerOS</h1>
+        <span class="logo-badge">ELITE</span>
+      </div>
+      <p class="header-sub">FIT + GPX Intelligence Platform</p>
+    </div>
+    <div class="actions">
+      <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Accedi con Google</button>
+      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sincronizza Drive</button>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats-grid">
+    <div class="stat-card c-pace">
+      <div class="stat-title">Passo Medio</div>
+      <div class="stat-value green" id="avgPace">—</div>
+      <div class="stat-sub" id="bestPaceSub">— best km</div>
+    </div>
+    <div class="stat-card c-km">
+      <div class="stat-title">Distanza Totale</div>
+      <div class="stat-value cyan" id="totalKm">—</div>
+      <div class="stat-sub" id="runCountSub">— attività</div>
+    </div>
+    <div class="stat-card c-dur">
+      <div class="stat-title">Tempo Totale</div>
+      <div class="stat-value" id="totalTime">—</div>
+      <div class="stat-sub" id="avgDistSub">— km media/uscita</div>
+    </div>
+    <div class="stat-card c-hr">
+      <div class="stat-title">BPM Medio</div>
+      <div class="stat-value red" id="avgHr">—</div>
+      <div class="stat-sub" id="hrRangeSub">—</div>
+    </div>
+    <div class="stat-card c-cad">
+      <div class="stat-title">Cadenza Media</div>
+      <div class="stat-value purple" id="avgCad">—</div>
+      <div class="stat-sub">spm (da FIT)</div>
+    </div>
+    <div class="stat-card c-pow">
+      <div class="stat-title">Potenza Media</div>
+      <div class="stat-value orange" id="avgPow">—</div>
+      <div class="stat-sub" id="powSub">watt (da FIT)</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <!-- LEFT COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-title"><span>Connessione</span></div>
+        <div id="status-pill" class="status-pill disconnected">
+          <span class="dot"></span>
+          <span id="status-text">Non connesso</span>
         </div>
-        <div class="actions">
-            <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Accedi con Google</button>
-            <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sincronizza Drive</button>
+        <p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6;font-family:var(--font-mono);">
+          Legge file <b style="color:var(--text)">.fit</b> e <b style="color:var(--text)">.gpx</b> dalla cartella Drive.<br>
+          Per la scarpa: rinomina come<br>
+          <b style="color:var(--accent)">NomeCorsa [NomeScarpa].fit</b>
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Zone di Passo</span></div>
+        <div id="paceZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sincronizza per visualizzare.</p>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Rotazione Scarpe</span></div>
+        <div id="shoeContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sincronizza per analizzare l'usura.</p>
+        </div>
+      </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-title">KM Totali</div>
-            <div class="stat-value" id="monthlyKm">—</div>
-            <div class="stat-sub" style="color:var(--green)">Dati reali estratti</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Ritmo Medio Globale</div>
-            <div class="stat-value" id="avgPaceValue">—</div>
-            <div class="stat-sub" style="color:var(--accent)">min/km su totali</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Training Load</div>
-            <div class="stat-value" id="loadValue">—</div>
-            <div class="stat-sub" style="color:var(--accent)">Basato su Km e BPM</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Pace Consistency</div>
-            <div class="stat-value" id="consistencyValue">—</div>
-            <div class="stat-sub" style="color:var(--orange)">Indice regolarità ritmo</div>
-        </div>
-    </div>
+    <!-- RIGHT COLUMN -->
+    <div>
+      <!-- Passo + HR per km -->
+      <div class="card">
+        <div class="card-title"><span>Passo &amp; BPM per Km</span></div>
+        <div class="chart-box-lg"><canvas id="paceHrChart"></canvas></div>
+      </div>
 
-    <div class="main-grid">
-        <div>
-            <div class="card">
-                <h3>Connessione</h3>
-                <p id="status-text" class="status">Non connesso</p>
-                <div style="margin-top:14px;color:var(--muted);font-size:14px;line-height:1.6">
-                    Legge file <b>.fit</b> e <b>.gpx</b> dalla cartella Drive.<br>
-                    Per la scarpa: rinomina come<br>
-                    <b>NomeCorsa [NomeScarpa].fit</b>
-                </div>
-            </div>
-            <div class="card">
-                <h3>Rotazione Scarpe</h3>
-                <div id="shoeContainer">
-                    <p style="color:var(--muted);font-size:14px;">Sincronizza per analizzare l'usura reale.</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="card advisor">
-                <h3>AI Pace & Race Intelligence</h3>
-                <div id="advisorBox">Connetti Google Drive per sbloccare l'analisi avanzata dei ritmi.</div>
-            </div>
-            <div class="card">
-                <h3>Trend Carico vs Ritmo Medio</h3>
-                <div class="chart-box"><canvas id="performanceChart"></canvas></div>
-                
-                <h3>Distribuzione Zone di Ritmo (Km Totali)</h3>
-                <div class="chart-box"><canvas id="zonesChart"></canvas></div>
-            </div>
-        </div>
+      <!-- Trend performance -->
+      <div class="card">
+        <div class="card-title"><span>Trend Performance</span></div>
+        <div class="chart-box"><canvas id="performanceChart"></canvas></div>
+      </div>
     </div>
+  </div>
 
+  <!-- KM SPLITS -->
+  <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
+    <div class="card-title"><span>Split per Chilometro</span> — <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;" id="splitsTitle"></span></div>
+    <div class="splits-grid" id="splitsGrid"></div>
+  </div>
+
+  <!-- TWO COL: Distribution + Efficiency -->
+  <div class="two-col" style="margin-bottom:20px;">
     <div class="card">
-        <h3>Storico Allenamenti Reali</h3>
-        <div id="parseLog" style="font-size:12px;color:var(--muted);margin-bottom:12px;max-height:80px;overflow:auto;"></div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th><th>Distanza</th><th>Durata</th>
-                        <th>Ritmo Medio</th><th>BPM Medio</th><th>Cadenza</th><th>Potenza</th><th>Scarpa</th><th>Fonte</th>
-                    </tr>
-                </thead>
-                <tbody id="runsTable">
-                    <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">
-                        Nessuna attività caricata. Connetti Drive per iniziare.
-                    </td></tr>
-                </tbody>
-            </table>
-        </div>
+      <div class="card-title"><span>Distribuzione Passo</span></div>
+      <div class="chart-box"><canvas id="paceDistChart"></canvas></div>
     </div>
+    <div class="card">
+      <div class="card-title"><span>Efficienza (Potenza / Passo)</span></div>
+      <div class="chart-box"><canvas id="efficiencyChart"></canvas></div>
+    </div>
+  </div>
 
-    <div class="footer">RunnerOS Elite • FIT + GPX Native Pace Parser • No fake data</div>
+  <!-- STORICO -->
+  <div class="card">
+    <div class="card-title"><span>Storico Allenamenti</span></div>
+    <div id="parseLog" class="parse-log"></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Distanza</th><th>Durata</th>
+            <th>Passo Medio</th><th>Passo Best km</th>
+            <th>BPM</th><th>Cadenza</th><th>Potenza</th>
+            <th>Vert.Osc</th><th>Scarpa</th><th>Fonte</th>
+          </tr>
+        </thead>
+        <tbody id="runsTable">
+          <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+            Nessuna attività caricata. Connetti Drive per iniziare.
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">RunnerOS Elite &nbsp;·&nbsp; FIT + GPX Native Parser &nbsp;·&nbsp; No fake data</div>
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════
+   FIT BINARY PARSER
+   Global message 20 (record) fields:
+     253 = timestamp (uint32, s since 1989-12-31)
+       0 = lat (sint32 semicircles)
+       1 = lon (sint32 semicircles)
+       5 = distance (uint32, cm → m/100)
+       6 = speed (uint16, mm/s → km/h * 3.6/1000)
+       3 = heart_rate (uint8 bpm)
+       4 = cadence (uint8 rpm → spm * 2)
+       7 = power (uint16 W)
+      39 = vertical_oscillation (uint16, mm/10)
+      41 = vertical_ratio (uint16, %/100)
+═══════════════════════════════════════════════════════════════════ */
 const FIT_EPOCH = 631065600000;
 
 function parseFIT(buffer) {
-    const bytes = new Uint8Array(buffer);
-    const dv    = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  const dv    = new DataView(buffer);
+  const headerSize = bytes[0];
+  const dataSize   = dv.getUint32(4, true);
+  const tag        = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
+  if(tag !== '.FIT') return { error: 'Non è un file FIT valido' };
 
-    const headerSize = bytes[0];
-    const dataSize   = dv.getUint32(4, true);
-    const tag        = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
-    if(tag !== '.FIT') return { error: 'Non è un file FIT valido' };
+  const end  = headerSize + dataSize;
+  let pos    = headerSize;
+  const definitions = {};
+  const records     = [];
 
-    const end  = headerSize + dataSize;
-    let pos    = headerSize;
-
-    const definitions = {};
-    const records     = [];
-
-    while(pos < end && pos < bytes.length) {
-        const recHdr   = bytes[pos++];
-        const isCompTs = !!(recHdr & 0x80);
-
-        if(isCompTs) {
-            const localNum = (recHdr >> 5) & 0x03;
-            if(definitions[localNum]) pos += definitions[localNum].size;
-            continue;
-        }
-
-        const localNum = recHdr & 0x0F;
-        const isDef    = !!(recHdr & 0x40);
-        const hasDev   = !!(recHdr & 0x20);
-
-        if(isDef) {
-            pos++; 
-            const littleEndian = bytes[pos++] === 0;
-            const globalNum    = dv.getUint16(pos, littleEndian); pos += 2;
-            const nFields      = bytes[pos++];
-
-            const fields = [];
-            let   size   = 0;
-            for(let i = 0; i < nFields; i++) {
-                const fNum  = bytes[pos++];
-                const fSize = bytes[pos++];
-                pos++; 
-                fields.push({ fNum, fSize, littleEndian });
-                size += fSize;
-            }
-
-            if(hasDev) {
-                const nDev = bytes[pos++];
-                pos += nDev * 3;
-            }
-            definitions[localNum] = { globalNum, fields, size };
-        } else {
-            const defn  = definitions[localNum];
-            if(!defn) break;
-            const start = pos;
-
-            if(defn.globalNum === 20) {
-                const rec = {};
-                for(const { fNum, fSize, littleEndian } of defn.fields) {
-                    if(pos + fSize > bytes.length) break;
-
-                    switch(fNum) {
-                        case 253:
-                            if(fSize === 4) {
-                                const v = dv.getUint32(pos, littleEndian);
-                                if(v < 0xFFFFFFFE) rec.ts = v * 1000 + FIT_EPOCH;
-                            }
-                            break;
-                        case 5:
-                            if(fSize === 4) {
-                                const v = dv.getUint32(pos, littleEndian);
-                                if(v !== 0xFFFFFFFF) rec.dist = v / 100;
-                            }
-                            break;
-                        case 6:
-                            if(fSize === 2) {
-                                const v = dv.getUint16(pos, littleEndian);
-                                if(v !== 0xFFFF) rec.speed = v * 3.6 / 1000;
-                            }
-                            break;
-                        case 3:
-                            if(fSize === 1) {
-                                const v = bytes[pos];
-                                if(v !== 0xFF && v > 0) rec.hr = v;
-                            }
-                            break;
-                        case 4:
-                            if(fSize === 1) {
-                                const v = bytes[pos];
-                                if(v !== 0xFF) rec.cad = v * 2;
-                            }
-                            break;
-                        case 7:
-                            if(fSize === 2) {
-                                const v = dv.getUint16(pos, littleEndian);
-                                if(v !== 0xFFFF) rec.power = v;
-                            }
-                            break;
-                    }
-                    pos += fSize;
-                }
-                if(Object.keys(rec).length > 0) records.push(rec);
-            }
-            pos = start + defn.size;
-        }
+  while(pos < end && pos < bytes.length) {
+    const recHdr   = bytes[pos++];
+    const isCompTs = !!(recHdr & 0x80);
+    if(isCompTs) {
+      const ln = (recHdr >> 5) & 0x03;
+      if(definitions[ln]) pos += definitions[ln].size;
+      continue;
     }
+    const localNum = recHdr & 0x0F;
+    const isDef    = !!(recHdr & 0x40);
+    const hasDev   = !!(recHdr & 0x20);
 
-    if(records.length < 2) return { error: 'Nessun dato trovato nel file FIT' };
+    if(isDef) {
+      pos++;
+      const littleEndian = bytes[pos++] === 0;
+      const globalNum    = dv.getUint16(pos, true); pos += 2;
+      const nFields      = bytes[pos++];
+      const fields = [];
+      let size = 0;
+      for(let i = 0; i < nFields; i++) {
+        const fNum  = bytes[pos++];
+        const fSize = bytes[pos++];
+        pos++;
+        fields.push({ fNum, fSize });
+        size += fSize;
+      }
+      if(hasDev) { const n = bytes[pos++]; pos += n * 3; }
+      definitions[localNum] = { globalNum, fields, size };
+    } else {
+      const defn  = definitions[localNum];
+      if(!defn) break;
+      const start = pos;
+      if(defn.globalNum === 20) {
+        const rec = {};
+        for(const { fNum, fSize } of defn.fields) {
+          if(pos + fSize > bytes.length) break;
+          switch(fNum) {
+            case 253: if(fSize===4){ const v=dv.getUint32(pos,true); if(v<0xFFFFFFFE) rec.ts=v*1000+FIT_EPOCH; } break;
+            case 0:   if(fSize===4){ const v=dv.getInt32(pos,true);  if(v!==0x7FFFFFFF) rec.lat=v*(180/2147483648); } break;
+            case 1:   if(fSize===4){ const v=dv.getInt32(pos,true);  if(v!==0x7FFFFFFF) rec.lon=v*(180/2147483648); } break;
+            case 5:   if(fSize===4){ const v=dv.getUint32(pos,true); if(v!==0xFFFFFFFF) rec.dist=v/100; } break;
+            case 6:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.speed=v*3.6/1000; } break;
+            case 3:   if(fSize===1){ const v=bytes[pos]; if(v!==0xFF&&v>30) rec.hr=v; } break;
+            case 4:   if(fSize===1){ const v=bytes[pos]; if(v!==0xFF) rec.cad=v*2; } break;
+            case 7:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.power=v; } break;
+            case 39:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertOsc=v/10; } break;
+            case 41:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertRatio=v/100; } break;
+          }
+          pos += fSize;
+        }
+        if(Object.keys(rec).length > 0) records.push(rec);
+      }
+      pos = start + defn.size;
+    }
+  }
 
-    const withTs    = records.filter(r => r.ts);
-    const firstTs   = withTs[0]?.ts;
-    const lastTs    = withTs[withTs.length-1]?.ts;
-    const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
+  if(records.length < 2) return { error: 'Nessun dato di attività trovato nel file FIT' };
 
-    const withDist  = records.filter(r => r.dist != null);
-    const distM     = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
-    const distKm    = distM / 1000;
+  // Summary stats
+  const withTs  = records.filter(r => r.ts);
+  const firstTs = withTs[0]?.ts;
+  const lastTs  = withTs[withTs.length-1]?.ts;
+  const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
 
-    if(distKm < 0.1) return { error: `Distanza breve: ${distKm.toFixed(2)} km` };
+  const withDist = records.filter(r => r.dist != null);
+  const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
+  const distKm   = distM / 1000;
+  if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
 
-    const withHr  = records.filter(r => r.hr && r.hr > 30 && r.hr < 250);
-    const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+  const withHr  = records.filter(r => r.hr && r.hr > 30 && r.hr < 250);
+  const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
 
-    const withCad = records.filter(r => r.cad != null && r.cad > 0);
-    const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+  const withCad = records.filter(r => r.cad != null && r.cad > 0);
+  const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
 
-    const withPow = records.filter(r => r.power != null && r.power > 0);
-    const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+  const withPow = records.filter(r => r.power != null && r.power > 0);
+  const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
-    // Calcolo del passo al chilometro in secondi/km reali per l'attività corrente
-    const rawPaceSec = durationSec > 0 && distKm > 0 ? (durationSec / distKm) : 0;
+  const withVO  = records.filter(r => r.vertOsc != null);
+  const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
-    const dateStr = firstTs ? new Date(firstTs).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  // Per-km splits
+  const kmSplits = computeKmSplits(records);
 
-    return {
-        date: dateStr,
-        distance: Number(distKm.toFixed(2)),
-        duration: secondsToTime(durationSec),
-        durationSec,
-        paceSec: rawPaceSec,
-        hr:    avgHr,
-        cad:   avgCad,
-        power: avgPow,
-        source: 'FIT'
-    };
+  // Pace stats
+  const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
+  const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
+
+  // Speed-based pace distribution (for histogram)
+  const withSpd = records.filter(r => r.speed != null && r.speed > 3);
+  const paceDistribution = computePaceDistribution(withSpd);
+
+  const dateStr = firstTs ? new Date(firstTs).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+  return {
+    date: dateStr,
+    distance: Number(distKm.toFixed(2)),
+    duration: secondsToTime(durationSec),
+    durationSec,
+    hr:       avgHr,
+    cad:      avgCad,
+    power:    avgPow,
+    vertOsc:  avgVO,
+    paceSecPerKm,
+    bestSplitPace,
+    kmSplits,
+    paceDistribution,
+    hrCount: withHr.length,
+    source: 'FIT'
+  };
 }
 
+function computeKmSplits(records) {
+  const sorted = [...records].filter(r => r.dist != null && r.ts != null).sort((a,b) => a.dist - b.dist);
+  const splits = [];
+  const maxKm  = Math.floor(Math.max(...sorted.map(r => r.dist)) / 1000);
+
+  for(let km = 1; km <= maxKm; km++) {
+    const prevM = (km - 1) * 1000;
+    const currM = km * 1000;
+    const start = sorted.find(r => r.dist >= prevM);
+    const end   = sorted.find(r => r.dist >= currM);
+    if(!start || !end) continue;
+    const sec  = (end.ts - start.ts) / 1000;
+    const dist = end.dist - start.dist;
+    if(sec <= 0 || dist <= 0) continue;
+    const paceSec = sec / (dist / 1000);
+    const hrs = sorted.filter(r => r.dist >= prevM && r.dist < currM && r.hr);
+    const avgHr = hrs.length ? Math.round(hrs.reduce((s,r) => s+r.hr, 0) / hrs.length) : null;
+    splits.push({ km, paceSec: Math.round(paceSec), hr: avgHr });
+  }
+  return splits;
+}
+
+function computePaceDistribution(records) {
+  // Buckets: 3:00–8:00 /km in 15s steps
+  const buckets = {};
+  for(let s = 180; s <= 480; s += 15) buckets[s] = 0;
+  records.forEach(r => {
+    if(r.speed < 2) return;
+    const pace = 3600 / r.speed; // sec/km
+    const bucket = Math.round(pace / 15) * 15;
+    if(buckets[bucket] !== undefined) buckets[bucket]++;
+  });
+  return buckets;
+}
+
+/* ── GPX PARSER ── */
 function parseFallbackGPX(xmlText, fileName) {
-    const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-    if(doc.querySelector('parsererror')) return { error: 'XML non valido: ' + fileName };
+  const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if(doc.querySelector('parsererror')) return { error: 'XML non valido: ' + fileName };
+  const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
+  if(trkpts.length < 2) return { error: 'Meno di 2 trackpoint: ' + fileName };
 
-    const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
-    if(trkpts.length < 2) return { error: 'Tracciato vuoto: ' + fileName };
-
-    let totalDist = 0, hrSum = 0, hrCount = 0;
-    let firstTime = null, lastTime = null;
-
-    for(let i = 0; i < trkpts.length; i++) {
-        const pt = trkpts[i];
-        if(i > 0) {
-            totalDist += haversine(
-                parseFloat(trkpts[i-1].getAttribute('lat')), parseFloat(trkpts[i-1].getAttribute('lon')),
-                parseFloat(pt.getAttribute('lat')),          parseFloat(pt.getAttribute('lon'))
-            );
-        }
-        const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
-        if(hrNode) {
-            const v = parseInt(hrNode.textContent, 10);
-            if(!isNaN(v) && v > 30 && v < 250) { hrSum += v; hrCount++; }
-        }
-        const tn = pt.getElementsByTagNameNS('*', 'time')[0];
-        if(tn) {
-            const t = new Date(tn.textContent.trim());
-            if(!isNaN(t.getTime())) { if(!firstTime) firstTime = t; lastTime = t; }
-        }
-    }
-
-    const distKm = totalDist / 1000;
-    if(distKm < 0.1) return { error: `Distanza breve: ${distKm.toFixed(2)} km` };
-
-    const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
-    const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
-    const rawPaceSec = durationSec > 0 && distKm > 0 ? (durationSec / distKm) : 0;
-
-    return {
-        date: firstTime ? firstTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        distance: Number(distKm.toFixed(2)),
-        duration: secondsToTime(durationSec),
-        durationSec,
-        paceSec: rawPaceSec,
-        hr: avgHr,
-        cad: null,
-        power: null,
-        source: 'GPX'
-    };
+  let totalDist = 0, hrSum = 0, hrCount = 0;
+  let firstTime = null, lastTime = null;
+  for(let i = 0; i < trkpts.length; i++) {
+    const pt = trkpts[i];
+    if(i > 0) totalDist += haversine(
+      parseFloat(trkpts[i-1].getAttribute('lat')), parseFloat(trkpts[i-1].getAttribute('lon')),
+      parseFloat(pt.getAttribute('lat')),           parseFloat(pt.getAttribute('lon'))
+    );
+    const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
+    if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
+    const tn = pt.getElementsByTagNameNS('*', 'time')[0];
+    if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { if(!firstTime) firstTime = t; lastTime = t; } }
+  }
+  const distKm = totalDist / 1000;
+  if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
+  const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
+  const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
+  const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
+  return {
+    date: firstTime ? firstTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    distance: Number(distKm.toFixed(2)),
+    duration: secondsToTime(durationSec),
+    durationSec,
+    hr: avgHr, cad: null, power: null, vertOsc: null,
+    paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
+    hrCount, source: 'GPX'
+  };
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371e3, r = x => x * Math.PI / 180;
-    const a = Math.sin(r(lat2-lat1)/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const R = 6371e3, r = x => x * Math.PI / 180;
+  const a = Math.sin(r(lat2-lat1)/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+/* ── GOOGLE DRIVE ── */
 const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
 const SCOPES    = 'https://www.googleapis.com/auth/drive.readonly';
 const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
-let tokenClient, chart, zonesChartInstance;
+let tokenClient;
+let charts = {};
 
 function gapiLoaded(){ gapi.load('client', async () => {
-    await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+  await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
 }); }
-function gisLoaded(){ tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' }); }
+function gisLoaded(){
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
+}
 function handleAuthClick(){
-    tokenClient.callback = async (resp) => {
-        if(resp.error) throw resp;
-        document.getElementById('auth-btn').style.display = 'none';
-        document.getElementById('sync-btn').style.display = 'inline-block';
-        const st = document.getElementById('status-text');
-        st.innerText = 'Connesso ✓'; st.style.color = '#22c55e';
-        await listFiles();
-    };
-    tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
+  tokenClient.callback = async (resp) => {
+    if(resp.error) throw resp;
+    document.getElementById('auth-btn').style.display = 'none';
+    document.getElementById('sync-btn').style.display = 'inline-block';
+    setStatus('Connesso', 'connected');
+    await listFiles();
+  };
+  tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
+}
+
+function setStatus(text, cls) {
+  const pill = document.getElementById('status-pill');
+  const span = document.getElementById('status-text');
+  pill.className = 'status-pill ' + cls;
+  span.textContent = text;
+  pill.querySelector('.dot').className = 'dot' + (cls === 'loading' ? ' pulse' : '');
 }
 
 function extractShoeName(name){
-    const m = name.match(/\[([^\]]+)\]/);
-    return m ? m[1].trim() : 'Sconosciuta';
+  const m = name.match(/\[([^\]]+)\]/);
+  return m ? m[1].trim() : 'Sconosciuta';
 }
 
 async function listFiles(){
-    const st = document.getElementById('status-text');
-    st.innerText = 'Lettura cartella Drive…'; st.style.color = 'var(--orange)';
-    document.getElementById('parseLog').innerText = '';
+  setStatus('Lettura cartella Drive…', 'loading');
+  document.getElementById('parseLog').innerText = '';
+  try{
+    const resp = await gapi.client.drive.files.list({
+      pageSize: 200,
+      q: `'${FOLDER_ID}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+      fields: 'files(id,name)', orderBy: 'name'
+    });
+    const files = resp.result.files || [];
+    if(!files.length){ setStatus('Nessun file trovato.', 'disconnected'); setEmptyTable(); return; }
 
-    try{
-        const resp = await gapi.client.drive.files.list({
-            pageSize: 200,
-            q: `'${FOLDER_ID}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-            fields: 'files(id,name)', orderBy: 'name'
-        });
-        const files = resp.result.files || [];
+    setStatus(`Parsing ${files.length} file…`, 'loading');
+    const token = gapi.client.getToken().access_token;
+    const runs = [], warnings = [];
 
-        if(!files.length){
-            st.innerText = 'Nessun file .fit o .gpx trovato.';
-            setEmptyTable(); return;
-        }
-
-        st.innerText = `Trovati ${files.length} file — parsing in corso…`;
-        const token    = gapi.client.getToken().access_token;
-        const runs     = [];
-        const warnings = [];
-
-        for(const file of files){
-            const isFit = file.name.toLowerCase().endsWith('.fit');
-            const isGpx = file.name.toLowerCase().endsWith('.gpx');
-            if(!isFit && !isGpx) continue;
-
-            try{
-                const r = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
-                if(!r.ok){ warnings.push(`⚠ ${file.name}: HTTP ${r.status}`); continue; }
-
-                let parsed;
-                if(isFit){
-                    const buf = await r.arrayBuffer();
-                    parsed = parseFIT(buf);
-                } else {
-                    const xml = await r.text();
-                    parsed = parseFallbackGPX(xml, file.name);
-                }
-
-                if(parsed.error){ warnings.push('⚠ ' + parsed.error); continue; }
-
-                parsed.shoe = extractShoeName(file.name);
-                runs.push(parsed);
-            } catch(e){
-                warnings.push(`⚠ ${file.name}: ${e.message}`);
-            }
-        }
-
-        if(warnings.length) document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
-        if(!runs.length){ st.innerText = 'Nessun file valido trovato.'; setEmptyTable(); return; }
-
-        renderDashboard(runs);
-        st.innerText = `${runs.length} attività caricate ✓ (${runs.filter(r=>r.source==='FIT').length} FIT · ${runs.filter(r=>r.source==='GPX').length} GPX)`;
-        st.style.color = '#22c55e';
-    } catch(err){
-        st.innerText = 'Errore: ' + (err.message || JSON.stringify(err));
-        st.style.color = 'var(--red)';
+    for(const file of files){
+      const isFit = file.name.toLowerCase().endsWith('.fit');
+      const isGpx = file.name.toLowerCase().endsWith('.gpx');
+      if(!isFit && !isGpx) continue;
+      try{
+        const r = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
+        if(!r.ok){ warnings.push(`⚠ ${file.name}: HTTP ${r.status}`); continue; }
+        let parsed;
+        if(isFit){ const buf = await r.arrayBuffer(); parsed = parseFIT(buf); }
+        else      { const xml = await r.text(); parsed = parseFallbackGPX(xml, file.name); }
+        if(parsed.error){ warnings.push('⚠ ' + parsed.error); continue; }
+        parsed.shoe = extractShoeName(file.name);
+        runs.push(parsed);
+      } catch(e){ warnings.push(`⚠ ${file.name}: ${e.message}`); }
     }
+
+    if(warnings.length)
+      document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
+
+    if(!runs.length){ setStatus('Nessun file valido.', 'disconnected'); setEmptyTable(); return; }
+
+    renderDashboard(runs);
+    const fc = runs.filter(r=>r.source==='FIT').length;
+    const gc = runs.filter(r=>r.source==='GPX').length;
+    setStatus(`${runs.length} attività ✓  (${fc} FIT · ${gc} GPX)`, 'connected');
+  } catch(err){
+    console.error(err);
+    setStatus('Errore: ' + (err.message || JSON.stringify(err)), 'disconnected');
+  }
 }
 
 function setEmptyTable(){
-    document.getElementById('runsTable').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">Nessun file valido trovato.</td></tr>`;
+  document.getElementById('runsTable').innerHTML =
+    `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">Nessun file valido nella cartella.</td></tr>`;
 }
 
+/* ── RENDER ── */
 function renderDashboard(data){
-    data.sort((a,b) => new Date(b.date) - new Date(a.date));
+  data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    const totalKm = data.reduce((s,r) => s + r.distance, 0);
-    const totalSec = data.reduce((s,r) => s + r.durationSec, 0);
-    
-    // Calcolo Ritmo Medio Globale ponderato sui KM percorsi
-    const globalAvgPaceSec = totalKm > 0 ? (totalSec / totalKm) : 0;
-    
-    const withHr = data.filter(r => r.hr !== null);
-    const avgHrAll = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : 0;
-    const load = Math.round(totalKm * 1.6 + avgHrAll * 0.2);
+  const totalKm  = data.reduce((s,r) => s + r.distance, 0);
+  const totalSec = data.reduce((s,r) => s + (r.durationSec || 0), 0);
 
-    // Calcolo della deviazione standard del ritmo per stimare la regolarità (Consistency)
-    let consistency = "N/D";
-    if(data.length > 1) {
-        const variances = data.map(r => Math.pow(r.paceSec - globalAvgPaceSec, 2));
-        const stdDev = Math.sqrt(variances.reduce((s,v)=>s+v, 0) / data.length);
-        const score = Math.max(50, Math.min(99, Math.round(100 - (stdDev / 10))));
-        consistency = score + "%";
-    }
+  const withPace = data.filter(r => r.paceSecPerKm);
+  const avgPaceSec = withPace.length ? withPace.reduce((s,r) => s+r.paceSecPerKm, 0) / withPace.length : null;
 
-    document.getElementById('monthlyKm').innerText = totalKm.toFixed(1) + ' km';
-    document.getElementById('avgPaceValue').innerText = globalAvgPaceSec > 0 ? formatPaceFromSec(globalAvgPaceSec) : '—';
-    document.getElementById('loadValue').innerText = load;
-    document.getElementById('consistencyValue').innerText = consistency;
+  const allSplitPaces = data.flatMap(r => r.kmSplits ? r.kmSplits.map(s => s.paceSec) : []);
+  const bestSplitPace = allSplitPaces.length ? Math.min(...allSplitPaces) : null;
 
-    renderTable(data);
-    renderShoes(data);
-    renderPaceIntelligence(data, globalAvgPaceSec);
-    renderCharts(data);
+  const withHr  = data.filter(r => r.hr);
+  const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+
+  const withCad = data.filter(r => r.cad);
+  const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+
+  const withPow = data.filter(r => r.power);
+  const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+
+  // Stats strip
+  document.getElementById('avgPace').innerText     = avgPaceSec ? paceStr(avgPaceSec) : '—';
+  document.getElementById('bestPaceSub').innerText = bestSplitPace ? `Best km: ${paceStr(bestSplitPace)}` : '—';
+  document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
+  document.getElementById('runCountSub').innerText = data.length + ' attività';
+  document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
+  document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km media/uscita';
+  document.getElementById('avgHr').innerText       = avgHr ? avgHr + ' bpm' : '—';
+  document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
+  document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
+  document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
+
+  renderPaceZones(data);
+  renderShoes(data);
+  renderTable(data);
+
+  // Charts
+  renderPaceHrChart(data);
+  renderTrendChart(data);
+  renderPaceDistChart(data);
+  renderEfficiencyChart(data);
+
+  // Splits for most recent run with splits
+  const withSplits = data.filter(r => r.kmSplits && r.kmSplits.length > 0);
+  if(withSplits.length) {
+    renderSplits(withSplits[0]);
+    document.getElementById('splitsSection').style.display = 'block';
+  }
 }
 
-function renderTable(data){
-    const tbody = document.getElementById('runsTable');
-    tbody.innerHTML = '';
-    data.forEach(r => {
-        const pace = r.paceSec > 0 ? formatPaceFromSec(r.paceSec) : '—';
-        const srcBadge = r.source === 'FIT' ? `<span class="badge badge-fit">FIT</span>` : `<span class="badge badge-gpx">GPX</span>`;
-        tbody.innerHTML += `
-        <tr>
-            <td>${r.date}</td>
-            <td><b>${r.distance} km</b></td>
-            <td>${r.duration}</td>
-            <td><b>${pace} /km</b></td>
-            <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
-            <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
-            <td>${r.power !== null ? r.power + ' W' : nd()}</td>
-            <td><span class="badge">${r.shoe}</span></td>
-            <td>${srcBadge}</td>
-        </tr>`;
-    });
+/* PACE ZONES */
+function renderPaceZones(data) {
+  const zones = [
+    { label: 'Sprint',    min: 0,   max: 210, color: '#ff3d57' },
+    { label: 'Veloce',   min: 210, max: 255, color: '#ff9100' },
+    { label: 'Soglia',   min: 255, max: 300, color: '#ffea00' },
+    { label: 'Aerobico', min: 300, max: 360, color: '#00e676' },
+    { label: 'Lento',    min: 360, max: 9999, color: '#5a6a7a' },
+  ];
+  const allSplits = data.flatMap(r => r.kmSplits || []);
+  if(!allSplits.length) return;
+
+  const total = allSplits.length;
+  const counts = zones.map(z => allSplits.filter(s => s.paceSec >= z.min && s.paceSec < z.max).length);
+  const maxCount = Math.max(...counts);
+
+  let html = '<div class="pace-zones">';
+  zones.forEach((z, i) => {
+    const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
+    const barW = maxCount ? (counts[i]/maxCount*100) : 0;
+    html += `
+    <div class="pz-row">
+      <span class="pz-dot" style="background:${z.color}"></span>
+      <span class="pz-label">${z.label}</span>
+      <div class="pz-bar-wrap"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+      <span class="pz-val">${pct}%</span>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('paceZoneContainer').innerHTML = html;
 }
 
-function nd(){ return `<span style="color:var(--muted)">N/D</span>`; }
+/* SPLITS */
+function renderSplits(run) {
+  document.getElementById('splitsTitle').textContent = `${run.date} · ${run.distance} km`;
+  const allPaces = run.kmSplits.map(s => s.paceSec);
+  const minP = Math.min(...allPaces), maxP = Math.max(...allPaces);
 
-function renderShoes(data){
-    const shoes = {};
-    data.forEach(r => {
-        if(!shoes[r.shoe]) shoes[r.shoe] = { km:0 };
-        shoes[r.shoe].km += r.distance;
-    });
-    let html = '';
-    for(const [name,s] of Object.entries(shoes)){
-        const wear = Math.min(100, (s.km/500)*100);
-        html += `
-        <div class="shoe-card">
-            <div class="shoe-header"><strong>¼ ${name}</strong><span>${s.km.toFixed(1)} km</span></div>
-            <div class="bar"><div class="fill" style="width:${wear}%"></div></div>
-            <div style="margin-top:6px;font-size:12px;color:var(--muted)">Usura stimata ${wear.toFixed(0)}% (su 500 km)</div>
-        </div>`;
-    }
-    document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:14px;">Nessuna scarpa rilevata.</p>';
+  const grid = document.getElementById('splitsGrid');
+  grid.innerHTML = run.kmSplits.map(s => {
+    const norm = maxP > minP ? (s.paceSec - minP) / (maxP - minP) : 0.5;
+    const cls = norm < 0.33 ? 'pace-fast' : norm < 0.66 ? 'pace-mid' : 'pace-slow';
+    return `
+    <div class="split-cell">
+      <div class="split-km">KM ${s.km}</div>
+      <div class="split-pace ${cls}">${paceStr(s.paceSec)}</div>
+      <div class="split-hr" style="color:var(--muted2)">${s.hr ? s.hr + ' bpm' : '—'}</div>
+    </div>`;
+  }).join('');
 }
 
-function renderPaceIntelligence(data, globalAvgPaceSec){
-    const box = document.getElementById('advisorBox');
-    if(!globalAvgPaceSec || data.length === 0){
-        box.innerHTML = '<p style="color:var(--muted)">In attesa di dati per calcolare l\'analisi dei ritmi.</p>';
-        return;
-    }
-
-    // Estrazione del passo migliore assoluto salvato nelle corse (con distanza > 2km per evitare anomalie di GPS e scatti isolati)
-    const validRuns = data.filter(r => r.distance > 2);
-    const bestPaceSec = validRuns.length ? Math.min(...validRuns.map(r => r.paceSec)) : globalAvgPaceSec;
-
-    // Calcolo tempi proiettati sulle distanze standard partendo dal tuo ritmo medio registrato
-    const halfTimeSec = globalAvgPaceSec * 21.0975;
-    const marathonTimeSec = (globalAvgPaceSec * 1.06) * 42.195;
-
-    const hH = Math.floor(halfTimeSec/3600), hM = Math.floor((halfTimeSec%3600)/60);
-    const mH = Math.floor(marathonTimeSec/3600), mM = Math.floor((marathonTimeSec%3600)/60);
-
-    box.innerHTML = `
-        <p><b>Miglior Ritmo registrato (su uscite >2km):</b> ${formatPaceFromSec(bestPaceSec)} /km</p>
-        <p><b>Proiezione Mezza Maratona (21.097 km):</b> ${hH}h ${hM}m (a ${formatPaceFromSec(globalAvgPaceSec)} /km)</p>
-        <p><b>Proiezione Maratona (42.195 km):</b> ${mH}h ${mM}m (passo stimato: ${formatPaceFromSec(globalAvgPaceSec * 1.06)} /km)</p>
-        <p style="color:#38bdf8;margin-top:10px;font-size:13px;">
-            *Le proiezioni si basano sulla media matematica del carico e dei ritmi estratti dai tuoi file reali.
-        </p>`;
+/* SHOES */
+function renderShoes(data) {
+  const shoes = {};
+  data.forEach(r => {
+    if(!shoes[r.shoe]) shoes[r.shoe] = { km:0, hrSum:0, hrCount:0 };
+    shoes[r.shoe].km += r.distance;
+    if(r.hr){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
+  });
+  let html = '';
+  for(const [name, s] of Object.entries(shoes)){
+    const wear = Math.min(100, (s.km/500)*100);
+    const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
+    const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
+    html += `
+    <div class="shoe-card">
+      <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
+      <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono)">BPM medio: ${bpm ?? '—'}</div>
+      <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
+      <div style="margin-top:5px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">Usura ${wear.toFixed(0)}% su 500 km</div>
+    </div>`;
+  }
+  document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">Nessuna scarpa rilevata.</p>';
 }
 
-function renderCharts(data){
-    if(chart) chart.destroy();
-    if(zonesChartInstance) zonesChartInstance.destroy();
+/* TABLE */
+function renderTable(data) {
+  const tbody = document.getElementById('runsTable');
+  tbody.innerHTML = '';
+  data.forEach(r => {
+    const pace = r.paceSecPerKm ? paceStr(r.paceSecPerKm) : '—';
+    const bestPace = r.bestSplitPace ? paceStr(r.bestSplitPace) : '—';
+    const srcBadge = r.source === 'FIT'
+      ? `<span class="badge badge-fit">FIT</span>`
+      : `<span class="badge badge-gpx">GPX</span>`;
+    tbody.innerHTML += `
+    <tr>
+      <td style="font-family:var(--font-mono)">${r.date}</td>
+      <td><b>${r.distance} km</b></td>
+      <td style="font-family:var(--font-mono)">${r.duration}</td>
+      <td style="font-family:var(--font-mono);color:var(--green)">${pace}</td>
+      <td style="font-family:var(--font-mono);color:var(--accent)">${bestPace}</td>
+      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
+      <td>${r.power !== null ? r.power + ' W' : nd()}</td>
+      <td>${r.vertOsc !== null ? r.vertOsc + ' mm' : nd()}</td>
+      <td><span class="badge badge-shoe">${r.shoe}</span></td>
+      <td>${srcBadge}</td>
+    </tr>`;
+  });
+}
 
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    const sorted = [...data].sort((a,b) => new Date(a.date)-new Date(b.date));
+/* CHARTS */
+const CHART_OPTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+  }
+};
 
-    // Grafico 1: Carico vs Ritmo Medio
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: sorted.map(r => r.date),
-            datasets: [
-                { label:'Carico Allenamento', data: sorted.map(r => Math.round(r.distance * 1.6 + (r.hr || 140) * 0.2)), borderColor:'#38bdf8', tension:0.3, yAxisID:'yLoad' },
-                { 
-                    label:'Ritmo Medio (min/km)', 
-                    data: sorted.map(r => (r.paceSec / 60)), // Convertito in formato decimale per asse Y grafico
-                    borderColor:'#fb923c', tension:0.3, yAxisID:'yPace' 
-                }
-            ]
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+/* Passo + BPM per km (most recent run) */
+function renderPaceHrChart(data) {
+  destroyChart('paceHr');
+  const run = data.find(r => r.kmSplits && r.kmSplits.length > 0);
+  if(!run) return;
+  const labels = run.kmSplits.map(s => 'Km ' + s.km);
+  const paces  = run.kmSplits.map(s => s.paceSec / 60); // as float min/km
+  const hrs    = run.kmSplits.map(s => s.hr);
+  const ctx    = document.getElementById('paceHrChart').getContext('2d');
+  charts['paceHr'] = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar', label: 'Passo (min/km)', data: paces,
+          backgroundColor: paces.map(p => {
+            if(p < 4.5) return '#00e67660';
+            if(p < 5.5) return '#ffe56660';
+            return '#ff3d5760';
+          }),
+          borderColor: paces.map(p => p < 4.5 ? '#00e676' : p < 5.5 ? '#ffe566' : '#ff3d57'),
+          borderWidth: 1, yAxisID: 'yPace', order: 2
         },
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            plugins:{ 
-                legend:{ labels:{ color:'#f8fafc' } },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            if (context.datasetIndex === 1) {
-                                let totalSecs = context.raw * 60;
-                                let mins = Math.floor(totalSecs / 60);
-                                let secs = Math.round(totalSecs % 60).toString().padStart(2, '0');
-                                return `Ritmo Medio: ${mins}:${secs} /km`;
-                            }
-                            return `${context.dataset.label}: ${context.raw}`;
-                        }
-                    }
-                }
-            },
-            scales:{
-                x: { ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.05)'} },
-                yLoad: { type:'linear', position:'left', ticks:{color:'#38bdf8'}, grid:{color:'rgba(255,255,255,0.05)'} },
-                yPace: { 
-                    type:'linear', position:'right', ticks:{
-                        color:'#fb923c',
-                        callback: function(value) {
-                            let mins = Math.floor(value);
-                            let secs = Math.round((value - mins) * 60).toString().padStart(2, '0');
-                            return `${mins}:${secs}`;
-                        }
-                    }, 
-                    grid:{drawOnChartArea:false} 
-                }
-            }
+        {
+          type: 'line', label: 'BPM', data: hrs,
+          borderColor: '#ff3d57', backgroundColor: 'transparent',
+          tension: 0.4, pointRadius: 3, pointBackgroundColor: '#ff3d57',
+          yAxisID: 'yHr', order: 1, spanGaps: true
         }
-    });
-
-    // Grafico 2: Calcolo della distribuzione reale dei chilometri percorsi nelle zone di ritmo
-    let zones = { veloce: 0, medioVeloce: 0, fondoMedio: 0, rigenerante: 0 };
-    data.forEach(r => {
-        if(r.paceSec < 270) zones.veloce += r.distance;         // Sotto i 4:30 min/km
-        else if(r.paceSec < 290) zones.medioVeloce += r.distance; // Tra 4:30 e 4:50 min/km
-        else if(r.paceSec < 325) zones.fondoMedio += r.distance;  // Tra 4:50 e 5:25 min/km
-        else zones.rigenerante += r.distance;                    // Sopra i 5:25 min/km
-    });
-
-    const ctxZones = document.getElementById('zonesChart').getContext('2d');
-    zonesChartInstance = new Chart(ctxZones, {
-        type: 'bar',
-        data: {
-            labels: ['Veloce (<4:30)', 'Medio-Veloce (4:30-4:50)', 'Fondo Medio (4:55-5:25)', 'Rigenerante (>5:25)'],
-            datasets: [{
-                label: 'Km totali trascorsi nella zona',
-                data: [zones.veloce.toFixed(1), zones.medioVeloce.toFixed(1), zones.fondoMedio.toFixed(1), zones.rigenerante.toFixed(1)],
-                backgroundColor: ['#ef4444', '#fb923c', '#22c55e', '#38bdf8'],
-                borderRadius: 8
-            }]
+      ]
+    },
+    options: {
+      ...CHART_OPTS,
+      scales: {
+        x: CHART_OPTS.scales.x,
+        yPace: {
+          type: 'linear', position: 'left',
+          ticks: {
+            color: '#00e676', font: { family: 'DM Mono', size: 10 },
+            callback: v => {
+              const m = Math.floor(v); const s = Math.round((v % 1) * 60);
+              return `${m}:${String(s).padStart(2,'0')}`;
+            }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          reverse: true,
+          title: { display: true, text: 'Passo', color: '#00e676', font: { family: 'DM Mono', size: 10 } }
         },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#f8fafc' }, grid: { display: false } },
-                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
+        yHr: {
+          type: 'linear', position: 'right',
+          ticks: { color: '#ff3d57', font: { family: 'DM Mono', size: 10 } },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'BPM', color: '#ff3d57', font: { family: 'DM Mono', size: 10 } }
         }
-    });
+      }
+    }
+  });
 }
 
-function formatPaceFromSec(totalSecs){
-    const mins = Math.floor(totalSecs / 60);
-    const secs = Math.round(totalSecs % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+/* Trend passo/BPM su tutte le uscite */
+function renderTrendChart(data) {
+  destroyChart('trend');
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  charts['trend'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sorted.map(r => r.date),
+      datasets: [
+        {
+          label: 'Passo medio (min/km)',
+          data: sorted.map(r => r.paceSecPerKm / 60),
+          borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.08)',
+          tension: 0.35, yAxisID: 'yPace', spanGaps: true, fill: true
+        },
+        {
+          label: 'BPM Medi',
+          data: sorted.map(r => r.hr),
+          borderColor: '#ff3d57', backgroundColor: 'transparent',
+          tension: 0.35, yAxisID: 'yHr', spanGaps: true
+        },
+        {
+          label: 'Km',
+          data: sorted.map(r => r.distance),
+          borderColor: '#00e5ff', backgroundColor: 'transparent',
+          tension: 0.35, yAxisID: 'yDist', spanGaps: true, borderDash: [4,4]
+        }
+      ]
+    },
+    options: {
+      ...CHART_OPTS,
+      scales: {
+        x: CHART_OPTS.scales.x,
+        yPace: {
+          type: 'linear', position: 'left',
+          reverse: true,
+          ticks: {
+            color: '#00e676', font: { family: 'DM Mono', size: 10 },
+            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
+        yHr: { type:'linear', position:'right', ticks:{ color:'#ff3d57', font:{family:'DM Mono',size:10} }, grid:{drawOnChartArea:false} },
+        yDist: { type:'linear', position:'right', ticks:{ color:'#00e5ff', font:{family:'DM Mono',size:10} }, grid:{drawOnChartArea:false}, display:false }
+      }
+    }
+  });
 }
 
+/* Distribuzione passo (istogramma) */
+function renderPaceDistChart(data) {
+  destroyChart('paceDist');
+  const allDists = data.filter(r => r.paceDistribution);
+  if(!allDists.length) return;
+  const merged = {};
+  allDists.forEach(r => {
+    Object.entries(r.paceDistribution).forEach(([k,v]) => { merged[k] = (merged[k]||0) + v; });
+  });
+  const keys   = Object.keys(merged).map(Number).sort((a,b)=>a-b);
+  const labels = keys.map(k => { const m=Math.floor(k/60); const s=k%60; return `${m}:${String(s).padStart(2,'0')}`; });
+  const vals   = keys.map(k => merged[k]);
+  const total  = vals.reduce((a,b)=>a+b,0);
+  const pcts   = vals.map(v => total ? (v/total*100).toFixed(1) : 0);
+  const ctx = document.getElementById('paceDistChart').getContext('2d');
+  charts['paceDist'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '% tempo',
+        data: pcts,
+        backgroundColor: keys.map(k => k < 255 ? '#00e67680' : k < 300 ? '#ffe56680' : '#ff3d5750'),
+        borderColor:     keys.map(k => k < 255 ? '#00e676'   : k < 300 ? '#ffe566'   : '#ff3d57'),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      ...CHART_OPTS,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ...CHART_OPTS.scales.x, title: { display: true, text: 'Passo /km', color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } } },
+        y: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+}
+
+/* Efficienza: potenza vs passo */
+function renderEfficiencyChart(data) {
+  destroyChart('eff');
+  const runs = data.filter(r => r.power && r.paceSecPerKm);
+  if(runs.length < 2) {
+    document.getElementById('efficiencyChart').parentNode.innerHTML =
+      '<p style="color:var(--muted);font-size:13px;padding:20px;font-family:var(--font-mono)">Dati potenza insufficienti.</p>';
+    return;
+  }
+  const sorted = [...runs].sort((a,b) => new Date(a.date)-new Date(b.date));
+  const ctx = document.getElementById('efficiencyChart').getContext('2d');
+  charts['eff'] = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'W vs Passo',
+        data: sorted.map(r => ({ x: r.power, y: r.paceSecPerKm / 60 })),
+        backgroundColor: '#bf40ff80', borderColor: '#bf40ff', pointRadius: 6
+      }]
+    },
+    options: {
+      ...CHART_OPTS,
+      scales: {
+        x: { ...CHART_OPTS.scales.x, title: { display:true, text:'Potenza (W)', color:'#5a6a7a', font:{family:'DM Mono',size:10} } },
+        y: {
+          reverse: true,
+          ticks: {
+            color: '#5a6a7a', font: { family: 'DM Mono', size: 10 },
+            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          title: { display: true, text: 'Passo /km', color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+/* ── UTILS ── */
+function paceStr(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
 function secondsToTime(s){
-    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=Math.floor(s%60);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=Math.floor(s%60);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
+function nd(){ return `<span style="color:var(--muted);font-family:var(--font-mono)">—</span>`; }
 </script>
 
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+<script src="https://apis.google.com/js/api.js"        onload="gapiLoaded()"></script>
+<script src="https://accounts.google.com/gsi/client"   onload="gisLoaded()"></script>
 </body>
 </html>
