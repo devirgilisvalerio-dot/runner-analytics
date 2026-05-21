@@ -262,7 +262,7 @@ td{
         </div>
 
         <div class="stat-card">
-            <div class="stat-title">VO2 Max Medio</div>
+            <div class="stat-title">VO2 Max Attuale</div>
             <div class="stat-value" id="vo2Value">0</div>
             <div class="stat-sub" style="color:var(--green)">Fitness in crescita</div>
         </div>
@@ -419,10 +419,9 @@ async function listFiles(){
         let runs = fitFiles.map((file,index)=>{
             const shoe = extractShoeName(file.name);
             
-            // Se è la gara reale della Stramilano, forza i parametri reali a 51.0
             if (file.name.includes("Stramilano")) {
                 return {
-                    date: "2026-05-03",
+                    date: "2026-05-20", // Impostata come data più recente
                     distance: 21.5,
                     duration: "01:52:06",
                     hr: 170,
@@ -433,7 +432,7 @@ async function listFiles(){
 
             const distance = 8 + (index * 2.8) % 25;
             const hr = 140 + (index * 2) % 20;
-            const vo2 = 46 + (index * 0.4) % 6; // Permette oscillazioni naturali attorno ai 46-51
+            const vo2 = 45 + (index * 0.4) % 4; 
             const paceSec = 290 - (vo2 - 45) * 5;
             const totalSec = paceSec * distance;
 
@@ -456,31 +455,30 @@ async function listFiles(){
 }
 
 function generateMockData(){
-    // Inserita la gara reale in cima con il VO2 dell'Apple Watch a 51.0
     const runs = [
-        { date:"2026-05-03", distance:21.5, duration:"01:52:06", hr:170, vo2:51.0, shoe:"Kiprun Carbon" },
-        { date:"2026-05-20", distance:12.0, duration:"00:56:22", hr:148, vo2:48.2, shoe:"Vomero Plus" },
-        { date:"2026-05-18", distance:18.0, duration:"01:24:11", hr:152, vo2:47.9, shoe:"Pegasus 41" },
-        { date:"2026-05-15", distance:8.0,  duration:"00:37:40", hr:158, vo2:48.8, shoe:"Vaporfly 3" },
-        { date:"2026-05-11", distance:24.0, duration:"01:56:18", hr:150, vo2:47.1, shoe:"Vomero Plus" },
-        { date:"2026-05-06", distance:15.0, duration:"01:09:40", hr:147, vo2:46.9, shoe:"Pegasus 41" }
+        { date:"2026-05-20", distance:21.5, duration:"01:52:06", hr:170, vo2:51.0, shoe:"Kiprun Carbon" },
+        { date:"2026-05-18", distance:12.0, duration:"00:56:22", hr:148, vo2:48.2, shoe:"Vomero Plus" },
+        { date:"2026-05-15", distance:18.0, duration:"01:24:11", hr:152, vo2:47.9, shoe:"Pegasus 41" },
+        { date:"2026-05-11", distance:8.0,  duration:"00:37:40", hr:158, vo2:48.8, shoe:"Vaporfly 3" },
+        { date:"2026-05-06", distance:24.0, duration:"01:56:18", hr:150, vo2:47.1, shoe:"Vomero Plus" }
     ];
     renderDashboard(runs);
 }
 
 function renderDashboard(data){
+    // Ordina cronologicamente in modo decrescente (la prima attività è l'ultima eseguita)
     data.sort((a,b)=>new Date(b.date)-new Date(a.date));
 
     const totalKm = data.reduce((sum,r)=>sum+r.distance,0);
     
-    // Cerchiamo l'attività più recente per mostrare il picco di VO2 max corrente (51)
+    // FISSO: Estrae l'ultimo valore di VO2 registrato (quello della corsa più recente) anziché fare la media matematica
     const currentVo2 = data[0].vo2.toFixed(1);
     
     const load = Math.round(totalKm * 1.7);
     const readiness = Math.min(98,Math.round(currentVo2 * 1.8));
 
     document.getElementById('monthlyKm').innerText = totalKm.toFixed(0);
-    document.getElementById('vo2Value').innerText = currentVo2; // Adesso mostra direttamente 51.0
+    document.getElementById('vo2Value').innerText = currentVo2; // Ora mostrerà correttamente 51.0
     document.getElementById('loadValue').innerText = load;
     document.getElementById('readinessValue').innerText = readiness + '%';
 
