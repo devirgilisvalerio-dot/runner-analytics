@@ -297,23 +297,18 @@ td b{ font-family:var(--font-mono); }
 
     <!-- RIGHT COLUMN -->
     <div>
-      <!-- Passo + HR per km -->
+      <!-- Trend performance (full height, with projections) -->
       <div class="card">
-        <div class="card-title"><span>Passo &amp; BPM per Km</span></div>
-        <div class="chart-box-lg"><canvas id="paceHrChart"></canvas></div>
-      </div>
-
-      <!-- Trend performance -->
-      <div class="card">
-        <div class="card-title"><span>Trend Performance</span></div>
-        <div class="chart-box"><canvas id="performanceChart"></canvas></div>
+        <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— linee tratteggiate = proiezione</span></div>
+        <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
+        <div id="projectionBox" style="display:none;margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;"></div>
       </div>
     </div>
   </div>
 
-  <!-- KM SPLITS -->
+  <!-- KM SPLITS: media per km su tutte le corse -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
-    <div class="card-title"><span>Split per Chilometro</span> — <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;" id="splitsTitle"></span></div>
+    <div class="card-title"><span>Media per Chilometro</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— media di tutte le corse per ogni km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
   </div>
 
@@ -703,27 +698,23 @@ function renderDashboard(data){
   renderTable(data);
 
   // Charts
-  renderPaceHrChart(data);
   renderTrendChart(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
 
-  // Splits for most recent run with splits
-  const withSplits = data.filter(r => r.kmSplits && r.kmSplits.length > 0);
-  if(withSplits.length) {
-    renderSplits(withSplits[0]);
-    document.getElementById('splitsSection').style.display = 'block';
-  }
+  // Splits: media per km su tutte le corse (max 15 km)
+  renderAvgKmSplits(data);
+  document.getElementById('splitsSection').style.display = 'block';
 }
 
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Sprint',    min: 0,   max: 210, color: '#ff3d57' },
-    { label: 'Veloce',   min: 210, max: 255, color: '#ff9100' },
-    { label: 'Soglia',   min: 255, max: 300, color: '#ffea00' },
-    { label: 'Aerobico', min: 300, max: 360, color: '#00e676' },
-    { label: 'Lento',    min: 360, max: 9999, color: '#5a6a7a' },
+    { label: 'Sprint',    min: 0,   max: 210, color: '#ff3d57', desc: '< 3:30 · Massima intensità, gare brevi o allunghi' },
+    { label: 'Veloce',   min: 210, max: 255, color: '#ff9100', desc: '3:30–4:15 · Ritmo gara 5–10 km, alta intensità' },
+    { label: 'Soglia',   min: 255, max: 300, color: '#ffea00', desc: '4:15–5:00 · Ritmo maratona/mezza, zona critica' },
+    { label: 'Aerobico', min: 300, max: 360, color: '#00e676', desc: '5:00–6:00 · Corsa lunga, brucia grassi, recupera' },
+    { label: 'Lento',    min: 360, max: 9999, color: '#5a6a7a', desc: '> 6:00 · Riscaldamento, defaticamento, recupero' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
   if(!allSplits.length) return;
@@ -737,32 +728,69 @@ function renderPaceZones(data) {
     const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
     const barW = maxCount ? (counts[i]/maxCount*100) : 0;
     html += `
-    <div class="pz-row">
-      <span class="pz-dot" style="background:${z.color}"></span>
-      <span class="pz-label">${z.label}</span>
-      <div class="pz-bar-wrap"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
-      <span class="pz-val">${pct}%</span>
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pz-dot" style="background:${z.color}"></span>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
+        <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+        <span class="pz-val">${pct}%</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
     </div>`;
   });
   html += '</div>';
   document.getElementById('paceZoneContainer').innerHTML = html;
 }
 
-/* SPLITS */
-function renderSplits(run) {
-  document.getElementById('splitsTitle').textContent = `${run.date} · ${run.distance} km`;
-  const allPaces = run.kmSplits.map(s => s.paceSec);
-  const minP = Math.min(...allPaces), maxP = Math.max(...allPaces);
+/* AVERAGE KM SPLITS across all runs */
+function renderAvgKmSplits(data) {
+  const MAX_KM = 15;
+  // Collect all splits grouped by km number
+  const byKm = {};
+  data.forEach(r => {
+    if(!r.kmSplits) return;
+    r.kmSplits.forEach(s => {
+      if(s.km > MAX_KM) return;
+      if(!byKm[s.km]) byKm[s.km] = { paceSum: 0, paceCount: 0, hrSum: 0, hrCount: 0 };
+      byKm[s.km].paceSum   += s.paceSec;
+      byKm[s.km].paceCount += 1;
+      if(s.hr){ byKm[s.km].hrSum += s.hr; byKm[s.km].hrCount += 1; }
+    });
+  });
+
+  // Build avg for km 1..MAX_KM
+  const avgs = [];
+  for(let km = 1; km <= MAX_KM; km++) {
+    const d = byKm[km];
+    if(!d || d.paceCount === 0) { avgs.push(null); continue; }
+    avgs.push({
+      km,
+      avgPaceSec: Math.round(d.paceSum / d.paceCount),
+      avgHr: d.hrCount ? Math.round(d.hrSum / d.hrCount) : null,
+      count: d.paceCount
+    });
+  }
+
+  const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
+  const minP = validPaces.length ? Math.min(...validPaces) : 0;
+  const maxP = validPaces.length ? Math.max(...validPaces) : 0;
 
   const grid = document.getElementById('splitsGrid');
-  grid.innerHTML = run.kmSplits.map(s => {
-    const norm = maxP > minP ? (s.paceSec - minP) / (maxP - minP) : 0.5;
-    const cls = norm < 0.33 ? 'pace-fast' : norm < 0.66 ? 'pace-mid' : 'pace-slow';
+  grid.innerHTML = avgs.map((a, i) => {
+    if(!a) return `
+    <div class="split-cell" style="opacity:.3">
+      <div class="split-km">KM ${i+1}</div>
+      <div class="split-pace" style="color:var(--muted)">—</div>
+      <div class="split-hr" style="color:var(--muted2)">nessun dato</div>
+    </div>`;
+    const norm = maxP > minP ? (a.avgPaceSec - minP) / (maxP - minP) : 0.5;
+    const cls  = norm < 0.33 ? 'pace-fast' : norm < 0.66 ? 'pace-mid' : 'pace-slow';
     return `
     <div class="split-cell">
-      <div class="split-km">KM ${s.km}</div>
-      <div class="split-pace ${cls}">${paceStr(s.paceSec)}</div>
-      <div class="split-hr" style="color:var(--muted2)">${s.hr ? s.hr + ' bpm' : '—'}</div>
+      <div class="split-km">KM ${a.km}</div>
+      <div class="split-pace ${cls}">${paceStr(a.avgPaceSec)}</div>
+      <div class="split-hr" style="color:var(--muted2)">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${a.count} cors${a.count===1?'a':'e'}</div>
     </div>`;
   }).join('');
 }
@@ -829,53 +857,121 @@ const CHART_OPTS = {
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
-/* Passo + BPM per km (most recent run) */
-function renderPaceHrChart(data) {
-  destroyChart('paceHr');
-  const run = data.find(r => r.kmSplits && r.kmSplits.length > 0);
-  if(!run) return;
-  const labels = run.kmSplits.map(s => 'Km ' + s.km);
-  const paces  = run.kmSplits.map(s => s.paceSec / 60); // as float min/km
-  const hrs    = run.kmSplits.map(s => s.hr);
-  const ctx    = document.getElementById('paceHrChart').getContext('2d');
-  charts['paceHr'] = new Chart(ctx, {
+/* Trend passo su tutte le uscite + proiezioni lineari */
+function renderTrendChart(data) {
+  destroyChart('trend');
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 2) return;
+
+  const n = sorted.length;
+  // Linear regression on paceSecPerKm (index as x)
+  const paceVals = sorted.map(r => r.paceSecPerKm / 60);
+  const hrVals   = sorted.map(r => r.hr);
+
+  function linReg(vals) {
+    const clean = vals.map((v,i) => v != null ? { x: i, y: v } : null).filter(Boolean);
+    if(clean.length < 2) return null;
+    const nx = clean.length;
+    const sx = clean.reduce((s,p) => s+p.x, 0);
+    const sy = clean.reduce((s,p) => s+p.y, 0);
+    const sxy = clean.reduce((s,p) => s+p.x*p.y, 0);
+    const sxx = clean.reduce((s,p) => s+p.x*p.x, 0);
+    const slope = (nx*sxy - sx*sy) / (nx*sxx - sx*sx);
+    const intercept = (sy - slope*sx) / nx;
+    return { slope, intercept };
+  }
+
+  const PROJ_STEPS = Math.max(3, Math.ceil(n * 0.5)); // project 50% ahead
+  const totalLen   = n + PROJ_STEPS;
+
+  const paceReg = linReg(paceVals);
+  const hrReg   = linReg(hrVals.map((v,i) => v));
+
+  // Build projected arrays (null for real data, value for projection)
+  const paceProj = Array(n).fill(null).concat(
+    Array.from({ length: PROJ_STEPS }, (_, i) => paceReg ? paceReg.slope*(n+i) + paceReg.intercept : null)
+  );
+  const hrProj = Array(n).fill(null).concat(
+    Array.from({ length: PROJ_STEPS }, (_, i) => hrReg ? Math.round(hrReg.slope*(n+i) + hrReg.intercept) : null)
+  );
+
+  // Labels: real dates + projected "+1", "+2", ...
+  const labels = [
+    ...sorted.map(r => r.date),
+    ...Array.from({ length: PROJ_STEPS }, (_, i) => `+${i+1}`)
+  ];
+
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  charts['trend'] = new Chart(ctx, {
+    type: 'line',
     data: {
       labels,
       datasets: [
         {
-          type: 'bar', label: 'Passo (min/km)', data: paces,
-          backgroundColor: paces.map(p => {
-            if(p < 4.5) return '#00e67660';
-            if(p < 5.5) return '#ffe56660';
-            return '#ff3d5760';
-          }),
-          borderColor: paces.map(p => p < 4.5 ? '#00e676' : p < 5.5 ? '#ffe566' : '#ff3d57'),
-          borderWidth: 1, yAxisID: 'yPace', order: 2
+          label: 'Passo reale',
+          data: [...paceVals, ...Array(PROJ_STEPS).fill(null)],
+          borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.07)',
+          tension: 0.35, yAxisID: 'yPace', fill: true, spanGaps: false,
+          pointRadius: 4, pointBackgroundColor: '#00e676'
         },
         {
-          type: 'line', label: 'BPM', data: hrs,
+          label: 'Passo proiettato',
+          data: paceProj,
+          borderColor: '#00e676', backgroundColor: 'transparent',
+          borderDash: [6, 4], tension: 0.2, yAxisID: 'yPace',
+          pointRadius: 3, pointStyle: 'triangle', pointBackgroundColor: '#00e676',
+          spanGaps: false
+        },
+        {
+          label: 'BPM reali',
+          data: [...hrVals, ...Array(PROJ_STEPS).fill(null)],
           borderColor: '#ff3d57', backgroundColor: 'transparent',
-          tension: 0.4, pointRadius: 3, pointBackgroundColor: '#ff3d57',
-          yAxisID: 'yHr', order: 1, spanGaps: true
+          tension: 0.35, yAxisID: 'yHr', spanGaps: true,
+          pointRadius: 3, pointBackgroundColor: '#ff3d57'
+        },
+        {
+          label: 'BPM proiettato',
+          data: hrProj,
+          borderColor: '#ff3d57', backgroundColor: 'transparent',
+          borderDash: [6, 4], tension: 0.2, yAxisID: 'yHr',
+          pointRadius: 3, pointStyle: 'triangle', pointBackgroundColor: '#ff3d57',
+          spanGaps: false
         }
       ]
     },
     options: {
       ...CHART_OPTS,
+      plugins: {
+        legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if(ctx.dataset.yAxisID === 'yPace') {
+                const m = Math.floor(v); const s = Math.round((v%1)*60);
+                return `${ctx.dataset.label}: ${m}:${String(s).padStart(2,'0')} /km`;
+              }
+              return `${ctx.dataset.label}: ${Math.round(v)} bpm`;
+            }
+          }
+        }
+      },
       scales: {
-        x: CHART_OPTS.scales.x,
+        x: {
+          ticks: {
+            color: ctx => ctx.tick.label.startsWith('+') ? '#5a6a7a' : '#8a9aaa',
+            font: { family: 'DM Mono', size: 10 }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
         yPace: {
-          type: 'linear', position: 'left',
+          type: 'linear', position: 'left', reverse: true,
           ticks: {
             color: '#00e676', font: { family: 'DM Mono', size: 10 },
-            callback: v => {
-              const m = Math.floor(v); const s = Math.round((v % 1) * 60);
-              return `${m}:${String(s).padStart(2,'0')}`;
-            }
+            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
           },
           grid: { color: 'rgba(255,255,255,0.04)' },
-          reverse: true,
-          title: { display: true, text: 'Passo', color: '#00e676', font: { family: 'DM Mono', size: 10 } }
+          title: { display: true, text: 'Passo /km', color: '#00e676', font: { family: 'DM Mono', size: 10 } }
         },
         yHr: {
           type: 'linear', position: 'right',
@@ -886,56 +982,28 @@ function renderPaceHrChart(data) {
       }
     }
   });
-}
 
-/* Trend passo/BPM su tutte le uscite */
-function renderTrendChart(data) {
-  destroyChart('trend');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
-  const ctx = document.getElementById('performanceChart').getContext('2d');
-  charts['trend'] = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: sorted.map(r => r.date),
-      datasets: [
-        {
-          label: 'Passo medio (min/km)',
-          data: sorted.map(r => r.paceSecPerKm / 60),
-          borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.08)',
-          tension: 0.35, yAxisID: 'yPace', spanGaps: true, fill: true
-        },
-        {
-          label: 'BPM Medi',
-          data: sorted.map(r => r.hr),
-          borderColor: '#ff3d57', backgroundColor: 'transparent',
-          tension: 0.35, yAxisID: 'yHr', spanGaps: true
-        },
-        {
-          label: 'Km',
-          data: sorted.map(r => r.distance),
-          borderColor: '#00e5ff', backgroundColor: 'transparent',
-          tension: 0.35, yAxisID: 'yDist', spanGaps: true, borderDash: [4,4]
-        }
-      ]
-    },
-    options: {
-      ...CHART_OPTS,
-      scales: {
-        x: CHART_OPTS.scales.x,
-        yPace: {
-          type: 'linear', position: 'left',
-          reverse: true,
-          ticks: {
-            color: '#00e676', font: { family: 'DM Mono', size: 10 },
-            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
-          },
-          grid: { color: 'rgba(255,255,255,0.04)' }
-        },
-        yHr: { type:'linear', position:'right', ticks:{ color:'#ff3d57', font:{family:'DM Mono',size:10} }, grid:{drawOnChartArea:false} },
-        yDist: { type:'linear', position:'right', ticks:{ color:'#00e5ff', font:{family:'DM Mono',size:10} }, grid:{drawOnChartArea:false}, display:false }
-      }
-    }
-  });
+  // Projection summary badges
+  if(paceReg) {
+    const nextPaceSec = (paceReg.slope * n + paceReg.intercept) * 60;
+    const trend = paceReg.slope < 0 ? '↑ miglioramento' : paceReg.slope > 0.01 ? '↓ rallentamento' : '→ stabile';
+    const trendColor = paceReg.slope < -0.005 ? 'var(--green)' : paceReg.slope > 0.01 ? 'var(--red)' : 'var(--orange)';
+    const box = document.getElementById('projectionBox');
+    box.style.display = 'flex';
+    box.innerHTML = `
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Passo prossima uscita (stima)</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${paceStr(nextPaceSec)}</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Tendenza</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${trendColor}">${trend}</div>
+      </div>
+      ${hrReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">BPM proiettato</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--red)">${Math.round(hrReg.slope * n + hrReg.intercept)} bpm</div>
+      </div>` : ''}`;
+  }
 }
 
 /* Distribuzione passo (istogramma) */
