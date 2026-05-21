@@ -224,73 +224,66 @@ td b{ font-family:var(--font-mono); }
       <p class="header-sub">FIT + GPX Intelligence Platform</p>
     </div>
     <div class="actions">
-      <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Accedi con Google</button>
-      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sincronizza Drive</button>
+      <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
+      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
     </div>
   </div>
 
   <!-- STATS STRIP -->
   <div class="stats-grid">
     <div class="stat-card c-pace">
-      <div class="stat-title">Passo Medio</div>
+      <div class="stat-title">Avg Pace</div>
       <div class="stat-value green" id="avgPace">—</div>
       <div class="stat-sub" id="bestPaceSub">— best km</div>
     </div>
     <div class="stat-card c-km">
-      <div class="stat-title">Distanza Totale</div>
+      <div class="stat-title">Total Distance</div>
       <div class="stat-value cyan" id="totalKm">—</div>
-      <div class="stat-sub" id="runCountSub">— attività</div>
+      <div class="stat-sub" id="runCountSub">— activities</div>
     </div>
     <div class="stat-card c-dur">
-      <div class="stat-title">Tempo Totale</div>
+      <div class="stat-title">Total Time</div>
       <div class="stat-value" id="totalTime">—</div>
-      <div class="stat-sub" id="avgDistSub">— km media/uscita</div>
+      <div class="stat-sub" id="avgDistSub">— km avg/run</div>
     </div>
     <div class="stat-card c-hr">
-      <div class="stat-title">BPM Medio</div>
+      <div class="stat-title">Avg BPM</div>
       <div class="stat-value red" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
     <div class="stat-card c-cad">
-      <div class="stat-title">Cadenza Media</div>
+      <div class="stat-title">Avg Cadence</div>
       <div class="stat-value purple" id="avgCad">—</div>
-      <div class="stat-sub">spm (da FIT)</div>
+      <div class="stat-sub">spm (FIT files)</div>
     </div>
     <div class="stat-card c-pow">
-      <div class="stat-title">Potenza Media</div>
+      <div class="stat-title">Avg Power</div>
       <div class="stat-value orange" id="avgPow">—</div>
-      <div class="stat-sub" id="powSub">watt (da FIT)</div>
+      <div class="stat-sub" id="powSub">watts (FIT files)</div>
     </div>
   </div>
 
-  <!-- MAIN GRID -->
+  <!-- MAIN GRID: connection + pace zones -->
   <div class="main-grid">
     <!-- LEFT COLUMN -->
     <div>
       <div class="card">
-        <div class="card-title"><span>Connessione</span></div>
+        <div class="card-title"><span>Connection</span></div>
         <div id="status-pill" class="status-pill disconnected">
           <span class="dot"></span>
-          <span id="status-text">Non connesso</span>
+          <span id="status-text">Not connected</span>
         </div>
         <p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6;font-family:var(--font-mono);">
-          Legge file <b style="color:var(--text)">.fit</b> e <b style="color:var(--text)">.gpx</b> dalla cartella Drive.<br>
-          Per la scarpa: rinomina come<br>
-          <b style="color:var(--accent)">NomeCorsa [NomeScarpa].fit</b>
+          Reads <b style="color:var(--text)">.fit</b> and <b style="color:var(--text)">.gpx</b> files from your Drive folder.<br>
+          To track shoe: rename file as<br>
+          <b style="color:var(--accent)">RunName [ShoeName].fit</b>
         </p>
       </div>
 
       <div class="card">
-        <div class="card-title"><span>Zone di Passo</span></div>
+        <div class="card-title"><span>Pace Zones</span></div>
         <div id="paceZoneContainer">
-          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sincronizza per visualizzare.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title"><span>Rotazione Scarpe</span></div>
-        <div id="shoeContainer">
-          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sincronizza per analizzare l'usura.</p>
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
         </div>
       </div>
     </div>
@@ -299,43 +292,53 @@ td b{ font-family:var(--font-mono); }
     <div>
       <!-- Trend performance (full height, with projections) -->
       <div class="card">
-        <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— linee tratteggiate = proiezione</span></div>
+        <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— dashed lines = projection (next 5 runs)</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
         <div id="projectionBox" style="display:none;margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;"></div>
       </div>
     </div>
   </div>
 
-  <!-- KM SPLITS: media per km su tutte le corse -->
+  <!-- SHOE ROTATION: full width horizontal, below trend -->
+  <div class="card" id="shoeSection" style="margin-bottom:20px;">
+    <div class="card-title"><span>Shoe Rotation</span></div>
+    <div id="shoeContainer" style="display:flex;gap:14px;flex-wrap:wrap;">
+      <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
+    </div>
+  </div>
+
+  <!-- KM SPLITS: avg across all runs -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
-    <div class="card-title"><span>Media per Chilometro</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— media di tutte le corse per ogni km</span></div>
+    <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
   </div>
 
   <!-- TWO COL: Distribution + Efficiency -->
   <div class="two-col" style="margin-bottom:20px;">
     <div class="card">
-      <div class="card-title"><span>Distribuzione Passo</span></div>
+      <div class="card-title"><span>Pace Distribution</span></div>
       <div class="chart-box"><canvas id="paceDistChart"></canvas></div>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each pace. Bars to the left mean fast running; bars to the right mean easy or recovery effort. A well-trained runner typically shows a broad aerobic base (5:00–6:00) with a sharp spike at race pace.</p>
     </div>
     <div class="card">
-      <div class="card-title"><span>Efficienza (Potenza / Passo)</span></div>
+      <div class="card-title"><span>Running Efficiency (Power vs Pace)</span></div>
       <div class="chart-box"><canvas id="efficiencyChart"></canvas></div>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
     </div>
   </div>
 
-  <!-- STORICO -->
+  <!-- HISTORY TABLE -->
   <div class="card">
-    <div class="card-title"><span>Storico Allenamenti</span></div>
+    <div class="card-title"><span>Training Log</span></div>
     <div id="parseLog" class="parse-log"></div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Data</th><th>Distanza</th><th>Durata</th>
-            <th>Passo Medio</th><th>Passo Best km</th>
-            <th>BPM</th><th>Cadenza</th><th>Potenza</th>
-            <th>Vert.Osc</th><th>Scarpa</th><th>Fonte</th>
+            <th>Date</th><th>Distance</th><th>Duration</th>
+            <th>Avg Pace</th><th>Best km</th>
+            <th>BPM</th><th>Cadence</th><th>Power</th>
+            <th>Vert.Osc</th><th>Shoe</th><th>Source</th>
           </tr>
         </thead>
         <tbody id="runsTable">
@@ -373,7 +376,7 @@ function parseFIT(buffer) {
   const headerSize = bytes[0];
   const dataSize   = dv.getUint32(4, true);
   const tag        = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
-  if(tag !== '.FIT') return { error: 'Non è un file FIT valido' };
+  if(tag !== '.FIT') return { error: 'Not a valid FIT file' };
 
   const end  = headerSize + dataSize;
   let pos    = headerSize;
@@ -436,7 +439,7 @@ function parseFIT(buffer) {
     }
   }
 
-  if(records.length < 2) return { error: 'Nessun dato di attività trovato nel file FIT' };
+  if(records.length < 2) return { error: 'No activity data found in FIT file' };
 
   // Summary stats
   const withTs  = records.filter(r => r.ts);
@@ -530,9 +533,9 @@ function computePaceDistribution(records) {
 /* ── GPX PARSER ── */
 function parseFallbackGPX(xmlText, fileName) {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-  if(doc.querySelector('parsererror')) return { error: 'XML non valido: ' + fileName };
+  if(doc.querySelector('parsererror')) return { error: 'Invalid XML: ' + fileName };
   const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
-  if(trkpts.length < 2) return { error: 'Meno di 2 trackpoint: ' + fileName };
+  if(trkpts.length < 2) return { error: 'Less than 2 trackpoints: ' + fileName };
 
   let totalDist = 0, hrSum = 0, hrCount = 0;
   let firstTime = null, lastTime = null;
@@ -548,7 +551,7 @@ function parseFallbackGPX(xmlText, fileName) {
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { if(!firstTime) firstTime = t; lastTime = t; } }
   }
   const distKm = totalDist / 1000;
-  if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
+  if(distKm < 0.1) return { error: `Distance too short: ${distKm.toFixed(2)} km` };
   const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
   const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
