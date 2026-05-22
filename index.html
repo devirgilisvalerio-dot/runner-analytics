@@ -1013,6 +1013,32 @@ function renderTrendChart(data) {
     const nextPaceSec = (paceReg.slope * n + paceReg.intercept) * 60;
     const trend = paceReg.slope < -0.005 ? '↑ improving' : paceReg.slope > 0.01 ? '↓ slowing' : '→ stable';
     const trendColor = paceReg.slope < -0.005 ? 'var(--green)' : paceReg.slope > 0.01 ? 'var(--red)' : 'var(--orange)';
+
+    // Projected BPM for next run
+    const projBpm = hrReg ? Math.round(hrReg.slope * n + hrReg.intercept) : null;
+
+    // Race pace estimates based on physiological effort scaling.
+    // Half marathon is run at ~lactate threshold: roughly 93% of easy training pace (faster).
+    // Marathon sits just below threshold: roughly 96% of easy training pace.
+    // BPM scales proportionally: faster pace → higher HR relative to the projected baseline.
+    const hmPaceSec  = nextPaceSec * 0.93;
+    const marPaceSec = nextPaceSec * 0.96;
+
+    // BPM estimate: if we have HR data, scale from projected BPM using pace ratio.
+    // Running faster by X% raises HR roughly 0.6× that percentage (cardiovascular drift factor).
+    const hmBpm  = projBpm ? Math.round(projBpm * (1 + (1 - 0.93) * 0.6)) : null;
+    const marBpm = projBpm ? Math.round(projBpm * (1 + (1 - 0.96) * 0.6)) : null;
+
+    // Finish time helpers
+    const hmFinishSec  = hmPaceSec  * 21.0975;
+    const marFinishSec = marPaceSec * 42.195;
+    const fmtTime = sec => {
+      const h = Math.floor(sec/3600);
+      const m = Math.floor((sec%3600)/60);
+      const s = Math.floor(sec%60);
+      return h > 0 ? `${h}h ${m}m` : `${m}m ${s}s`;
+    };
+
     const box = document.getElementById('projectionBox');
     box.style.display = 'flex';
     box.innerHTML = `
@@ -1024,14 +1050,48 @@ function renderTrendChart(data) {
         <div style="color:var(--muted);margin-bottom:4px">Trend</div>
         <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${trendColor}">${trend}</div>
       </div>
-      ${hrReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+      ${projBpm ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
         <div style="color:var(--muted);margin-bottom:4px">Projected BPM</div>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--red)">${Math.round(hrReg.slope * n + hrReg.intercept)} bpm</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--red)">${projBpm} bpm</div>
       </div>` : ''}
       ${kmReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
         <div style="color:var(--muted);margin-bottom:4px">Projected km</div>
         <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent)">${(kmReg.slope * n + kmReg.intercept).toFixed(1)} km</div>
-      </div>` : ''}`;
+      </div>` : ''}
+      <div style="background:var(--card2);border:1px solid #1d4ed860;border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;border-left:3px solid #60a5fa;">
+        <div style="color:#93c5fd;margin-bottom:6px;font-size:11px;letter-spacing:.5px;text-transform:uppercase">🏃 Half Marathon tomorrow</div>
+        <div style="display:flex;gap:12px;align-items:baseline;">
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">pace</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#60a5fa">${paceStr(hmPaceSec)}</div>
+          </div>
+          ${hmBpm ? `<div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">bpm</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#f87171">${hmBpm}</div>
+          </div>` : ''}
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">finish</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${fmtTime(hmFinishSec)}</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--card2);border:1px solid #15803d60;border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;border-left:3px solid #4ade80;">
+        <div style="color:#86efac;margin-bottom:6px;font-size:11px;letter-spacing:.5px;text-transform:uppercase">🏅 Marathon tomorrow</div>
+        <div style="display:flex;gap:12px;align-items:baseline;">
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">pace</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#4ade80">${paceStr(marPaceSec)}</div>
+          </div>
+          ${marBpm ? `<div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">bpm</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#f87171">${marBpm}</div>
+          </div>` : ''}
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:2px">finish</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${fmtTime(marFinishSec)}</div>
+          </div>
+        </div>
+      </div>`;
   }
 }
 
