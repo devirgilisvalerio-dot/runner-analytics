@@ -25,6 +25,7 @@ body{
   min-height:100vh;
   padding:24px 20px 40px;
 }
+/* subtle grid overlay */
 body::before{
   content:''; position:fixed; inset:0; pointer-events:none;
   background-image:
@@ -213,6 +214,7 @@ td b{ font-family:var(--font-mono); }
 <body>
 <div class="container">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
       <div class="logo">
@@ -227,6 +229,7 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- STATS STRIP -->
   <div class="stats-grid">
     <div class="stat-card c-pace">
       <div class="stat-title">Avg Pace</div>
@@ -260,7 +263,9 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- MAIN GRID: connection + pace zones -->
   <div class="main-grid">
+    <!-- LEFT COLUMN -->
     <div>
       <div class="card">
         <div class="card-title"><span>Connection</span></div>
@@ -283,7 +288,9 @@ td b{ font-family:var(--font-mono); }
       </div>
     </div>
 
+    <!-- RIGHT COLUMN -->
     <div>
+      <!-- Trend performance (full height, with projections) -->
       <div class="card">
         <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— dashed lines = projection (next 5 runs)</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
@@ -292,6 +299,7 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- SHOE ROTATION: full width horizontal, below trend -->
   <div class="card" id="shoeSection" style="margin-bottom:20px;">
     <div class="card-title"><span>Shoe Rotation</span></div>
     <div id="shoeContainer" style="display:flex;gap:14px;flex-wrap:wrap;">
@@ -299,24 +307,27 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- KM SPLITS: avg across all runs -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
     <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
   </div>
 
+  <!-- TWO COL: Distribution + Efficiency -->
   <div class="two-col" style="margin-bottom:20px;">
     <div class="card">
       <div class="card-title"><span>Pace Distribution</span></div>
       <div class="chart-box"><canvas id="paceDistChart"></canvas></div>
-      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Questo grafico mostra l'analisi del tempo cumulativo speso a determinati ritmi. Picchi marcati indicano i ritmi in cui ti alleni più frequentemente: una buona base mostra barre alte sulla destra (ritmi lenti ed aerobici), mentre allenamenti di qualità sposteranno la distribuzione verso sinistra.</p>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each pace. Bars to the left mean fast running; bars to the right mean easy or recovery effort. A well-trained runner typically shows a broad aerobic base (5:00–6:00) with a sharp spike at race pace.</p>
     </div>
     <div class="card">
       <div class="card-title"><span>Running Efficiency (Power vs Pace)</span></div>
       <div class="chart-box"><canvas id="efficiencyChart"></canvas></div>
-      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Mette in relazione la potenza (Watt) generata e il ritmo risultante (min/km). Ogni punto rappresenta un allenamento: la traiettoria ideale vede i punti spostarsi verso l'angolo inferiore sinistro del grafico, a indicare che stai correndo a velocità più elevate richiedendo al corpo una minore spesa energetica o potenza espressa.</p>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
     </div>
   </div>
 
+  <!-- HISTORY TABLE -->
   <div class="card">
     <div class="card-title"><span>Training Log</span></div>
     <div id="parseLog" class="parse-log"></div>
@@ -332,7 +343,7 @@ td b{ font-family:var(--font-mono); }
         </thead>
         <tbody id="runsTable">
           <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
-            Nessuna attività caricata. Connetti Drive per iniziare.
+            No activities loaded. Connect Google Drive to get started.
           </td></tr>
         </tbody>
       </table>
@@ -343,6 +354,20 @@ td b{ font-family:var(--font-mono); }
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════
+   FIT BINARY PARSER
+   Global message 20 (record) fields:
+     253 = timestamp (uint32, s since 1989-12-31)
+       0 = lat (sint32 semicircles)
+       1 = lon (sint32 semicircles)
+       5 = distance (uint32, cm → m/100)
+       6 = speed (uint16, mm/s → km/h * 3.6/1000)
+       3 = heart_rate (uint8 bpm)
+       4 = cadence (uint8 rpm → spm * 2)
+       7 = power (uint16 W)
+      39 = vertical_oscillation (uint16, mm/10)
+      41 = vertical_ratio (uint16, %/100)
+═══════════════════════════════════════════════════════════════════ */
 const FIT_EPOCH = 631065600000;
 
 function parseFIT(buffer) {
@@ -416,6 +441,7 @@ function parseFIT(buffer) {
 
   if(records.length < 2) return { error: 'No activity data found in FIT file' };
 
+  // Summary stats
   const withTs  = records.filter(r => r.ts);
   const firstTs = withTs[0]?.ts;
   const lastTs  = withTs[withTs.length-1]?.ts;
@@ -424,7 +450,7 @@ function parseFIT(buffer) {
   const withDist = records.filter(r => r.dist != null);
   const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
   const distKm   = distM / 1000;
-  if(distKm < 0.1) return { error: `Distanza troppo breve: ${distKm.toFixed(2)} km` };
+  if(distKm < 0.1) return { error: `Distance too short: ${distKm.toFixed(2)} km` };
 
   const withHr  = records.filter(r => r.hr && r.hr > 30 && r.hr < 250);
   const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
@@ -438,10 +464,14 @@ function parseFIT(buffer) {
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
+  // Per-km splits
   const kmSplits = computeKmSplits(records);
+
+  // Pace stats
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
 
+  // Speed-based pace distribution (for histogram)
   const withSpd = records.filter(r => r.speed != null && r.speed > 3);
   const paceDistribution = computePaceDistribution(withSpd);
 
@@ -476,7 +506,7 @@ function computeKmSplits(records) {
     const start = sorted.find(r => r.dist >= prevM);
     const end   = sorted.find(r => r.dist >= currM);
     if(!start || !end) continue;
-    const sec   = (end.ts - start.ts) / 1000;
+    const sec  = (end.ts - start.ts) / 1000;
     const dist = end.dist - start.dist;
     if(sec <= 0 || dist <= 0) continue;
     const paceSec = sec / (dist / 1000);
@@ -488,17 +518,19 @@ function computeKmSplits(records) {
 }
 
 function computePaceDistribution(records) {
+  // Buckets: 3:00–8:00 /km in 15s steps
   const buckets = {};
   for(let s = 180; s <= 480; s += 15) buckets[s] = 0;
   records.forEach(r => {
     if(r.speed < 2) return;
-    const pace = 3600 / r.speed; 
+    const pace = 3600 / r.speed; // sec/km
     const bucket = Math.round(pace / 15) * 15;
     if(buckets[bucket] !== undefined) buckets[bucket]++;
   });
   return buckets;
 }
 
+/* ── GPX PARSER ── */
 function parseFallbackGPX(xmlText, fileName) {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
   if(doc.querySelector('parsererror')) return { error: 'Invalid XML: ' + fileName };
@@ -540,6 +572,7 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+/* ── GOOGLE DRIVE ── */
 const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
 const SCOPES    = 'https://www.googleapis.com/auth/drive.readonly';
@@ -612,23 +645,24 @@ async function listFiles(){
     if(warnings.length)
       document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
 
-    if(!runs.length){ setStatus('Nessun file valido.', 'disconnected'); setEmptyTable(); return; }
+    if(!runs.length){ setStatus('No valid files found.', 'disconnected'); setEmptyTable(); return; }
 
     renderDashboard(runs);
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} attività ✓  (${fc} FIT · ${gc} GPX)`, 'connected');
+    setStatus(`${runs.length} activities loaded ✓  (${fc} FIT · ${gc} GPX)`, 'connected');
   } catch(err){
     console.error(err);
-    setStatus('Errore: ' + (err.message || JSON.stringify(err)), 'disconnected');
+    setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
   }
 }
 
 function setEmptyTable(){
   document.getElementById('runsTable').innerHTML =
-    `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">Nessun file valido nella cartella.</td></tr>`;
+    `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">No valid files found in folder.</td></tr>`;
 }
 
+/* ── RENDER ── */
 function renderDashboard(data){
   data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
@@ -650,12 +684,13 @@ function renderDashboard(data){
   const withPow = data.filter(r => r.power);
   const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
+  // Stats strip
   document.getElementById('avgPace').innerText     = avgPaceSec ? paceStr(avgPaceSec) : '—';
   document.getElementById('bestPaceSub').innerText = bestSplitPace ? `Best km: ${paceStr(bestSplitPace)}` : '—';
   document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
-  document.getElementById('runCountSub').innerText = data.length + ' attività';
+  document.getElementById('runCountSub').innerText = data.length + ' activities';
   document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
-  document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km media/uscita';
+  document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km avg/run';
   document.getElementById('avgHr').innerText       = avgHr ? avgHr + ' bpm' : '—';
   document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
   document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
@@ -665,21 +700,23 @@ function renderDashboard(data){
   renderShoes(data);
   renderTable(data);
 
+  // Charts
   renderTrendChart(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
 
+  // Splits: media per km su tutte le corse (max 15 km)
   renderAvgKmSplits(data);
   document.getElementById('splitsSection').style.display = 'block';
 }
 
+/* PACE ZONES — 4 zones */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Sprint',   min: 0,   max: 210, color: '#ff3d57', desc: '< 3:30 · massima intensità, allunghi' },
-    { label: 'Veloce',   min: 210, max: 275, color: '#ff9100', desc: '< 4:35 · ritmo gara 5–10 km' },
-    { label: 'Soglia',   min: 275, max: 310, color: '#ffea00', desc: '4:35–5:10 · ritmo mezza target' },
-    { label: 'Aerobico', min: 310, max: 350, color: '#00e676', desc: '5:10–5:50 · corsa lunga, ritmo maratona' },
-    { label: 'Lento',    min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · riscaldamento, recupero' },
+    { label: 'Fast',     min: 0,   max: 275, color: '#ff9100', desc: '< 4:35 · Race pace 5–10 km, high intensity' },
+    { label: 'Threshold',min: 275, max: 310, color: '#ffea00', desc: '4:35–5:10 · Half-marathon target pace, lactate threshold' },
+    { label: 'Aerobic',  min: 310, max: 350, color: '#00e676', desc: '5:10–5:50 · Long run, marathon pace, fat-burning zone' },
+    { label: 'Easy',     min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
   if(!allSplits.length) return;
@@ -693,7 +730,7 @@ function renderPaceZones(data) {
     const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
     const barW = maxCount ? (counts[i]/maxCount*100) : 0;
     html += `
-    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:10px;">
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="pz-dot" style="background:${z.color}"></span>
         <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
@@ -707,213 +744,387 @@ function renderPaceZones(data) {
   document.getElementById('paceZoneContainer').innerHTML = html;
 }
 
+/* AVERAGE KM SPLITS across all runs */
 function renderAvgKmSplits(data) {
-  const MAX_KM = 15;
+  const MAX_KM = 20;
   const byKm = {};
   data.forEach(r => {
     if(!r.kmSplits) return;
     r.kmSplits.forEach(s => {
-      if(s.km <= MAX_KM) {
-        if(!byKm[s.km]) byKm[s.km] = { totalSec: 0, totalHr: 0, hrCount: 0, runCount: 0 };
-        byKm[s.km].totalSec += s.paceSec;
-        byKm[s.km].runCount++;
-        if(s.hr) { byKm[s.km].totalHr += s.hr; byKm[s.km].hrCount++; }
-      }
+      if(s.km > MAX_KM) return;
+      if(!byKm[s.km]) byKm[s.km] = { paceSum: 0, paceCount: 0, hrSum: 0, hrCount: 0 };
+      byKm[s.km].paceSum   += s.paceSec;
+      byKm[s.km].paceCount += 1;
+      if(s.hr){ byKm[s.km].hrSum += s.hr; byKm[s.km].hrCount += 1; }
     });
   });
 
-  let html = '';
+  const avgs = [];
   for(let km = 1; km <= MAX_KM; km++) {
-    if(!byKm[km]) continue;
-    const avgSec = byKm[km].totalSec / byKm[km].runCount;
-    const avgHr = byKm[km].hrCount ? Math.round(byKm[km].totalHr / byKm[km].hrCount) : null;
-    
-    let colorClass = 'pace-mid';
-    if(avgSec < 275) colorClass = 'pace-fast';
-    else if(avgSec > 350) colorClass = 'pace-slow';
-
-    html += `
-    <div class="split-cell">
-      <div class="split-km">KM ${km}</div>
-      <div class="split-pace ${colorClass}">${paceStr(avgSec)}</div>
-      <div class="split-hr" style="color:var(--muted2)">${avgHr ? avgHr + ' bpm' : '—'}</div>
-    </div>`;
+    const d = byKm[km];
+    if(!d || d.paceCount === 0) { avgs.push(null); continue; }
+    avgs.push({
+      km,
+      avgPaceSec: Math.round(d.paceSum / d.paceCount),
+      avgHr: d.hrCount ? Math.round(d.hrSum / d.hrCount) : null,
+      count: d.paceCount
+    });
   }
-  document.getElementById('splitsGrid').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Nessun parziale chilometrico disponibile.</p>';
+
+  const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
+  const minP = validPaces.length ? Math.min(...validPaces) : 0;
+  const maxP = validPaces.length ? Math.max(...validPaces) : 0;
+
+  const grid = document.getElementById('splitsGrid');
+  grid.innerHTML = avgs.map((a, i) => {
+    if(!a) return `
+    <div class="split-cell" style="opacity:.3">
+      <div class="split-km">KM ${i+1}</div>
+      <div class="split-pace" style="color:var(--muted)">—</div>
+      <div class="split-hr" style="color:var(--muted2)">no data</div>
+    </div>`;
+    const norm = maxP > minP ? (a.avgPaceSec - minP) / (maxP - minP) : 0.5;
+    const cls  = norm < 0.33 ? 'pace-fast' : norm < 0.66 ? 'pace-mid' : 'pace-slow';
+    return `
+    <div class="split-cell">
+      <div class="split-km">KM ${a.km}</div>
+      <div class="split-pace ${cls}">${paceStr(a.avgPaceSec)}</div>
+      <div class="split-hr" style="color:var(--muted2)">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${a.count} run${a.count===1?'':'s'}</div>
+    </div>`;
+  }).join('');
 }
 
-function renderShoes(data){
+/* SHOES */
+function renderShoes(data) {
   const shoes = {};
   data.forEach(r => {
-    if(!shoes[r.shoe]) shoes[r.shoe] = { km:0 };
+    if(!shoes[r.shoe]) shoes[r.shoe] = { km:0, hrSum:0, hrCount:0, paceSum:0, paceCount:0 };
     shoes[r.shoe].km += r.distance;
+    if(r.hr){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
+    if(r.paceSecPerKm){ shoes[r.shoe].paceSum += r.paceSecPerKm; shoes[r.shoe].paceCount++; }
   });
   let html = '';
-  for(const [name,s] of Object.entries(shoes)){
+  for(const [name, s] of Object.entries(shoes)){
     const wear = Math.min(100, (s.km/500)*100);
+    const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
+    const avgPace = s.paceCount ? paceStr(s.paceSum / s.paceCount) : null;
+    const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
     html += `
-    <div class="shoe-card" style="flex:1; min-width:220px;">
-      <div class="shoe-header"><strong>${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
-      <div class="bar"><div class="fill" style="width:${wear}%; background:linear-gradient(90deg, var(--green), var(--orange))"></div></div>
+    <div class="shoe-card" style="flex:1;min-width:200px;max-width:340px;">
+      <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
+      <div style="display:flex;gap:16px;margin-top:4px;">
+        <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
+        <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
+      </div>
+      <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
+      <div style="margin-top:5px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of 500 km</div>
     </div>`;
   }
-  document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Nessuna scarpa rilevata.</p>';
+  document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
 }
 
-function renderTable(data){
+/* TABLE */
+function renderTable(data) {
   const tbody = document.getElementById('runsTable');
   tbody.innerHTML = '';
   data.forEach(r => {
     const pace = r.paceSecPerKm ? paceStr(r.paceSecPerKm) : '—';
-    const bestP = r.bestSplitPace ? paceStr(r.bestSplitPace) : '—';
-    const srcBadge = r.source === 'FIT' ? `<span class="badge badge-fit">FIT</span>` : `<span class="badge badge-gpx">GPX</span>`;
+    const bestPace = r.bestSplitPace ? paceStr(r.bestSplitPace) : '—';
+    const srcBadge = r.source === 'FIT'
+      ? `<span class="badge badge-fit">FIT</span>`
+      : `<span class="badge badge-gpx">GPX</span>`;
     tbody.innerHTML += `
     <tr>
-      <td><b>${r.date}</b></td>
+      <td style="font-family:var(--font-mono)">${r.date}</td>
       <td><b>${r.distance} km</b></td>
-      <td>${r.duration}</td>
-      <td><b>${pace}</b></td>
-      <td style="color:var(--green)">${bestP}</td>
-      <td>${r.hr ? r.hr : '—'}</td>
-      <td>${r.cad ? r.cad : '—'}</td>
-      <td>${r.power ? r.power + ' W' : '—'}</td>
-      <td>${r.vertOsc ? r.vertOsc + ' cm' : '—'}</td>
+      <td style="font-family:var(--font-mono)">${r.duration}</td>
+      <td style="font-family:var(--font-mono);color:var(--green)">${pace}</td>
+      <td style="font-family:var(--font-mono);color:var(--accent)">${bestPace}</td>
+      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
+      <td>${r.power !== null ? r.power + ' W' : nd()}</td>
+      <td>${r.vertOsc !== null ? r.vertOsc + ' mm' : nd()}</td>
       <td><span class="badge badge-shoe">${r.shoe}</span></td>
       <td>${srcBadge}</td>
     </tr>`;
   });
 }
 
+/* CHARTS */
+const CHART_OPTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+  }
+};
+
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+/* Trend performance + linear projections (max 5 runs ahead) */
 function renderTrendChart(data) {
-  if(charts.trend) charts.trend.destroy();
+  destroyChart('trend');
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 2) return;
+
+  const n = sorted.length;
+  const paceVals = sorted.map(r => r.paceSecPerKm / 60);
+  const hrVals   = sorted.map(r => r.hr);
+  const kmVals   = sorted.map(r => r.distance);
+
+  function linReg(vals) {
+    const clean = vals.map((v,i) => v != null ? { x: i, y: v } : null).filter(Boolean);
+    if(clean.length < 2) return null;
+    const nx = clean.length;
+    const sx = clean.reduce((s,p) => s+p.x, 0);
+    const sy = clean.reduce((s,p) => s+p.y, 0);
+    const sxy = clean.reduce((s,p) => s+p.x*p.y, 0);
+    const sxx = clean.reduce((s,p) => s+p.x*p.x, 0);
+    const slope = (nx*sxy - sx*sy) / (nx*sxx - sx*sx);
+    const intercept = (sy - slope*sx) / nx;
+    return { slope, intercept };
+  }
+
+  const PROJ_STEPS = 5; // always project exactly 5 runs ahead
+
+  const paceReg = linReg(paceVals);
+  const hrReg   = linReg(hrVals);
+  const kmReg   = linReg(kmVals);
+
+  const paceProj = Array(n).fill(null).concat(
+    Array.from({ length: PROJ_STEPS }, (_, i) => paceReg ? Math.max(0, paceReg.slope*(n+i) + paceReg.intercept) : null)
+  );
+  const hrProj = Array(n).fill(null).concat(
+    Array.from({ length: PROJ_STEPS }, (_, i) => hrReg ? Math.round(Math.max(50, hrReg.slope*(n+i) + hrReg.intercept)) : null)
+  );
+  const kmProj = Array(n).fill(null).concat(
+    Array.from({ length: PROJ_STEPS }, (_, i) => kmReg ? Math.max(0, kmReg.slope*(n+i) + kmReg.intercept) : null)
+  );
+
+  const labels = [
+    ...sorted.map(r => r.date),
+    ...Array.from({ length: PROJ_STEPS }, (_, i) => `+${i+1}`)
+  ];
+
   const ctx = document.getElementById('performanceChart').getContext('2d');
-  const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
-  
-  charts.trend = new Chart(ctx, {
+  charts['trend'] = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: sorted.map(r => r.date),
-      datasets: [{
-        label: 'Ritmo Medio (min/km)',
-        data: sorted.map(r => r.paceSecPerKm ? r.paceSecPerKm / 60 : null),
-        borderColor: '#00e676',
-        backgroundColor: 'rgba(0, 230, 118, 0.05)',
-        tension: 0.2,
-        fill: true
-      }]
+      labels,
+      datasets: [
+        {
+          label: 'Pace (real)',
+          data: [...paceVals, ...Array(PROJ_STEPS).fill(null)],
+          borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.07)',
+          tension: 0.35, yAxisID: 'yPace', fill: true, spanGaps: false,
+          pointRadius: 4, pointBackgroundColor: '#00e676'
+        },
+        {
+          label: 'Pace (projected)',
+          data: paceProj,
+          borderColor: '#00e676', backgroundColor: 'transparent',
+          borderDash: [6, 4], tension: 0.2, yAxisID: 'yPace',
+          pointRadius: 3, pointStyle: 'triangle', pointBackgroundColor: '#00e676', spanGaps: false
+        },
+        {
+          label: 'BPM (real)',
+          data: [...hrVals, ...Array(PROJ_STEPS).fill(null)],
+          borderColor: '#ff3d57', backgroundColor: 'transparent',
+          tension: 0.35, yAxisID: 'yHr', spanGaps: true,
+          pointRadius: 3, pointBackgroundColor: '#ff3d57'
+        },
+        {
+          label: 'BPM (projected)',
+          data: hrProj,
+          borderColor: '#ff3d57', backgroundColor: 'transparent',
+          borderDash: [6, 4], tension: 0.2, yAxisID: 'yHr',
+          pointRadius: 3, pointStyle: 'triangle', pointBackgroundColor: '#ff3d57', spanGaps: false
+        },
+        {
+          label: 'Km (real)',
+          data: [...kmVals, ...Array(PROJ_STEPS).fill(null)],
+          borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.05)',
+          tension: 0.35, yAxisID: 'yKm', fill: false, spanGaps: false,
+          pointRadius: 3, pointBackgroundColor: '#00e5ff'
+        },
+        {
+          label: 'Km (projected)',
+          data: kmProj,
+          borderColor: '#00e5ff', backgroundColor: 'transparent',
+          borderDash: [6, 4], tension: 0.2, yAxisID: 'yKm',
+          pointRadius: 3, pointStyle: 'triangle', pointBackgroundColor: '#00e5ff', spanGaps: false
+        }
+      ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#1e2a34' }, ticks: { color: '#8a9aaa' } },
-        y: { 
-          grid: { color: '#1e2a34' }, 
-          ticks: { 
-            color: '#8a9aaa',
-            callback: value => {
-              const m = Math.floor(value);
-              const s = Math.round((value - m) * 60).toString().padStart(2, '0');
-              return `${m}:${s}`;
+      ...CHART_OPTS,
+      plugins: {
+        legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if(ctx.dataset.yAxisID === 'yPace') {
+                const m = Math.floor(v); const s = Math.round((v%1)*60);
+                return `${ctx.dataset.label}: ${m}:${String(s).padStart(2,'0')} /km`;
+              }
+              if(ctx.dataset.yAxisID === 'yKm') return `${ctx.dataset.label}: ${v.toFixed(1)} km`;
+              return `${ctx.dataset.label}: ${Math.round(v)} bpm`;
             }
           }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: ctx => ctx.tick.label.startsWith('+') ? '#3a4a5a' : '#8a9aaa',
+            font: { family: 'DM Mono', size: 10 }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
+        yPace: {
+          type: 'linear', position: 'left', reverse: true,
+          ticks: {
+            color: '#00e676', font: { family: 'DM Mono', size: 10 },
+            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          title: { display: true, text: 'Pace /km', color: '#00e676', font: { family: 'DM Mono', size: 10 } }
+        },
+        yHr: {
+          type: 'linear', position: 'right',
+          ticks: { color: '#ff3d57', font: { family: 'DM Mono', size: 10 } },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'BPM', color: '#ff3d57', font: { family: 'DM Mono', size: 10 } }
+        },
+        yKm: {
+          type: 'linear', position: 'right',
+          ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(0) + ' km' },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Distance', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } }
         }
       }
     }
   });
+
+  // Projection summary badges
+  if(paceReg) {
+    const nextPaceSec = (paceReg.slope * n + paceReg.intercept) * 60;
+    const trend = paceReg.slope < -0.005 ? '↑ improving' : paceReg.slope > 0.01 ? '↓ slowing' : '→ stable';
+    const trendColor = paceReg.slope < -0.005 ? 'var(--green)' : paceReg.slope > 0.01 ? 'var(--red)' : 'var(--orange)';
+    const box = document.getElementById('projectionBox');
+    box.style.display = 'flex';
+    box.innerHTML = `
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Next run pace (est.)</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${paceStr(nextPaceSec)}</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Trend</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${trendColor}">${trend}</div>
+      </div>
+      ${hrReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Projected BPM</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--red)">${Math.round(hrReg.slope * n + hrReg.intercept)} bpm</div>
+      </div>` : ''}
+      ${kmReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+        <div style="color:var(--muted);margin-bottom:4px">Projected km</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent)">${(kmReg.slope * n + kmReg.intercept).toFixed(1)} km</div>
+      </div>` : ''}`;
+  }
 }
 
+/* Distribuzione passo (istogramma) */
 function renderPaceDistChart(data) {
-  if(charts.dist) charts.dist.destroy();
-  const ctx = document.getElementById('paceDistChart').getContext('2d');
-  
-  const mergedBuckets = {};
-  for(let s = 180; s <= 480; s += 15) mergedBuckets[s] = 0;
-  
-  data.forEach(r => {
-    if(r.paceDistribution) {
-      for(const [k, v] of Object.entries(r.paceDistribution)) {
-        if(mergedBuckets[k] !== undefined) mergedBuckets[k] += v;
-      }
-    }
+  destroyChart('paceDist');
+  const allDists = data.filter(r => r.paceDistribution);
+  if(!allDists.length) return;
+  const merged = {};
+  allDists.forEach(r => {
+    Object.entries(r.paceDistribution).forEach(([k,v]) => { merged[k] = (merged[k]||0) + v; });
   });
-
-  const labels = Object.keys(mergedBuckets).map(s => paceStr(parseInt(s)));
-  const values = Object.values(mergedBuckets);
-
-  charts.dist = new Chart(ctx, {
+  const keys   = Object.keys(merged).map(Number).sort((a,b)=>a-b);
+  const labels = keys.map(k => { const m=Math.floor(k/60); const s=k%60; return `${m}:${String(s).padStart(2,'0')}`; });
+  const vals   = keys.map(k => merged[k]);
+  const total  = vals.reduce((a,b)=>a+b,0);
+  const pcts   = vals.map(v => total ? (v/total*100).toFixed(1) : 0);
+  const ctx = document.getElementById('paceDistChart').getContext('2d');
+  charts['paceDist'] = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
-        data: values,
-        backgroundColor: '#00e5ff',
-        borderRadius: 4
+        label: '% tempo',
+        data: pcts,
+        backgroundColor: keys.map(k => k < 255 ? '#00e67680' : k < 300 ? '#ffe56680' : '#ff3d5750'),
+        borderColor:     keys.map(k => k < 255 ? '#00e676'   : k < 300 ? '#ffe566'   : '#ff3d57'),
+        borderWidth: 1
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      ...CHART_OPTS,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#8a9aaa', font: { size: 10 } } },
-        y: { grid: { color: '#1e2a34' }, ticks: { color: '#8a9aaa' } }
+        x: { ...CHART_OPTS.scales.x, title: { display: true, text: 'Passo /km', color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } } },
+        y: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
       }
     }
   });
 }
 
+/* Efficienza: potenza vs passo */
 function renderEfficiencyChart(data) {
-  if(charts.eff) charts.eff.destroy();
+  destroyChart('eff');
+  const runs = data.filter(r => r.power && r.paceSecPerKm);
+  if(runs.length < 2) {
+    document.getElementById('efficiencyChart').parentNode.innerHTML =
+      '<p style="color:var(--muted);font-size:13px;padding:20px;font-family:var(--font-mono)">Not enough power data.</p>';
+    return;
+  }
+  const sorted = [...runs].sort((a,b) => new Date(a.date)-new Date(b.date));
   const ctx = document.getElementById('efficiencyChart').getContext('2d');
-  
-  const points = data.filter(r => r.power && r.paceSecPerKm).map(r => ({
-    x: r.power,
-    y: r.paceSecPerKm / 60
-  }));
-
-  charts.eff = new Chart(ctx, {
+  charts['eff'] = new Chart(ctx, {
     type: 'scatter',
     data: {
       datasets: [{
-        data: points,
-        backgroundColor: '#ff9100',
-        pointRadius: 6
+        label: 'W vs Passo',
+        data: sorted.map(r => ({ x: r.power, y: r.paceSecPerKm / 60 })),
+        backgroundColor: '#bf40ff80', borderColor: '#bf40ff', pointRadius: 6
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      ...CHART_OPTS,
       scales: {
-        x: { title: { display: true, text: 'Potenza Media (Watt)', color: '#8a9aaa' }, grid: { color: '#1e2a34' }, ticks: { color: '#8a9aaa' } },
-        y: { 
-          title: { display: true, text: 'Passo Medio (min/km)', color: '#8a9aaa' },
-          grid: { color: '#1e2a34' }, 
-          ticks: { 
-            color: '#8a9aaa',
-            callback: value => {
-              const m = Math.floor(value);
-              const s = Math.round((value - m) * 60).toString().padStart(2, '0');
-              return `${m}:${s}`;
-            }
-          }
+        x: { ...CHART_OPTS.scales.x, title: { display:true, text:'Potenza (W)', color:'#5a6a7a', font:{family:'DM Mono',size:10} } },
+        y: {
+          reverse: true,
+          ticks: {
+            color: '#5a6a7a', font: { family: 'DM Mono', size: 10 },
+            callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          title: { display: true, text: 'Passo /km', color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } }
         }
       }
     }
   });
 }
 
-function paceStr(totalSecs){
-  const mins = Math.floor(totalSecs / 60);
-  const secs = Math.round(totalSecs % 60).toString().padStart(2, '0');
-  return `${mins}:${secs}`;
+/* ── UTILS ── */
+function paceStr(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2,'0')}`;
 }
-
 function secondsToTime(s){
   const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=Math.floor(s%60);
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
+function nd(){ return `<span style="color:var(--muted);font-family:var(--font-mono)">—</span>`; }
 </script>
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+<script src="https://apis.google.com/js/api.js"        onload="gapiLoaded()"></script>
+<script src="https://accounts.google.com/gsi/client"   onload="gisLoaded()"></script>
 </body>
 </html>
