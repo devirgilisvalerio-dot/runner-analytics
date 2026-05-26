@@ -686,6 +686,39 @@ function extractShoeName(name){
   return m ? m[1].trim() : 'Sconosciuta';
 }
 
+/* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
+const RUN_CACHE_PREFIX  = 'runneros:run:';
+const RUN_CACHE_VERSION = 1;
+function readCachedRun(fileId){
+  try{
+    const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(obj.v !== RUN_CACHE_VERSION) return null;
+    return obj.run;
+  } catch(e){ return null; }
+}
+function writeCachedRun(fileId, run){
+  try{
+    const { shoe, ...rest } = run;
+    localStorage.setItem(RUN_CACHE_PREFIX + fileId, JSON.stringify({ v: RUN_CACHE_VERSION, run: rest }));
+  } catch(e){
+    if(e && e.name === 'QuotaExceededError'){
+      for(let i = localStorage.length - 1; i >= 0; i--){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(RUN_CACHE_PREFIX)) localStorage.removeItem(k);
+      }
+    }
+  }
+}
+function pruneRunCache(validIds){
+  const keep = new Set(validIds.map(id => RUN_CACHE_PREFIX + id));
+  for(let i = localStorage.length - 1; i >= 0; i--){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(RUN_CACHE_PREFIX) && !keep.has(k)) localStorage.removeItem(k);
+  }
+}
+
 async function listFiles(){
   setStatus('Lettura cartella Drive…', 'loading');
   document.getElementById('parseLog').innerText = '';
@@ -698,25 +731,50 @@ async function listFiles(){
     const files = resp.result.files || [];
     if(!files.length){ setStatus('Nessun file trovato.', 'disconnected'); setEmptyTable(); return; }
 
-    setStatus(`Parsing ${files.length} file…`, 'loading');
     const token = gapi.client.getToken().access_token;
     const runs = [], warnings = [];
 
-    for(const file of files){
+    const eligible = files.filter(f => {
+      const n = f.name.toLowerCase();
+      return n.endsWith('.fit') || n.endsWith('.gpx');
+    });
+
+    let cacheHits = 0, fetched = 0, done = 0;
+    const updateProgress = () => setStatus(
+      `Parsing ${done}/${eligible.length}  ·  ${cacheHits} cached · ${fetched} downloaded`,
+      'loading'
+    );
+    updateProgress();
+
+    const processFile = async (file) => {
       const isFit = file.name.toLowerCase().endsWith('.fit');
-      const isGpx = file.name.toLowerCase().endsWith('.gpx');
-      if(!isFit && !isGpx) continue;
-      try{
-        const r = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
-        if(!r.ok){ warnings.push(`⚠ ${file.name}: HTTP ${r.status}`); continue; }
+      try {
+        const cached = readCachedRun(file.id);
         let parsed;
-        if(isFit){ const buf = await r.arrayBuffer(); parsed = parseFIT(buf); }
-        else      { const xml = await r.text(); parsed = parseFallbackGPX(xml, file.name); }
-        if(parsed.error){ warnings.push('⚠ ' + parsed.error); continue; }
+        if(cached){
+          parsed = cached;
+          cacheHits++;
+        } else {
+          const r = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
+          if(!r.ok){ warnings.push(`⚠ ${file.name}: HTTP ${r.status}`); return; }
+          if(isFit){ const buf = await r.arrayBuffer(); parsed = parseFIT(buf); }
+          else     { const xml = await r.text();        parsed = parseFallbackGPX(xml, file.name); }
+          fetched++;
+          if(parsed.error){ warnings.push('⚠ ' + parsed.error); return; }
+          writeCachedRun(file.id, parsed);
+        }
         parsed.shoe = extractShoeName(file.name);
         runs.push(parsed);
       } catch(e){ warnings.push(`⚠ ${file.name}: ${e.message}`); }
+      finally { done++; updateProgress(); }
+    };
+
+    const CONCURRENCY = 12;
+    for(let i = 0; i < eligible.length; i += CONCURRENCY){
+      const batch = eligible.slice(i, i + CONCURRENCY);
+      await Promise.all(batch.map(processFile));
     }
+    pruneRunCache(eligible.map(f => f.id));
 
     if(warnings.length)
       document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
@@ -730,7 +788,7 @@ async function listFiles(){
 
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} activities loaded ✓  (${fc} FIT · ${gc} GPX)`, 'connected');
+    setStatus(`${runs.length} activities loaded ✓  (${fc} FIT · ${gc} GPX · ${cacheHits} from cache)`, 'connected');
   } catch(err){
     console.error(err);
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
