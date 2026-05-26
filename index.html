@@ -34,6 +34,7 @@ body::before{
   z-index:0;
 }
 .container{ max-width:1480px; margin:auto; position:relative; z-index:1; }
+
 /* ── HEADER ── */
 .header{
   display:flex; justify-content:space-between; align-items:flex-start;
@@ -62,6 +63,7 @@ body::before{
 .btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
 .primary{ background:var(--accent); color:#000; }
 .success{ background:var(--green); color:#000; }
+
 /* ── STATS GRID ── */
 .stats-grid{
   display:grid;
@@ -97,6 +99,7 @@ body::before{
 .stat-value.purple{ color:var(--purple); }
 .stat-value.orange{ color:var(--orange); }
 .stat-sub{ margin-top:8px; font-size:12px; color:var(--muted2); font-family:var(--font-mono); }
+
 /* ── FILTERS ── */
 .filter-panel{
   background:var(--card); border:1px solid var(--border);
@@ -151,6 +154,7 @@ body::before{
   white-space:nowrap; align-self:flex-end;
 }
 .btn-reset:hover{ border-color:var(--accent); color:var(--accent); }
+
 /* ── MAIN GRID ── */
 .main-grid{ display:grid; grid-template-columns:340px 1fr; gap:20px; margin-bottom:20px; }
 .card{
@@ -164,6 +168,7 @@ body::before{
   color:var(--muted2);
 }
 .card-title span{ color:var(--text); }
+
 /* ── PACE ZONES ── */
 .pace-zones{ display:flex; flex-direction:column; gap:8px; }
 .pz-row{ display:flex; align-items:center; gap:10px; }
@@ -172,6 +177,7 @@ body::before{
 .pz-bar-wrap{ flex:1; height:6px; background:#1a2430; border-radius:3px; overflow:hidden; }
 .pz-bar{ height:100%; border-radius:3px; transition:width .6s; }
 .pz-val{ font-family:var(--font-mono); font-size:13px; color:var(--text); width:60px; text-align:right; }
+
 /* ── CONNECTION ── */
 .status-pill{
   display:inline-flex; align-items:center; gap:7px;
@@ -184,6 +190,7 @@ body::before{
 .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
 .dot.pulse{ animation:pulse 1.2s infinite; }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
+
 /* ── SHOE CARD ── */
 .shoe-card{
   background:var(--card2); border-radius:8px;
@@ -193,6 +200,7 @@ body::before{
 .shoe-km{ font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
 .bar{ height:5px; background:#1a2430; border-radius:999px; overflow:hidden; margin-top:10px; }
 .fill{ height:100%; border-radius:999px; }
+
 /* ── KM SPLITS TABLE ── */
 .splits-grid{
   display:grid;
@@ -214,9 +222,11 @@ body::before{
 .pace-fast{ color:var(--green); }
 .pace-mid{ color:#ffe566; }
 .pace-slow{ color:var(--red); }
+
 /* ── CHARTS ── */
 .chart-box{ height:280px; }
 .chart-box-lg{ height:320px; }
+
 /* ── TABLE ── */
 .table-wrapper{ overflow:auto; }
 table{ width:100%; border-collapse:collapse; }
@@ -234,6 +244,7 @@ td b{ font-family:var(--font-mono); }
 .badge-fit{ background:#00e67620; color:#00e676; border:1px solid #00e67640; }
 .badge-gpx{ background:#00e5ff20; color:#00e5ff; border:1px solid #00e5ff40; }
 .badge-shoe{ background:#bf40ff20; color:#bf40ff; border:1px solid #bf40ff40; }
+
 /* ── LOG ── */
 .parse-log{
   font-size:11px; color:var(--muted); margin-bottom:14px;
@@ -241,18 +252,22 @@ td b{ font-family:var(--font-mono); }
   line-height:1.6;
 }
 .log-entry{ padding:2px 0; }
+
 /* ── TWO-COL ── */
 .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
 .footer{
   margin-top:30px; text-align:center; color:var(--muted);
   font-size:11px; font-family:var(--font-mono); letter-spacing:1px;
 }
+
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
 @media(max-width:700px){ .two-col{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
+
   <!-- HEADER -->
   <div class="header">
     <div>
@@ -267,6 +282,7 @@ td b{ font-family:var(--font-mono); }
       <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
     </div>
   </div>
+
   <!-- STATS STRIP -->
   <div class="stats-grid">
     <div class="stat-card c-pace">
@@ -300,6 +316,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-sub" id="powSub">watts (FIT files)</div>
     </div>
   </div>
+
   <!-- FILTERS -->
   <div class="filter-panel" id="filterPanel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
@@ -332,6 +349,7 @@ td b{ font-family:var(--font-mono); }
       </div>
     </div>
   </div>
+
   <!-- MAIN GRID: connection + pace zones -->
   <div class="main-grid">
     <!-- LEFT COLUMN -->
@@ -343,11 +361,10 @@ td b{ font-family:var(--font-mono); }
           <span id="status-text">Not connected</span>
         </div>
         <p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6;font-family:var(--font-mono);">
-          Reads <b style="color:var(--text)">.fit</b> and <b style="color:var(--text)">.gpx</b> files from your Drive folder.<br>
-          To track shoe: rename file as<br>
-          <b style="color:var(--accent)">RunName [ShoeName].fit</b>
+          Reads <b style="color:var(--text)">.fit</b> and <b style="color:var(--text)">.gpx</b> files from your Drive folder.
         </p>
       </div>
+
       <div class="card">
         <div class="card-title"><span>Pace Zones</span></div>
         <div id="paceZoneContainer">
@@ -355,15 +372,16 @@ td b{ font-family:var(--font-mono); }
         </div>
       </div>
     </div>
+
     <!-- RIGHT COLUMN -->
     <div>
       <div class="card">
-        <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— dashed lines = projection (next 5 runs)</span></div>
+        <div class="card-title"><span>Trend Performance</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
-        <div id="projectionBox" style="display:none;margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;"></div>
       </div>
     </div>
   </div>
+
   <!-- SHOE ROTATION -->
   <div class="card" id="shoeSection" style="margin-bottom:20px;">
     <div class="card-title"><span>Shoe Rotation</span></div>
@@ -371,11 +389,13 @@ td b{ font-family:var(--font-mono); }
       <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
     </div>
   </div>
+
   <!-- KM SPLITS -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
     <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
   </div>
+
   <!-- TWO COL: Distribution + Efficiency -->
   <div class="two-col" style="margin-bottom:20px;">
     <div class="card">
@@ -389,6 +409,7 @@ td b{ font-family:var(--font-mono); }
       <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
     </div>
   </div>
+
   <!-- HISTORY TABLE -->
   <div class="card">
     <div class="card-title"><span>Training Log</span></div>
@@ -411,13 +432,16 @@ td b{ font-family:var(--font-mono); }
       </table>
     </div>
   </div>
+
   <div class="footer">RunnerOS Elite &nbsp;·&nbsp; FIT + GPX Native Parser &nbsp;·&nbsp; No fake data</div>
 </div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    FIT BINARY PARSER
 ═══════════════════════════════════════════════════════════════════ */
 const FIT_EPOCH = 631065600000;
+
 function parseFIT(buffer) {
   const bytes = new Uint8Array(buffer);
   const dv    = new DataView(buffer);
@@ -425,10 +449,12 @@ function parseFIT(buffer) {
   const dataSize   = dv.getUint32(4, true);
   const tag        = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
   if(tag !== '.FIT') return { error: 'Not a valid FIT file' };
+
   const end  = headerSize + dataSize;
   let pos    = headerSize;
   const definitions = {};
   const records     = [];
+
   while(pos < end && pos < bytes.length) {
     const recHdr   = bytes[pos++];
     const isCompTs = !!(recHdr & 0x80);
@@ -440,6 +466,7 @@ function parseFIT(buffer) {
     const localNum = recHdr & 0x0F;
     const isDef    = !!(recHdr & 0x40);
     const hasDev   = !!(recHdr & 0x20);
+
     if(isDef) {
       pos++;
       const littleEndian = bytes[pos++] === 0;
@@ -483,29 +510,40 @@ function parseFIT(buffer) {
       pos = start + defn.size;
     }
   }
+
   if(records.length < 2) return { error: 'No activity data found in FIT file' };
+
   const withTs  = records.filter(r => r.ts);
   const firstTs = withTs[0]?.ts;
   const lastTs  = withTs[withTs.length-1]?.ts;
   const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
+
   const withDist = records.filter(r => r.dist != null);
   const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
   const distKm   = distM / 1000;
   if(distKm < 0.1) return { error: `Distance too short: ${distKm.toFixed(2)} km` };
+
   const withHr  = records.filter(r => r.hr && r.hr > 30 && r.hr < 250);
   const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+
   const withCad = records.filter(r => r.cad != null && r.cad > 0);
   const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+
   const withPow = records.filter(r => r.power != null && r.power > 0);
   const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
+
   const kmSplits = computeKmSplits(records);
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
+
   const withSpd = records.filter(r => r.speed != null && r.speed > 3);
   const paceDistribution = computePaceDistribution(withSpd);
+
   const dateStr = firstTs ? new Date(firstTs).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
   return {
     date: dateStr,
     distance: Number(distKm.toFixed(2)),
@@ -516,10 +554,12 @@ function parseFIT(buffer) {
     hrCount: withHr.length, source: 'FIT'
   };
 }
+
 function computeKmSplits(records) {
   const sorted = [...records].filter(r => r.dist != null && r.ts != null).sort((a,b) => a.dist - b.dist);
   const splits = [];
   const maxKm  = Math.floor(Math.max(...sorted.map(r => r.dist)) / 1000);
+
   for(let km = 1; km <= maxKm; km++) {
     const prevM = (km - 1) * 1000;
     const currM = km * 1000;
@@ -536,6 +576,7 @@ function computeKmSplits(records) {
   }
   return splits;
 }
+
 function computePaceDistribution(records) {
   const buckets = {};
   for(let s = 180; s <= 480; s += 15) buckets[s] = 0;
@@ -547,12 +588,14 @@ function computePaceDistribution(records) {
   });
   return buckets;
 }
+
 /* ── GPX PARSER ── */
 function parseFallbackGPX(xmlText, fileName) {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
   if(doc.querySelector('parsererror')) return { error: 'Invalid XML: ' + fileName };
   const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
   if(trkpts.length < 2) return { error: 'Less than 2 trackpoints: ' + fileName };
+
   let totalDist = 0, hrSum = 0, hrCount = 0;
   let firstTime = null, lastTime = null;
   for(let i = 0; i < trkpts.length; i++) {
@@ -581,11 +624,13 @@ function parseFallbackGPX(xmlText, fileName) {
     hrCount, source: 'GPX'
   };
 }
+
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371e3, r = x => x * Math.PI / 180;
   const a = Math.sin(r(lat2-lat1)/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
+
 /* ── GOOGLE DRIVE ── */
 const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
@@ -594,6 +639,7 @@ const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
 let tokenClient;
 let charts = {};
 let allRuns = [];
+
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
 }); }
@@ -610,6 +656,7 @@ function handleAuthClick(){
   };
   tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
 }
+
 function setStatus(text, cls) {
   const pill = document.getElementById('status-pill');
   const span = document.getElementById('status-text');
@@ -617,10 +664,12 @@ function setStatus(text, cls) {
   span.textContent = text;
   pill.querySelector('.dot').className = 'dot' + (cls === 'loading' ? ' pulse' : '');
 }
+
 function extractShoeName(name){
   const m = name.match(/\[([^\]]+)\]/);
   return m ? m[1].trim() : 'Sconosciuta';
 }
+
 async function listFiles(){
   setStatus('Lettura cartella Drive…', 'loading');
   document.getElementById('parseLog').innerText = '';
@@ -632,9 +681,11 @@ async function listFiles(){
     });
     const files = resp.result.files || [];
     if(!files.length){ setStatus('Nessun file trovato.', 'disconnected'); setEmptyTable(); return; }
+
     setStatus(`Parsing ${files.length} file…`, 'loading');
     const token = gapi.client.getToken().access_token;
     const runs = [], warnings = [];
+
     for(const file of files){
       const isFit = file.name.toLowerCase().endsWith('.fit');
       const isGpx = file.name.toLowerCase().endsWith('.gpx');
@@ -650,13 +701,17 @@ async function listFiles(){
         runs.push(parsed);
       } catch(e){ warnings.push(`⚠ ${file.name}: ${e.message}`); }
     }
+
     if(warnings.length)
       document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
+
     if(!runs.length){ setStatus('No valid files found.', 'disconnected'); setEmptyTable(); return; }
+
     allRuns = runs;
     populateShoeFilter(runs);
     document.getElementById('filterPanel').style.display = 'block';
     applyFilters();
+
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
     setStatus(`${runs.length} activities loaded ✓  (${fc} FIT · ${gc} GPX)`, 'connected');
@@ -665,22 +720,27 @@ async function listFiles(){
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
   }
 }
+
 /* ── FILTERS ── */
 function populateShoeFilter(runs) {
   const shoes = [...new Set(runs.map(r => r.shoe))].sort();
   const group = document.getElementById('shoeFilterGroup');
   const container = document.getElementById('shoeFilterContainer');
+
   if(shoes.length <= 1) { group.style.display = 'none'; return; }
+
   group.style.display = 'flex';
   container.innerHTML = shoes.map(shoe => {
     const safe = shoe.replace(/"/g, '&quot;');
-    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleShoeChip(this)">\u{1F45F} ${safe}</div>`;
+    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleShoeChip(this)">👟 ${safe}</div>`;
   }).join('');
 }
+
 function toggleShoeChip(el) {
   el.classList.toggle('active');
   applyFilters();
 }
+
 function getFilteredRuns() {
   const fromDate = document.getElementById('filterDateFrom').value;
   const toDate   = document.getElementById('filterDateTo').value;
@@ -690,6 +750,7 @@ function getFilteredRuns() {
   const activeShoes = chips.length
     ? [...chips].filter(c => c.classList.contains('active')).map(c => c.dataset.shoe)
     : null;
+
   return allRuns.filter(r => {
     if(fromDate && r.date < fromDate) return false;
     if(toDate   && r.date > toDate)   return false;
@@ -700,10 +761,12 @@ function getFilteredRuns() {
     return true;
   });
 }
+
 function applyFilters() {
   if(!allRuns.length) return;
   const filtered = getFilteredRuns();
   updateFilterBadge(filtered.length);
+
   if(!filtered.length) {
     clearStats();
     setEmptyTable();
@@ -711,12 +774,14 @@ function applyFilters() {
   }
   renderDashboard(filtered);
 }
+
 function updateFilterBadge(count) {
   const badge = document.getElementById('filterBadge');
   badge.style.display = 'inline-flex';
   badge.textContent = `${count} of ${allRuns.length} activities`;
   badge.className = 'filter-badge' + (count < allRuns.length ? ' dimmed' : '');
 }
+
 function resetFilters() {
   document.getElementById('filterDateFrom').value = '';
   document.getElementById('filterDateTo').value   = '';
@@ -725,6 +790,7 @@ function resetFilters() {
   document.querySelectorAll('.shoe-chip').forEach(c => c.classList.add('active'));
   applyFilters();
 }
+
 function clearStats() {
   document.getElementById('avgPace').innerText    = '—';
   document.getElementById('bestPaceSub').innerText= '—';
@@ -737,25 +803,34 @@ function clearStats() {
   document.getElementById('avgCad').innerText     = '—';
   document.getElementById('avgPow').innerText     = '—';
 }
+
 function setEmptyTable(){
   document.getElementById('runsTable').innerHTML =
     `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">No activities match the current filters.</td></tr>`;
 }
+
 /* ── RENDER ── */
 function renderDashboard(data){
   data.sort((a,b) => new Date(b.date) - new Date(a.date));
+
   const totalKm  = data.reduce((s,r) => s + r.distance, 0);
   const totalSec = data.reduce((s,r) => s + (r.durationSec || 0), 0);
+
   const withPace = data.filter(r => r.paceSecPerKm);
   const avgPaceSec = withPace.length ? withPace.reduce((s,r) => s+r.paceSecPerKm, 0) / withPace.length : null;
+
   const allSplitPaces = data.flatMap(r => r.kmSplits ? r.kmSplits.map(s => s.paceSec) : []);
   const bestSplitPace = allSplitPaces.length ? Math.min(...allSplitPaces) : null;
+
   const withHr  = data.filter(r => r.hr);
   const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+
   const withCad = data.filter(r => r.cad);
   const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+
   const withPow = data.filter(r => r.power);
   const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+
   document.getElementById('avgPace').innerText     = avgPaceSec ? paceStr(avgPaceSec) : '—';
   document.getElementById('bestPaceSub').innerText = bestSplitPace ? `Best km: ${paceStr(bestSplitPace)}` : '—';
   document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
@@ -766,6 +841,7 @@ function renderDashboard(data){
   document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
   document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
   document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
+
   renderPaceZones(data);
   renderShoes(data);
   renderTable(data);
@@ -775,6 +851,7 @@ function renderDashboard(data){
   renderAvgKmSplits(data);
   document.getElementById('splitsSection').style.display = 'block';
 }
+
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
@@ -785,9 +862,11 @@ function renderPaceZones(data) {
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
   if(!allSplits.length) return;
+
   const total = allSplits.length;
   const counts = zones.map(z => allSplits.filter(s => s.paceSec >= z.min && s.paceSec < z.max).length);
   const maxCount = Math.max(...counts);
+
   let html = '<div class="pace-zones">';
   zones.forEach((z, i) => {
     const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
@@ -806,6 +885,7 @@ function renderPaceZones(data) {
   html += '</div>';
   document.getElementById('paceZoneContainer').innerHTML = html;
 }
+
 /* AVERAGE KM SPLITS */
 function renderAvgKmSplits(data) {
   const MAX_KM = 20;
@@ -820,6 +900,7 @@ function renderAvgKmSplits(data) {
       if(s.hr){ byKm[s.km].hrSum += s.hr; byKm[s.km].hrCount += 1; }
     });
   });
+
   const avgs = [];
   for(let km = 1; km <= MAX_KM; km++) {
     const d = byKm[km];
@@ -831,9 +912,11 @@ function renderAvgKmSplits(data) {
       count: d.paceCount
     });
   }
+
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const minP = validPaces.length ? Math.min(...validPaces) : 0;
   const maxP = validPaces.length ? Math.max(...validPaces) : 0;
+
   const grid = document.getElementById('splitsGrid');
   grid.innerHTML = avgs.map((a, i) => {
     if(!a) return `
@@ -853,6 +936,7 @@ function renderAvgKmSplits(data) {
     </div>`;
   }).join('');
 }
+
 /* SHOES */
 function renderShoes(data) {
   const shoes = {};
@@ -881,6 +965,7 @@ function renderShoes(data) {
   }
   document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
 }
+
 /* TABLE */
 function renderTable(data) {
   const tbody = document.getElementById('runsTable');
@@ -907,6 +992,7 @@ function renderTable(data) {
     </tr>`;
   });
 }
+
 /* CHARTS */
 const CHART_OPTS = {
   responsive: true, maintainAspectRatio: false,
@@ -915,56 +1001,28 @@ const CHART_OPTS = {
     x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
   }
 };
+
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
 function renderTrendChart(data) {
   destroyChart('trend');
   const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
   if(sorted.length < 2) return;
-  const n = sorted.length;
+
   const paceVals = sorted.map(r => r.paceSecPerKm / 60);
   const hrVals   = sorted.map(r => r.hr);
   const kmVals   = sorted.map(r => r.distance);
-  function linReg(vals) {
-    const clean = vals.map((v,i) => v != null ? { x: i, y: v } : null).filter(Boolean);
-    if(clean.length < 2) return null;
-    const nx = clean.length;
-    const sx = clean.reduce((s,p) => s+p.x, 0);
-    const sy = clean.reduce((s,p) => s+p.y, 0);
-    const sxy = clean.reduce((s,p) => s+p.x*p.y, 0);
-    const sxx = clean.reduce((s,p) => s+p.x*p.x, 0);
-    const slope = (nx*sxy - sx*sy) / (nx*sxx - sx*sx);
-    const intercept = (sy - slope*sx) / nx;
-    return { slope, intercept };
-  }
-  const PROJ_STEPS = 5;
-  const paceReg = linReg(paceVals);
-  const hrReg   = linReg(hrVals);
-  const kmReg   = linReg(kmVals);
-  const paceProj = Array(n).fill(null).concat(
-    Array.from({ length: PROJ_STEPS }, (_, i) => paceReg ? Math.max(0, paceReg.slope*(n+i) + paceReg.intercept) : null)
-  );
-  const hrProj = Array(n).fill(null).concat(
-    Array.from({ length: PROJ_STEPS }, (_, i) => hrReg ? Math.round(Math.max(50, hrReg.slope*(n+i) + hrReg.intercept)) : null)
-  );
-  const kmProj = Array(n).fill(null).concat(
-    Array.from({ length: PROJ_STEPS }, (_, i) => kmReg ? Math.max(0, kmReg.slope*(n+i) + kmReg.intercept) : null)
-  );
-  const labels = [
-    ...sorted.map(r => r.date),
-    ...Array.from({ length: PROJ_STEPS }, (_, i) => `+${i+1}`)
-  ];
+  const labels   = sorted.map(r => r.date);
+
   const ctx = document.getElementById('performanceChart').getContext('2d');
   charts['trend'] = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [
-        { label:'Pace (real)', data:[...paceVals,...Array(PROJ_STEPS).fill(null)], borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676' },
-        { label:'Pace (projected)', data:paceProj, borderColor:'#00e676', backgroundColor:'transparent', borderDash:[6,4], tension:0.2, yAxisID:'yPace', pointRadius:3, pointStyle:'triangle', pointBackgroundColor:'#00e676', spanGaps:false },
-        { label:'BPM (real)', data:[...hrVals,...Array(PROJ_STEPS).fill(null)], borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57' },
-        { label:'BPM (projected)', data:hrProj, borderColor:'#ff3d57', backgroundColor:'transparent', borderDash:[6,4], tension:0.2, yAxisID:'yHr', pointRadius:3, pointStyle:'triangle', pointBackgroundColor:'#ff3d57', spanGaps:false },
-        { label:'Km (real)', data:[...kmVals,...Array(PROJ_STEPS).fill(null)], borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff' },
-        { label:'Km (projected)', data:kmProj, borderColor:'#00e5ff', backgroundColor:'transparent', borderDash:[6,4], tension:0.2, yAxisID:'yKm', pointRadius:3, pointStyle:'triangle', pointBackgroundColor:'#00e5ff', spanGaps:false }
+        { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676' },
+        { label:'BPM',  data:hrVals,  borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57' },
+        { label:'Km',   data:kmVals,  borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff' }
       ]
     },
     options: {
@@ -983,56 +1041,15 @@ function renderTrendChart(data) {
         }
       },
       scales: {
-        x: { ticks: { color: ctx => ctx.tick.label.startsWith('+') ? '#3a4a5a' : '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
         yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#00e676',font:{family:'DM Mono',size:10}} },
         yHr:   { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
         yKm:   { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
       }
     }
   });
-  if(paceReg) {
-    const nextPaceSec = (paceReg.slope * n + paceReg.intercept) * 60;
-    const trend = paceReg.slope < -0.005 ? '↑ improving' : paceReg.slope > 0.01 ? '↓ slowing' : '→ stable';
-    const trendColor = paceReg.slope < -0.005 ? 'var(--green)' : paceReg.slope > 0.01 ? 'var(--red)' : 'var(--orange)';
-    const projBpm = hrReg ? Math.round(hrReg.slope * n + hrReg.intercept) : null;
-    const hmPaceSec  = nextPaceSec * 0.93;
-    const marPaceSec = nextPaceSec * 0.96;
-    const hmBpm  = projBpm ? Math.round(projBpm * (1 + (1 - 0.93) * 0.6)) : null;
-    const marBpm = projBpm ? Math.round(projBpm * (1 + (1 - 0.96) * 0.6)) : null;
-    const hmFinishSec  = hmPaceSec  * 21.0975;
-    const marFinishSec = marPaceSec * 42.195;
-    const fmtTime = sec => { const h=Math.floor(sec/3600); const m=Math.floor((sec%3600)/60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
-    const box = document.getElementById('projectionBox');
-    box.style.display = 'flex';
-    box.innerHTML = `
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
-        <div style="color:var(--muted);margin-bottom:4px">Next run pace (est.)</div>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${paceStr(nextPaceSec)}</div>
-      </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
-        <div style="color:var(--muted);margin-bottom:4px">Trend</div>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${trendColor}">${trend}</div>
-      </div>
-      ${projBpm ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;"><div style="color:var(--muted);margin-bottom:4px">Projected BPM</div><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--red)">${projBpm} bpm</div></div>` : ''}
-      ${kmReg ? `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;"><div style="color:var(--muted);margin-bottom:4px">Projected km</div><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent)">${(kmReg.slope*n+kmReg.intercept).toFixed(1)} km</div></div>` : ''}
-      <div style="background:var(--card2);border:1px solid #1d4ed860;border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;border-left:3px solid #60a5fa;">
-        <div style="color:#93c5fd;margin-bottom:6px;font-size:11px;letter-spacing:.5px;text-transform:uppercase">🏃 Half Marathon tomorrow</div>
-        <div style="display:flex;gap:12px;align-items:baseline;">
-          <div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">pace</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#60a5fa">${paceStr(hmPaceSec)}</div></div>
-          ${hmBpm ? `<div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">bpm</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#f87171">${hmBpm}</div></div>` : ''}
-          <div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">finish</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${fmtTime(hmFinishSec)}</div></div>
-        </div>
-      </div>
-      <div style="background:var(--card2);border:1px solid #15803d60;border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;border-left:3px solid #4ade80;">
-        <div style="color:#86efac;margin-bottom:6px;font-size:11px;letter-spacing:.5px;text-transform:uppercase">🏅 Marathon tomorrow</div>
-        <div style="display:flex;gap:12px;align-items:baseline;">
-          <div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">pace</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#4ade80">${paceStr(marPaceSec)}</div></div>
-          ${marBpm ? `<div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">bpm</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:#f87171">${marBpm}</div></div>` : ''}
-          <div><div style="color:var(--muted);font-size:10px;margin-bottom:2px">finish</div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${fmtTime(marFinishSec)}</div></div>
-        </div>
-      </div>`;
-  }
 }
+
 function renderPaceDistChart(data) {
   destroyChart('paceDist');
   const allDists = data.filter(r => r.paceDistribution);
@@ -1068,6 +1085,7 @@ function renderPaceDistChart(data) {
     }
   });
 }
+
 function renderEfficiencyChart(data) {
   destroyChart('eff');
   const runs = data.filter(r => r.power && r.paceSecPerKm);
@@ -1096,6 +1114,7 @@ function renderEfficiencyChart(data) {
     }
   });
 }
+
 /* ── UTILS ── */
 function paceStr(sec) {
   const m = Math.floor(sec / 60);
@@ -1108,6 +1127,7 @@ function secondsToTime(s){
 }
 function nd(){ return `<span style="color:var(--muted);font-family:var(--font-mono)">—</span>`; }
 </script>
+
 <script src="https://apis.google.com/js/api.js"        onload="gapiLoaded()"></script>
 <script src="https://accounts.google.com/gsi/client"   onload="gisLoaded()"></script>
 </body>
