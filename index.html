@@ -1,6 +1,3 @@
-Here's the full current code:
-
-```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -278,6 +275,7 @@ td b{ font-family:var(--font-mono); }
         <h1>RunnerOS</h1>
         <span class="logo-badge">ELITE</span>
       </div>
+      <p class="header-sub">FIT + GPX Intelligence Platform</p>
     </div>
     <div class="actions">
       <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
@@ -370,6 +368,21 @@ td b{ font-family:var(--font-mono); }
       <div class="card">
         <div class="card-title"><span>Pace Zones</span></div>
         <div id="paceZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span>HR Zones</span>
+          <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+            Max HR:
+            <input id="maxHrInput" type="number" value="190" min="140" max="220"
+              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;outline:none;text-align:center;"
+              oninput="renderHrZones(lastRenderedData)">
+          </span>
+        </div>
+        <div id="hrZoneContainer">
           <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
         </div>
       </div>
@@ -641,6 +654,7 @@ const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
 let tokenClient;
 let charts = {};
 let allRuns = [];
+let lastRenderedData = [];
 
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
@@ -734,7 +748,7 @@ function populateShoeFilter(runs) {
   group.style.display = 'flex';
   container.innerHTML = shoes.map(shoe => {
     const safe = shoe.replace(/"/g, '&quot;');
-    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleShoeChip(this)">👟 ${safe}</div>`;
+    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleShoeChip(this)">\u{1F45F} ${safe}</div>`;
   }).join('');
 }
 
@@ -844,7 +858,9 @@ function renderDashboard(data){
   document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
   document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
 
+  lastRenderedData = data;
   renderPaceZones(data);
+  renderHrZones(data);
   renderShoes(data);
   renderTable(data);
   renderTrendChart(data);
@@ -886,6 +902,53 @@ function renderPaceZones(data) {
   });
   html += '</div>';
   document.getElementById('paceZoneContainer').innerHTML = html;
+}
+
+/* HR ZONES */
+function renderHrZones(data) {
+  if(!data) return;
+  const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
+  const zones = [
+    { label: 'Z1 Recovery',  min: 0,    max: 0.60, color: '#5a6a7a', desc: '< 60% · Active recovery, very easy effort' },
+    { label: 'Z2 Aerobic',   min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, fat burning, long runs' },
+    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Comfortable hard, improves efficiency' },
+    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · Lactate threshold, race pace work' },
+    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · VO2 max intervals, short bursts' },
+  ];
+
+  const runsWithHr = data.filter(r => r.hr && r.hr > 0);
+  if(!runsWithHr.length) {
+    document.getElementById('hrZoneContainer').innerHTML =
+      '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No HR data in current selection.</p>';
+    return;
+  }
+
+  const counts = zones.map(z =>
+    runsWithHr.filter(r => r.hr >= z.min * maxHr && r.hr < z.max * maxHr).length
+  );
+  const total = runsWithHr.length;
+  const maxCount = Math.max(...counts);
+
+  let html = '<div class="pace-zones">';
+  zones.forEach((z, i) => {
+    const pct  = total ? (counts[i] / total * 100).toFixed(0) : 0;
+    const barW = maxCount ? (counts[i] / maxCount * 100) : 0;
+    const bpmLo = Math.round(z.min * maxHr);
+    const bpmHi = z.max === 1.00 ? maxHr : Math.round(z.max * maxHr);
+    html += `
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pz-dot" style="background:${z.color}"></span>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-right:4px">${bpmLo}–${bpmHi} bpm</span>
+        <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+        <span class="pz-val">${pct}%</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('hrZoneContainer').innerHTML = html;
 }
 
 /* AVERAGE KM SPLITS */
