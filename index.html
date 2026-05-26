@@ -371,6 +371,21 @@ td b{ font-family:var(--font-mono); }
           <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
         </div>
       </div>
+      
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span>HR Zones</span>
+          <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+            Max HR:
+            <input id="maxHrInput" type="number" value="190" min="140" max="220"
+              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;outline:none;text-align:center;"
+              oninput="renderHrZones(lastRenderedData)">
+          </span>
+        </div>
+        <div id="hrZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT COLUMN -->
@@ -388,6 +403,23 @@ td b{ font-family:var(--font-mono); }
     <div id="shoeContainer" style="display:flex;gap:14px;flex-wrap:wrap;">
       <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
     </div>
+  </div>
+
+  <!-- ACWR -->
+  <div class="card" id="acwrSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+      <span>Acute:Chronic Workload Ratio (ACWR)</span>
+      <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">acute = 7-day · chronic = 28-day · sweet spot 0.8–1.3</span>
+    </div>
+    <div id="acwrBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;"></div>
+    <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
+      ACWR compares your last 7 days of load (km) against your 28-day average.
+      <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
+      <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
+      <span style="color:var(--red)">&gt; 1.5</span> = high injury risk — reduce volume immediately.
+      <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+    </p>
   </div>
 
   <!-- KM SPLITS -->
@@ -639,6 +671,7 @@ const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
 let tokenClient;
 let charts = {};
 let allRuns = [];
+let lastRenderedData = [];
 
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
@@ -811,6 +844,7 @@ function setEmptyTable(){
 
 /* ── RENDER ── */
 function renderDashboard(data){
+  lastRenderedData = data;
   data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
   const totalKm  = data.reduce((s,r) => s + r.distance, 0);
@@ -843,11 +877,13 @@ function renderDashboard(data){
   document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
 
   renderPaceZones(data);
+  renderHrZones(data);
   renderShoes(data);
   renderTable(data);
   renderTrendChart(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
+  renderAcwr(data);
   renderAvgKmSplits(data);
   document.getElementById('splitsSection').style.display = 'block';
 }
@@ -1110,6 +1146,211 @@ function renderEfficiencyChart(data) {
       scales: {
         x: { ...CHART_OPTS.scales.x, title:{display:true,text:'Potenza (W)',color:'#5a6a7a',font:{family:'DM Mono',size:10}} },
         y: { reverse:true, ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10},callback:v=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return `${m}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Passo /km',color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+}
+
+/* HR ZONES */
+function renderHrZones(data) {
+  if(!data) return;
+  const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
+  const zones = [
+    { label: 'Z1 Recovery',  min: 0,    max: 0.60, color: '#5a6a7a', desc: '< 60% · Active recovery, very easy effort' },
+    { label: 'Z2 Aerobic',   min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, fat burning, long runs' },
+    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Comfortable hard, improves efficiency' },
+    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · Lactate threshold, race pace work' },
+    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · VO2 max intervals, short bursts' },
+  ];
+  const runsWithHr = data.filter(r => r.hr && r.hr > 0);
+  if(!runsWithHr.length) {
+    document.getElementById('hrZoneContainer').innerHTML =
+      '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No HR data in current selection.</p>';
+    return;
+  }
+  // Count how many runs fall in each zone by avg HR
+  const counts = zones.map(z =>
+    runsWithHr.filter(r => r.hr >= z.min * maxHr && r.hr < z.max * maxHr).length
+  );
+  const total = runsWithHr.length;
+  const maxCount = Math.max(...counts);
+  let html = '<div class="pace-zones">';
+  zones.forEach((z, i) => {
+    const pct  = total ? (counts[i] / total * 100).toFixed(0) : 0;
+    const barW = maxCount ? (counts[i] / maxCount * 100) : 0;
+    const bpmLo = Math.round(z.min * maxHr);
+    const bpmHi = z.max === 1.00 ? maxHr : Math.round(z.max * maxHr);
+    html += `
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pz-dot" style="background:${z.color}"></span>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-right:4px">${bpmLo}–${bpmHi} bpm</span>
+        <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+        <span class="pz-val">${pct}%</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('hrZoneContainer').innerHTML = html;
+}
+/* ACWR */
+function renderAcwr(data) {
+  destroyChart('acwr');
+  if(!data || data.length < 2) { document.getElementById('acwrSection').style.display = 'none'; return; }
+  // Build a daily km map
+  const kmByDay = {};
+  data.forEach(r => { kmByDay[r.date] = (kmByDay[r.date] || 0) + r.distance; });
+  // Determine date range: from earliest run to today
+  const dates = Object.keys(kmByDay).sort();
+  const startDate = new Date(dates[0]);
+  const endDate   = new Date();
+  const allDates  = [];
+  for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    allDates.push(d.toISOString().split('T')[0]);
+  }
+  // Build rolling arrays — only keep last 90 days for chart readability
+  const CHART_DAYS = 90;
+  const chartDates = allDates.slice(-CHART_DAYS);
+  const acwrPoints = [];
+  const acutePoints = [];
+  const chronicPoints = [];
+  chartDates.forEach(dateStr => {
+    const idx = allDates.indexOf(dateStr);
+    const acute7  = allDates.slice(Math.max(0, idx - 6),  idx + 1).reduce((s, d) => s + (kmByDay[d] || 0), 0);
+    const chronic28 = allDates.slice(Math.max(0, idx - 27), idx + 1).reduce((s, d) => s + (kmByDay[d] || 0), 0);
+    const acuteAvg   = acute7  / 7;
+    const chronicAvg = chronic28 / Math.min(28, idx + 1);
+    acutePoints.push(parseFloat(acuteAvg.toFixed(2)));
+    chronicPoints.push(parseFloat(chronicAvg.toFixed(2)));
+    acwrPoints.push(chronicAvg > 0 ? parseFloat((acuteAvg / chronicAvg).toFixed(3)) : null);
+  });
+  // Current ACWR badge
+  const currentAcwr = acwrPoints[acwrPoints.length - 1];
+  const currentAcute = acutePoints[acutePoints.length - 1];
+  const currentChronic = chronicPoints[chronicPoints.length - 1];
+  let riskLabel, riskColor;
+  if(currentAcwr === null)         { riskLabel = '—';             riskColor = 'var(--muted)'; }
+  else if(currentAcwr < 0.8)       { riskLabel = 'Undertraining'; riskColor = 'var(--muted2)'; }
+  else if(currentAcwr <= 1.3)      { riskLabel = 'Optimal';       riskColor = 'var(--green)'; }
+  else if(currentAcwr <= 1.5)      { riskLabel = 'Overreaching';  riskColor = 'var(--orange)'; }
+  else                              { riskLabel = 'High Risk';     riskColor = 'var(--red)'; }
+  document.getElementById('acwrBadges').innerHTML = `
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+      <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+      <div style="color:var(--muted);margin-bottom:4px">Status</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+      <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+      <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+    </div>`;
+  document.getElementById('acwrSection').style.display = 'block';
+  const ctx = document.getElementById('acwrChart').getContext('2d');
+  // Danger zone band annotation (manual — drawn as a dataset fill)
+  const sweetHi = chartDates.map(() => 1.3);
+  const sweetLo = chartDates.map(() => 0.8);
+  charts['acwr'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartDates,
+      datasets: [
+        {
+          label: 'Sweet zone top (1.3)',
+          data: sweetHi,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(0,230,118,0.07)',
+          fill: '+1',
+          pointRadius: 0, tension: 0
+        },
+        {
+          label: 'Sweet zone bottom (0.8)',
+          data: sweetLo,
+          borderColor: 'transparent',
+          backgroundColor: 'transparent',
+          fill: false,
+          pointRadius: 0, tension: 0
+        },
+        {
+          label: 'ACWR',
+          data: acwrPoints,
+          borderColor: '#ff9100',
+          backgroundColor: 'rgba(255,145,0,0.10)',
+          fill: false,
+          tension: 0.3,
+          pointRadius: (ctx) => {
+            const v = ctx.raw;
+            return v !== null && v > 1.3 ? 5 : 2;
+          },
+          pointBackgroundColor: (ctx) => {
+            const v = ctx.raw;
+            if(v === null) return 'transparent';
+            if(v > 1.5) return '#ff3d57';
+            if(v > 1.3) return '#ff9100';
+            if(v < 0.8) return '#8a9aaa';
+            return '#00e676';
+          },
+          spanGaps: false
+        },
+        {
+          label: 'Acute 7d (km/day)',
+          data: acutePoints,
+          borderColor: '#00e5ff',
+          backgroundColor: 'transparent',
+          fill: false, tension: 0.3,
+          pointRadius: 0,
+          yAxisID: 'yKm'
+        },
+        {
+          label: 'Chronic 28d (km/day)',
+          data: chronicPoints,
+          borderColor: '#bf40ff',
+          backgroundColor: 'transparent',
+          fill: false, tension: 0.3,
+          pointRadius: 0,
+          borderDash: [4, 3],
+          yAxisID: 'yKm'
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 }, filter: item => item.datasetIndex >= 2 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if(ctx.datasetIndex === 0 || ctx.datasetIndex === 1) return null;
+              if(ctx.dataset.yAxisID === 'yKm') return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} km/day`;
+              return ctx.raw !== null ? `ACWR: ${ctx.raw.toFixed(2)}` : null;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: {
+          position: 'left',
+          min: 0,
+          ticks: { color: '#ff9100', font: { family: 'DM Mono', size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          title: { display: true, text: 'ACWR', color: '#ff9100', font: { family: 'DM Mono', size: 10 } }
+        },
+        yKm: {
+          position: 'right',
+          min: 0,
+          ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'km/day', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } }
+        }
       }
     }
   });
