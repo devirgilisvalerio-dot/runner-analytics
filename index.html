@@ -180,9 +180,14 @@ body::before{
 
 /* ── CONNECTION ── */
 .status-pill{
-  display:inline-flex; align-items:center; gap:7px;
-  padding:6px 14px; border-radius:20px; font-size:13px;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:20px; font-size:11px;
   font-family:var(--font-mono); border:1px solid;
+  letter-spacing:.3px; max-width:340px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.status-pill #status-text{
+  overflow:hidden; text-overflow:ellipsis;
 }
 .status-pill.disconnected{ border-color:var(--muted); color:var(--muted); }
 .status-pill.connected{ border-color:var(--green); color:var(--green); }
@@ -278,6 +283,10 @@ td b{ font-family:var(--font-mono); }
       <p class="header-sub">FIT + GPX Intelligence Platform</p>
     </div>
     <div class="actions">
+      <div id="status-pill" class="status-pill disconnected" title="Reads .fit and .gpx files from your Drive folder">
+        <span class="dot"></span>
+        <span id="status-text">Not connected</span>
+      </div>
       <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
       <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
     </div>
@@ -350,21 +359,10 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
-  <!-- MAIN GRID: connection + pace zones -->
+  <!-- MAIN GRID: pace zones + trend -->
   <div class="main-grid">
     <!-- LEFT COLUMN -->
     <div>
-      <div class="card">
-        <div class="card-title"><span>Connection</span></div>
-        <div id="status-pill" class="status-pill disconnected">
-          <span class="dot"></span>
-          <span id="status-text">Not connected</span>
-        </div>
-        <p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6;font-family:var(--font-mono);">
-          Reads <b style="color:var(--text)">.fit</b> and <b style="color:var(--text)">.gpx</b> files from your Drive folder.
-        </p>
-      </div>
-
       <div class="card">
         <div class="card-title"><span>Pace Zones</span></div>
         <div id="paceZoneContainer">
