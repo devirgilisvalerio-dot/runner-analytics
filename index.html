@@ -949,8 +949,8 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:45 · Race pace 5–10 km, high intensity' },
-    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:45–5:15 · Half-marathon target pace, lactate threshold' },
+    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:50 · Race pace 5–10 km, high intensity' },
+    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:50–5:15 · Half-marathon target pace, lactate threshold' },
     { label: 'Aerobic',   min: 310, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
     { label: 'Easy',      min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
   ];
@@ -1161,9 +1161,9 @@ function renderTrendChart(data) {
     data: {
       labels,
       datasets: [
-        { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676' },
-        { label:'BPM',  data:hrVals,  borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57' },
-        { label:'Km',   data:kmVals,  borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff' }
+        { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
+        { label:'BPM',  data:hrVals,  borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
+        { label:'Km',   data:kmVals,  borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
       ]
     },
     options: {
@@ -1345,10 +1345,10 @@ function renderAcwr(data) {
             if(v < 0.8) return '#8a9aaa';
             return '#00e676';
           },
-          spanGaps: false
+          spanGaps: false, borderWidth: 2.7
         },
-        { label: 'Acute 7d (km/day)',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm' },
-        { label: 'Chronic 28d (km/day)', data: chronicPoints, borderColor: '#bf40ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm' }
+        { label: 'Acute 7d (km/day)',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
+        { label: 'Chronic 28d (km/day)', data: chronicPoints, borderColor: '#bf40ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
       ]
     },
     options: {
