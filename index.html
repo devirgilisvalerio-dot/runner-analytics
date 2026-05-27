@@ -407,7 +407,7 @@ td b{ font-family:var(--font-mono); }
           ACWR compares your last 7 days of load (km) against your 28-day average.
           <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
           <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
-          <span style="color:var(--red)">&gt; 1.5</span> = high injury risk — reduce volume immediately.
+          <span style="color:var(--red)">&gt; 1.5</span> = high injury risk.
           <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
         </p>
       </div>
@@ -949,8 +949,8 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:50 · Race pace 5–10 km, high intensity' },
-    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:50–5:15 · Half-marathon target pace, lactate threshold' },
+    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:55 · Race pace 5–10 km, high intensity' },
+    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:55–5:15 · Half-marathon target pace, lactate threshold' },
     { label: 'Aerobic',   min: 310, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
     { label: 'Easy',      min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
   ];
