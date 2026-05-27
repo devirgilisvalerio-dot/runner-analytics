@@ -47,7 +47,7 @@ body::before{
   text-transform:uppercase;
 }
 .logo-badge{
-  font-family:var(--font-mono); font-size:11px;
+  font-family:var(--font-mono); font-size:13px;
   color:var(--accent); border:1px solid var(--accent);
   padding:3px 8px; border-radius:4px; letter-spacing:1px;
   position:relative; top:-2px;
@@ -55,7 +55,7 @@ body::before{
 .header-sub{ color:var(--muted); font-size:14px; margin-top:4px; font-family:var(--font-mono); }
 .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .btn{
-  border:none; padding:11px 20px; border-radius:6px;
+  border:none; padding:13px 20px; border-radius:6px;
   cursor:pointer; font-weight:700; color:white;
   font-family:var(--font-display); font-size:16px; letter-spacing:.5px;
   transition:all 0.15s; text-transform:uppercase;
@@ -86,7 +86,7 @@ body::before{
 .stat-card.c-pow::after{ background:var(--orange); }
 .stat-card.c-dur::after{ background:var(--muted2); }
 .stat-title{
-  color:var(--muted); font-size:11px; letter-spacing:1.5px;
+  color:var(--muted); font-size:13px; letter-spacing:1.5px;
   text-transform:uppercase; margin-bottom:10px; font-family:var(--font-mono);
 }
 .stat-value{
@@ -98,7 +98,7 @@ body::before{
 .stat-value.red{ color:var(--red); }
 .stat-value.purple{ color:var(--purple); }
 .stat-value.orange{ color:var(--orange); }
-.stat-sub{ margin-top:8px; font-size:12px; color:var(--muted2); font-family:var(--font-mono); }
+.stat-sub{ margin-top:8px; font-size:14px; color:var(--muted2); font-family:var(--font-mono); }
 
 /* ── FILTERS ── */
 .filter-panel{
@@ -113,14 +113,14 @@ body::before{
   display:flex; flex-direction:column; gap:6px;
 }
 .filter-label{
-  color:var(--muted); font-size:11px; letter-spacing:1.5px;
+  color:var(--muted); font-size:13px; letter-spacing:1.5px;
   text-transform:uppercase; font-family:var(--font-mono);
 }
 .filter-input{
   background:var(--card2); border:1px solid var(--border);
   border-radius:6px; color:var(--text);
   font-family:var(--font-mono); font-size:13px;
-  padding:8px 12px; outline:none; transition:border-color 0.15s;
+  padding:8px 14px; outline:none; transition:border-color 0.15s;
   color-scheme:dark;
 }
 .filter-input:focus{ border-color:var(--accent); }
@@ -128,10 +128,10 @@ body::before{
 .shoe-filters{ display:flex; gap:8px; flex-wrap:wrap; }
 .shoe-chip{
   display:flex; align-items:center; gap:6px;
-  cursor:pointer; font-size:12px; font-family:var(--font-mono);
+  cursor:pointer; font-size:14px; font-family:var(--font-mono);
   color:var(--muted2); background:var(--card2);
   border:1px solid var(--border); border-radius:6px;
-  padding:6px 12px; transition:all 0.15s; user-select:none;
+  padding:6px 14px; transition:all 0.15s; user-select:none;
 }
 .shoe-chip.active{
   border-color:var(--purple); color:var(--purple);
@@ -140,7 +140,7 @@ body::before{
 .filter-badge{
   display:inline-flex; align-items:center;
   background:rgba(0,229,255,0.08); border:1px solid var(--accent);
-  color:var(--accent); font-family:var(--font-mono); font-size:11px;
+  color:var(--accent); font-family:var(--font-mono); font-size:13px;
   padding:3px 10px; border-radius:20px; letter-spacing:.5px;
 }
 .filter-badge.dimmed{
@@ -149,7 +149,7 @@ body::before{
 .btn-reset{
   background:transparent; border:1px solid var(--border);
   color:var(--muted2); padding:8px 16px; border-radius:6px;
-  cursor:pointer; font-family:var(--font-mono); font-size:12px;
+  cursor:pointer; font-family:var(--font-mono); font-size:14px;
   transition:all 0.15s; text-transform:uppercase; letter-spacing:.5px;
   white-space:nowrap; align-self:flex-end;
 }
@@ -181,7 +181,7 @@ body::before{
 /* ── CONNECTION ── */
 .status-pill{
   display:inline-flex; align-items:center; gap:6px;
-  padding:5px 11px; border-radius:20px; font-size:11px;
+  padding:5px 13px; border-radius:20px; font-size:13px;
   font-family:var(--font-mono); border:1px solid;
   letter-spacing:.3px; max-width:340px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -218,12 +218,12 @@ body::before{
   transition:border-color .2s;
 }
 .split-cell:hover{ border-color:var(--accent); }
-.split-km{ font-size:11px; color:var(--muted); letter-spacing:1px; font-family:var(--font-mono); }
+.split-km{ font-size:13px; color:var(--muted); letter-spacing:1px; font-family:var(--font-mono); }
 .split-pace{
   font-family:var(--font-display); font-size:22px; font-weight:700;
   letter-spacing:-0.5px; margin-top:2px;
 }
-.split-hr{ font-size:11px; font-family:var(--font-mono); margin-top:3px; }
+.split-hr{ font-size:13px; font-family:var(--font-mono); margin-top:3px; }
 .pace-fast{ color:var(--green); }
 .pace-mid{ color:#ffe566; }
 .pace-slow{ color:var(--red); }
@@ -236,14 +236,14 @@ body::before{
 .table-wrapper{ overflow:auto; }
 table{ width:100%; border-collapse:collapse; }
 th{
-  text-align:left; color:var(--muted); font-size:11px;
-  padding-bottom:12px; letter-spacing:1px; text-transform:uppercase;
+  text-align:left; color:var(--muted); font-size:13px;
+  padding-bottom:14px; letter-spacing:1px; text-transform:uppercase;
   font-family:var(--font-mono); border-bottom:1px solid var(--border);
 }
-td{ padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
+td{ padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
 td b{ font-family:var(--font-mono); }
 .badge{
-  padding:3px 9px; border-radius:4px; font-size:11px;
+  padding:3px 9px; border-radius:4px; font-size:13px;
   font-weight:700; font-family:var(--font-mono); letter-spacing:.5px;
 }
 .badge-fit{ background:#00e67620; color:#00e676; border:1px solid #00e67640; }
@@ -252,7 +252,7 @@ td b{ font-family:var(--font-mono); }
 
 /* ── LOG ── */
 .parse-log{
-  font-size:11px; color:var(--muted); margin-bottom:14px;
+  font-size:13px; color:var(--muted); margin-bottom:14px;
   max-height:60px; overflow:auto; font-family:var(--font-mono);
   line-height:1.6;
 }
@@ -263,7 +263,7 @@ td b{ font-family:var(--font-mono); }
 
 .footer{
   margin-top:30px; text-align:center; color:var(--muted);
-  font-size:11px; font-family:var(--font-mono); letter-spacing:1px;
+  font-size:13px; font-family:var(--font-mono); letter-spacing:1px;
 }
 
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
@@ -383,10 +383,10 @@ td b{ font-family:var(--font-mono); }
       <div class="card">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
           <span>HR Zones</span>
-          <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
             Max HR:
-            <input id="maxHrInput" type="number" value="190" min="140" max="220"
-              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;outline:none;text-align:center;"
+            <input id="maxHrInput" type="number" value="187" min="140" max="220"
+              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
               oninput="renderHrZones(lastRenderedData)">
           </span>
         </div>
@@ -399,11 +399,11 @@ td b{ font-family:var(--font-mono); }
       <div class="card" id="acwrSection" style="display:none;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
           <span>Acute:Chronic Workload Ratio (ACWR)</span>
-          <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">acute = 7-day · chronic = 28-day · sweet spot 0.8–1.3</span>
+          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">acute = 7-day · chronic = 28-day · sweet spot 0.8–1.3</span>
         </div>
-        <div id="acwrBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;"></div>
+        <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
         <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
-        <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
+        <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
           ACWR compares your last 7 days of load (km) against your 28-day average.
           <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
           <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
@@ -424,7 +424,7 @@ td b{ font-family:var(--font-mono); }
 
   <!-- KM SPLITS -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
-    <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
+    <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
   </div>
 
@@ -433,12 +433,12 @@ td b{ font-family:var(--font-mono); }
     <div class="card">
       <div class="card-title"><span>Pace Distribution</span></div>
       <div class="chart-box"><canvas id="paceDistChart"></canvas></div>
-      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each pace. Bars to the left mean fast running; bars to the right mean easy or recovery effort. A well-trained runner typically shows a broad aerobic base (5:00–6:00) with a sharp spike at race pace.</p>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each pace. Bars to the left mean fast running; bars to the right mean easy or recovery effort. A well-trained runner typically shows a broad aerobic base (5:00–6:00) with a sharp spike at race pace.</p>
     </div>
     <div class="card">
       <div class="card-title"><span>Running Efficiency (Power vs Pace)</span></div>
       <div class="chart-box"><canvas id="efficiencyChart"></canvas></div>
-      <p style="margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
     </div>
   </div>
 
@@ -949,9 +949,9 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:35 · Race pace 5–10 km, high intensity' },
-    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:35–5:10 · Half-marathon target pace, lactate threshold' },
-    { label: 'Aerobic',   min: 310, max: 350,  color: '#00e676', desc: '5:10–5:50 · Long run, marathon pace, fat-burning zone' },
+    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:45 · Race pace 5–10 km, high intensity' },
+    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:45–5:15 · Half-marathon target pace, lactate threshold' },
+    { label: 'Aerobic',   min: 310, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
     { label: 'Easy',      min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
@@ -966,14 +966,14 @@ function renderPaceZones(data) {
     const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
     const barW = maxCount ? (counts[i]/maxCount*100) : 0;
     html += `
-    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:12px;">
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="pz-dot" style="background:${z.color}"></span>
         <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
         <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
         <span class="pz-val">${pct}%</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+      <div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
     </div>`;
   });
   html += '</div>';
@@ -1012,15 +1012,15 @@ function renderHrZones(data) {
     const bpmLo = Math.round(z.min * maxHr);
     const bpmHi = z.max === 1.00 ? maxHr : Math.round(z.max * maxHr);
     html += `
-    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:12px;">
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="pz-dot" style="background:${z.color}"></span>
         <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
-        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-right:4px">${bpmLo}–${bpmHi} bpm</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted);margin-right:4px">${bpmLo}–${bpmHi} bpm</span>
         <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
         <span class="pz-val">${pct}%</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+      <div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
     </div>`;
   });
   html += '</div>';
@@ -1097,11 +1097,11 @@ function renderShoes(data) {
     <div class="shoe-card" style="flex:1;min-width:200px;max-width:340px;">
       <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
       <div style="display:flex;gap:16px;margin-top:4px;">
-        <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
-        <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
+        <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
+        <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
       </div>
       <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
-      <div style="margin-top:5px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of 500 km</div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of 500 km</div>
     </div>`;
   }
   document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
@@ -1303,19 +1303,19 @@ function renderAcwr(data) {
   else                         { riskLabel = 'High Risk';     riskColor = 'var(--red)'; }
 
   document.getElementById('acwrBadges').innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Status</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
     </div>`;
