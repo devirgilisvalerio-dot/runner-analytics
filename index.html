@@ -894,6 +894,17 @@ function applyFilters() {
   if(!filtered.length) {
     clearStats();
     setEmptyTable();
+    destroyChart('trend');
+    destroyChart('paceDist');
+    destroyChart('eff');
+    destroyChart('acwr');
+    document.getElementById('paceZoneContainer').innerHTML = '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No data for current filters.</p>';
+    document.getElementById('hrZoneContainer').innerHTML = '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No data for current filters.</p>';
+    document.getElementById('splitsGrid').innerHTML = '';
+    document.getElementById('shoeContainer').innerHTML = '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No data for current filters.</p>';
+    document.getElementById('acwrSection').style.display = 'none';
+    document.getElementById('predictionStrip').style.display = 'none';
+    document.getElementById('acwrBadges').innerHTML = '';
     return;
   }
   renderDashboard(filtered);
