@@ -424,7 +424,7 @@ td b{ font-family:var(--font-mono); }
       <div class="filter-group">
         <div class="filter-label">Year</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">< 2025</div>
+          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">&lt; 2025</div>
           <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
           <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
         </div>
@@ -1648,7 +1648,6 @@ function renderHomePage() {
   if(bikes.length) {
     const totalKm = bikes.reduce((s,r) => s + r.distance, 0);
     const totalSec = bikes.reduce((s,r) => s + (r.durationSec || 0), 0);
-    const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
     const withHr = bikes.filter(r => r.hr);
     const avgHr = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
     const withCad = bikes.filter(r => r.cad);
