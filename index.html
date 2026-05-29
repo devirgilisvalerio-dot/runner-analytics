@@ -304,7 +304,8 @@ td b{ font-family:var(--font-mono); }
         <span id="status-text">Not connected</span>
       </div>
       <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
-      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+      <button id="sync-btn"        class="btn success" style="display:none;" onclick="listFiles(false)" title="Uses cache — instant if nothing changed">Sync Drive</button>
+      <button id="force-sync-btn" class="btn" style="display:none;background:var(--card);border:1px solid var(--border);color:var(--muted2);font-size:13px;padding:8px 14px;" onclick="listFiles(true)" title="Force full re-fetch from Drive (use after adding/removing files)">↺ Force refresh</button>
     </div>
   </div>
 
@@ -830,6 +831,7 @@ function handleAuthClick(){
     if(resp.error) throw resp;
     document.getElementById('auth-btn').style.display = 'none';
     document.getElementById('sync-btn').style.display = 'inline-block';
+    document.getElementById('force-sync-btn').style.display = 'inline-block';
     setStatus('Connesso', 'connected');
     await listFiles();
   };
@@ -852,19 +854,24 @@ function extractShoeName(name){
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
 const RUN_CACHE_VERSION = 3;
-function readCachedRun(fileId){
+const FILELIST_CACHE_KEY = 'falcata:filelist';
+const FILELIST_TTL_MS    = 5 * 60 * 1000; // 5 minutes
+
+function readCachedRun(fileId, modifiedTime){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
     if(!raw) return null;
     const obj = JSON.parse(raw);
     if(obj.v !== RUN_CACHE_VERSION) return null;
+    // Auto-invalidate if file was modified on Drive since we cached it
+    if(modifiedTime && obj.modifiedTime && obj.modifiedTime !== modifiedTime) return null;
     return obj.run;
   } catch(e){ return null; }
 }
-function writeCachedRun(fileId, run){
+function writeCachedRun(fileId, run, modifiedTime){
   try{
     const { shoe, ...rest } = run;
-    localStorage.setItem(RUN_CACHE_PREFIX + fileId, JSON.stringify({ v: RUN_CACHE_VERSION, run: rest }));
+    localStorage.setItem(RUN_CACHE_PREFIX + fileId, JSON.stringify({ v: RUN_CACHE_VERSION, modifiedTime: modifiedTime || null, run: rest }));
   } catch(e){
     if(e && e.name === 'QuotaExceededError'){
       for(let i = localStorage.length - 1; i >= 0; i--){
@@ -882,34 +889,56 @@ function pruneRunCache(validIds){
   }
 }
 
-async function listFiles(){
+/* ── FILE LIST CACHE ── */
+function readCachedFileList(){
+  try{
+    const raw = localStorage.getItem(FILELIST_CACHE_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(Date.now() - obj.ts > FILELIST_TTL_MS) return null;
+    return obj.files;
+  } catch(e){ return null; }
+}
+function writeCachedFileList(files){
+  try{ localStorage.setItem(FILELIST_CACHE_KEY, JSON.stringify({ ts: Date.now(), files })); } catch(e){}
+}
+function clearFileListCache(){
+  localStorage.removeItem(FILELIST_CACHE_KEY);
+}
+
+async function listFiles(forceRefresh = false){
   setStatus('Lettura cartella Drive…', 'loading');
   document.getElementById('parseLog').innerText = '';
   try{
-    const [respRun, respBike] = await Promise.all([
-      gapi.client.drive.files.list({
-        pageSize: 200,
-        q: `'${FOLDER_ID_RUN}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-        fields: 'files(id,name)', orderBy: 'name'
-      }),
-      gapi.client.drive.files.list({
-        pageSize: 200,
-        q: `'${FOLDER_ID_BIKE}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-        fields: 'files(id,name)', orderBy: 'name'
-      })
-    ]);
-    const runFiles  = (respRun.result.files || []).map(f => ({ ...f, _folder: 'run' }));
-    const bikeFiles = (respBike.result.files || []).map(f => ({ ...f, _folder: 'bike' }));
-    const files = [...runFiles, ...bikeFiles];
-    if(!files.length){ setStatus('No files found.', 'disconnected'); setEmptyTable(); return; }
+    // ── Step 1: get file list (from cache or Drive) ──
+    let eligible;
+    const cachedList = forceRefresh ? null : readCachedFileList();
+    if(cachedList){
+      eligible = cachedList;
+    } else {
+      const [respRun, respBike] = await Promise.all([
+        gapi.client.drive.files.list({
+          pageSize: 1000,
+          q: `'${FOLDER_ID_RUN}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+          fields: 'files(id,name,modifiedTime)', orderBy: 'name'
+        }),
+        gapi.client.drive.files.list({
+          pageSize: 1000,
+          q: `'${FOLDER_ID_BIKE}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+          fields: 'files(id,name,modifiedTime)', orderBy: 'name'
+        })
+      ]);
+      const runFiles  = (respRun.result.files  || []).map(f => ({ ...f, _folder: 'run' }));
+      const bikeFiles = (respBike.result.files || []).map(f => ({ ...f, _folder: 'bike' }));
+      const allFiles  = [...runFiles, ...bikeFiles];
+      eligible = allFiles.filter(f => { const n = f.name.toLowerCase(); return n.endsWith('.fit') || n.endsWith('.gpx'); });
+      writeCachedFileList(eligible);
+    }
+
+    if(!eligible.length){ setStatus('No files found.', 'disconnected'); setEmptyTable(); return; }
 
     const token = gapi.client.getToken().access_token;
     const runs = [], warnings = [];
-
-    const eligible = files.filter(f => {
-      const n = f.name.toLowerCase();
-      return n.endsWith('.fit') || n.endsWith('.gpx');
-    });
 
     let cacheHits = 0, fetched = 0, done = 0;
     const updateProgress = () => setStatus(
@@ -921,7 +950,8 @@ async function listFiles(){
     const processFile = async (file) => {
       const isFit = file.name.toLowerCase().endsWith('.fit');
       try {
-        const cached = readCachedRun(file.id);
+        // modifiedTime lets cache auto-invalidate if the file changed on Drive
+        const cached = readCachedRun(file.id, file.modifiedTime);
         let parsed;
         if(cached){
           parsed = cached;
@@ -933,7 +963,7 @@ async function listFiles(){
           else     { const xml = await r.text();        parsed = parseFallbackGPX(xml, file.name); }
           fetched++;
           if(parsed.error){ warnings.push('⚠ ' + parsed.error); return; }
-          writeCachedRun(file.id, parsed);
+          writeCachedRun(file.id, parsed, file.modifiedTime);
         }
         parsed.shoe = extractShoeName(file.name);
         if(file._folder === 'bike') parsed.sport = 'cycling';
