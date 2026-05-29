@@ -373,34 +373,6 @@ td b{ font-family:var(--font-mono); }
       <div class="card">
         <div class="card-title"><span>Trend Performance</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
-        <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px">Next run pace (est.)</div>
-            <div id="predNextPace" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px">Trend</div>
-            <div id="predTrend" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px">Projected BPM</div>
-            <div id="predBpm" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--red)">—</div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px">Projected km</div>
-            <div id="predKm" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
-            <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">pace &nbsp; bpm &nbsp; finish</div>
-            <div id="predHalf" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">—</div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:6px"><span style="margin-right:4px">🏅</span>MARATHON TOMORROW</div>
-            <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">pace &nbsp; bpm &nbsp; finish</div>
-            <div id="predMarathon" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--orange)">—</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -967,7 +939,6 @@ function renderDashboard(data){
   renderShoes(data);
   renderTable(data);
   renderTrendChart(data);
-  renderPredictions(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
   renderAvgKmSplits(data);
@@ -1218,73 +1189,6 @@ function renderTrendChart(data) {
       }
     }
   });
-}
-
-function renderPredictions(data) {
-  const strip = document.getElementById('predictionStrip');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 3) { strip.style.display = 'none'; return; }
-  strip.style.display = 'grid';
-
-  // Use last 10 runs for weighted average (more recent = more weight)
-  const recent = sorted.slice(-10);
-  const weights = recent.map((_, i) => i + 1);
-  const totalW = weights.reduce((a, b) => a + b, 0);
-
-  let nextPaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
-
-  // Inactivity penalty: +1% per day beyond 7 days since last run
-  const lastRunDate = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
-  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.01 : 1;
-  nextPaceSec *= inactivityPenalty;
-
-  document.getElementById('predNextPace').textContent = paceStr(Math.round(nextPaceSec)) + (daysSinceLastRun > 7 ? ' (+' + (daysSinceLastRun - 7) + '%)' : '');
-
-  // Trend: compare first half vs second half of data
-  const half = Math.floor(sorted.length / 2);
-  const firstHalfAvg = sorted.slice(0, half).reduce((s, r) => s + r.paceSecPerKm, 0) / half;
-  const secondHalfAvg = sorted.slice(half).reduce((s, r) => s + r.paceSecPerKm, 0) / (sorted.length - half);
-  const diff = firstHalfAvg - secondHalfAvg;
-  if(diff > 3) document.getElementById('predTrend').innerHTML = '<span style="color:var(--green)">↑ improving</span>';
-  else if(diff < -3) document.getElementById('predTrend').innerHTML = '<span style="color:var(--red)">↓ declining</span>';
-  else document.getElementById('predTrend').innerHTML = '<span style="color:var(--muted2)">↔ stable</span>';
-
-  // Projected BPM
-  const recentHr = sorted.filter(r => r.hr).slice(-10);
-  if(recentHr.length) {
-    const wHr = recentHr.map((_, i) => i + 1);
-    const tWHr = wHr.reduce((a, b) => a + b, 0);
-    const projBpm = Math.round(recentHr.reduce((s, r, i) => s + r.hr * wHr[i], 0) / tWHr);
-    document.getElementById('predBpm').textContent = projBpm + ' bpm';
-  }
-
-  // Projected km
-  const recentKm = sorted.slice(-10);
-  const wKm = recentKm.map((_, i) => i + 1);
-  const tWKm = wKm.reduce((a, b) => a + b, 0);
-  const projKm = recentKm.reduce((s, r, i) => s + r.distance * wKm[i], 0) / tWKm;
-  document.getElementById('predKm').textContent = projKm.toFixed(1) + ' km';
-
-  // Half Marathon prediction (21.0975 km)
-  const hmDist = 21.0975;
-  const hmPaceSec = nextPaceSec * 1.05; // slight degradation for longer distance
-  const hmFinishSec = hmPaceSec * hmDist;
-  const hmBpm = recentHr.length ? Math.round(recentHr.reduce((s, r, i) => s + r.hr * wHr[i], 0) / tWHr * 1.03) : null;
-  document.getElementById('predHalf').innerHTML =
-    '<span style="color:var(--green)">' + paceStr(Math.round(hmPaceSec)) + '</span> &nbsp;' +
-    '<span style="color:var(--red)">' + (hmBpm || '—') + '</span> &nbsp;' +
-    '<span style="color:var(--text)">' + secondsToTime(Math.round(hmFinishSec)) + '</span>';
-
-  // Marathon prediction (42.195 km)
-  const mDist = 42.195;
-  const mPaceSec = nextPaceSec * 1.10; // more degradation for full marathon
-  const mFinishSec = mPaceSec * mDist;
-  const mBpm = hmBpm ? Math.round(hmBpm * 1.02) : null;
-  document.getElementById('predMarathon').innerHTML =
-    '<span style="color:var(--green)">' + paceStr(Math.round(mPaceSec)) + '</span> &nbsp;' +
-    '<span style="color:var(--red)">' + (mBpm || '—') + '</span> &nbsp;' +
-    '<span style="color:var(--text)">' + secondsToTime(Math.round(mFinishSec)) + '</span>';
 }
 
 function renderPaceDistChart(data) {
