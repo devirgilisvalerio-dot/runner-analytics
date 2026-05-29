@@ -333,7 +333,10 @@ td b{ font-family:var(--font-mono); }
         <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
         <span id="filterBadge" class="filter-badge" style="display:none;">0 of 0</span>
       </div>
-      <button class="btn-reset" onclick="resetFilters()">Reset All</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-reset" onclick="clearAllFilters()">Clear All</button>
+        <button class="btn-reset" onclick="resetFilters()">Select All</button>
+      </div>
     </div>
     <div class="filter-row">
       <div class="filter-group">
@@ -919,6 +922,11 @@ function updateFilterBadge(count) {
 
 function resetFilters() {
   document.querySelectorAll('.shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.add('active'));
+  applyFilters();
+}
+
+function clearAllFilters() {
+  document.querySelectorAll('.shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.remove('active'));
   applyFilters();
 }
 
