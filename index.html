@@ -337,7 +337,6 @@ td b{ font-family:var(--font-mono); }
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
     </div>
     <div class="stats-grid">
-      <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
@@ -424,7 +423,7 @@ td b{ font-family:var(--font-mono); }
       <div class="filter-group">
         <div class="filter-label">Year</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">&lt; 2025</div>
+          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">< 2025</div>
           <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
           <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
         </div>
@@ -1648,6 +1647,7 @@ function renderHomePage() {
   if(bikes.length) {
     const totalKm = bikes.reduce((s,r) => s + r.distance, 0);
     const totalSec = bikes.reduce((s,r) => s + (r.durationSec || 0), 0);
+    const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
     const withHr = bikes.filter(r => r.hr);
     const avgHr = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
     const withCad = bikes.filter(r => r.cad);
@@ -1659,11 +1659,6 @@ function renderHomePage() {
     const totalCalB = withCalB.reduce((s,r) => s + r.calories, 0);
     const avgCalB = withCalB.length ? Math.round(totalCalB / withCalB.length) : null;
 
-    const bikesWithSpeed = bikes.filter(r => r.avgSpeedKmh);
-    const avgSpeedKmh = bikesWithSpeed.length ? bikesWithSpeed.reduce((s,r) => s + r.avgSpeedKmh, 0) / bikesWithSpeed.length : null;
-    const maxSpeedKmh = bikesWithSpeed.length ? Math.max(...bikesWithSpeed.map(r => r.avgSpeedKmh)) : null;
-    document.getElementById('homeBikeSpeed').textContent = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
-    document.getElementById('homeBikeSpeedSub').textContent = maxSpeedKmh ? 'best avg: ' + maxSpeedKmh.toFixed(1) + ' km/h' : '—';
     document.getElementById('homeBikeKm').textContent = totalKm.toFixed(1) + ' km';
     document.getElementById('homeBikeAvgDist').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg/ride';
     document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
