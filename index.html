@@ -337,20 +337,20 @@ td b{ font-family:var(--font-mono); }
     </div>
     <div class="filter-row">
       <div class="filter-group">
-        <div class="filter-label">Date From</div>
-        <input type="date" id="filterDateFrom" class="filter-input" onchange="applyFilters()">
+        <div class="filter-label">Year</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">< 2025</div>
+          <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
+          <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
+        </div>
       </div>
       <div class="filter-group">
-        <div class="filter-label">Date To</div>
-        <input type="date" id="filterDateTo" class="filter-input" onchange="applyFilters()">
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Min Distance (km)</div>
-        <input type="number" id="filterDistMin" class="filter-input" min="0" step="0.5" placeholder="0" oninput="applyFilters()">
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Max Distance (km)</div>
-        <input type="number" id="filterDistMax" class="filter-input" min="0" step="0.5" placeholder="∞" oninput="applyFilters()">
+        <div class="filter-label">Distance</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="shoe-chip active" data-dist="short" onclick="toggleFilterChip(this)">≤ 10k</div>
+          <div class="shoe-chip active" data-dist="mid" onclick="toggleFilterChip(this)">10k – 20k</div>
+          <div class="shoe-chip active" data-dist="long" onclick="toggleFilterChip(this)">≥ 20k</div>
+        </div>
       </div>
       <div class="filter-group" id="shoeFilterGroup" style="display:none;">
         <div class="filter-label">Shoes</div>
@@ -833,30 +833,53 @@ function populateShoeFilter(runs) {
   group.style.display = 'flex';
   container.innerHTML = shoes.map(shoe => {
     const safe = shoe.replace(/"/g, '&quot;');
-    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleShoeChip(this)">\u{1F45F} ${safe}</div>`;
+    return `<div class="shoe-chip active" data-shoe="${safe}" onclick="toggleFilterChip(this)">\u{1F45F} ${safe}</div>`;
   }).join('');
 }
 
-function toggleShoeChip(el) {
+
+
+function toggleFilterChip(el) {
   el.classList.toggle('active');
   applyFilters();
 }
 
 function getFilteredRuns() {
-  const fromDate = document.getElementById('filterDateFrom').value;
-  const toDate   = document.getElementById('filterDateTo').value;
-  const minKm    = parseFloat(document.getElementById('filterDistMin').value);
-  const maxKm    = parseFloat(document.getElementById('filterDistMax').value);
-  const chips    = document.querySelectorAll('.shoe-chip');
-  const activeShoes = chips.length
-    ? [...chips].filter(c => c.classList.contains('active')).map(c => c.dataset.shoe)
+  // Year chips
+  const yearChips = document.querySelectorAll('[data-year]');
+  const activeYears = [...yearChips].filter(c => c.classList.contains('active')).map(c => c.dataset.year);
+
+  // Distance chips
+  const distChips = document.querySelectorAll('[data-dist]');
+  const activeDists = [...distChips].filter(c => c.classList.contains('active')).map(c => c.dataset.dist);
+
+  // Shoe chips
+  const shoeChips = document.querySelectorAll('.shoe-chip[data-shoe]');
+  const activeShoes = shoeChips.length
+    ? [...shoeChips].filter(c => c.classList.contains('active')).map(c => c.dataset.shoe)
     : null;
 
   return allRuns.filter(r => {
-    if(fromDate && r.date < fromDate) return false;
-    if(toDate   && r.date > toDate)   return false;
-    if(!isNaN(minKm) && r.distance < minKm) return false;
-    if(!isNaN(maxKm) && r.distance > maxKm) return false;
+    // Year filter
+    if(yearChips.length) {
+      const year = parseInt(r.date.split('-')[0], 10);
+      let yearMatch = false;
+      if(activeYears.includes('pre2025') && year < 2025) yearMatch = true;
+      if(activeYears.includes('2025') && year === 2025) yearMatch = true;
+      if(activeYears.includes('2026') && year === 2026) yearMatch = true;
+      if(!yearMatch) return false;
+    }
+
+    // Distance filter
+    if(distChips.length) {
+      let distMatch = false;
+      if(activeDists.includes('short') && r.distance <= 10) distMatch = true;
+      if(activeDists.includes('mid') && r.distance > 10 && r.distance < 20) distMatch = true;
+      if(activeDists.includes('long') && r.distance >= 20) distMatch = true;
+      if(!distMatch) return false;
+    }
+
+    // Shoe filter
     if(activeShoes && activeShoes.length === 0) return false;
     if(activeShoes && activeShoes.length > 0 && !activeShoes.includes(r.shoe)) return false;
     return true;
@@ -884,11 +907,7 @@ function updateFilterBadge(count) {
 }
 
 function resetFilters() {
-  document.getElementById('filterDateFrom').value = '';
-  document.getElementById('filterDateTo').value   = '';
-  document.getElementById('filterDistMin').value  = '';
-  document.getElementById('filterDistMax').value  = '';
-  document.querySelectorAll('.shoe-chip').forEach(c => c.classList.add('active'));
+  document.querySelectorAll('.shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.add('active'));
   applyFilters();
 }
 
