@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RunnerOS Elite</title>
+<title>FALCATA Elite</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -268,6 +268,22 @@ td b{ font-family:var(--font-mono); }
 
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
 @media(max-width:700px){ .two-col{ grid-template-columns:1fr; } }
+
+/* ── PAGES / SPA ── */
+.hidden{ display:none!important; }
+.nav-bar{
+  display:flex; gap:12px; margin-bottom:24px; align-items:center;
+}
+.nav-btn{
+  border:none; padding:12px 24px; border-radius:8px;
+  cursor:pointer; font-weight:700; color:var(--text);
+  font-family:var(--font-display); font-size:18px; letter-spacing:.5px;
+  transition:all 0.15s; text-transform:uppercase;
+  background:var(--card); border:1px solid var(--border);
+}
+.nav-btn:hover{ border-color:var(--accent); transform:translateY(-1px); }
+.nav-btn.active{ border-color:var(--accent); background:rgba(0,229,255,0.08); color:var(--accent); }
+.sport-icon{ font-size:20px; margin-right:6px; }
 </style>
 </head>
 <body>
@@ -292,6 +308,72 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- NAVIGATION -->
+  <div class="nav-bar">
+    <button class="nav-btn active" id="nav-home" onclick="showPage('home')"><span class="sport-icon">🏠</span>Overview</button>
+    <button class="nav-btn" id="nav-run" onclick="showPage('run')"><span class="sport-icon">🏃</span>Running</button>
+    <button class="nav-btn" id="nav-bike" onclick="showPage('bike')"><span class="sport-icon">🚴</span>Cycling</button>
+  </div>
+
+  <!-- ═══ PAGE: HOME ═══ -->
+  <div id="page-home">
+    <!-- RUN STATS -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px">🏃</span>
+      <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Running</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card c-pace"><div class="stat-title">Avg Pace</div><div class="stat-value green" id="homeRunPace">—</div><div class="stat-sub" id="homeRunPaceSub">—</div></div>
+      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeRunPow">—</div><div class="stat-sub">watts</div></div>
+    </div>
+
+    <!-- BIKE STATS -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:8px;">
+      <span style="font-size:20px">🚴</span>
+      <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
+      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeBikePow">—</div><div class="stat-sub">watts</div></div>
+    </div>
+
+    <!-- HOME: Trend Performance side by side -->
+    <div class="two-col" style="margin-top:20px;margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
+        <div class="chart-box-lg"><canvas id="homeTrendRun"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
+        <div class="chart-box-lg"><canvas id="homeTrendBike"></canvas></div>
+      </div>
+    </div>
+
+    <!-- HOME: ACWR side by side -->
+    <div class="two-col" style="margin-bottom:20px;">
+      <div class="card" id="homeAcwrRunSection" style="display:none;">
+        <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
+        <div id="homeAcwrRunBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
+        <div style="height:220px;"><canvas id="homeAcwrRunChart"></canvas></div>
+      </div>
+      <div class="card" id="homeAcwrBikeSection" style="display:none;">
+        <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
+        <div id="homeAcwrBikeBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
+        <div style="height:220px;"><canvas id="homeAcwrBikeChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: RUN ═══ -->
+  <div id="page-run" class="hidden">
   <!-- STATS STRIP -->
   <div class="stats-grid">
     <div class="stat-card c-pace">
@@ -478,7 +560,22 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
-  <div class="footer">RunnerOS Elite &nbsp;·&nbsp; FIT + GPX Native Parser &nbsp;·&nbsp; No fake data</div>
+  </div>
+
+  <!-- ═══ PAGE: BIKE ═══ -->
+  <div id="page-bike" class="hidden">
+    <div class="stats-grid">
+      <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="bikeAvgSpeed">—</div><div class="stat-sub" id="bikeMaxSpeed">—</div></div>
+      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="bikeTotalKm">—</div><div class="stat-sub" id="bikeCountSub">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
+      <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="bikeAvgPow">—</div><div class="stat-sub">watts</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:14px;font-family:var(--font-mono);text-align:center;padding:60px 20px;">Cycling detailed view coming soon.</p>
+  </div>
+
+  <div class="footer">FALCATA Elite &nbsp;·&nbsp; TRACK. PUSH. EVOLVE.</div>
 </div>
 
 <script>
@@ -532,7 +629,13 @@ function parseFIT(buffer) {
       const defn  = definitions[localNum];
       if(!defn) break;
       const start = pos;
-      if(defn.globalNum === 20) {
+      if(defn.globalNum === 18) {
+        for(const { fNum, fSize } of defn.fields) {
+          if(pos + fSize > bytes.length) break;
+          if(fNum === 5 && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
+          pos += fSize;
+        }
+      } else if(defn.globalNum === 20) {
         const rec = {};
         for(const { fNum, fSize } of defn.fields) {
           if(pos + fSize > bytes.length) break;
@@ -556,6 +659,7 @@ function parseFIT(buffer) {
     }
   }
 
+  const sport = records._sport !== undefined ? records._sport : 1;
   if(records.length < 2) return { error: 'No activity data found in FIT file' };
 
   const withTs  = records.filter(r => r.ts);
@@ -596,7 +700,7 @@ function parseFIT(buffer) {
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
-    hrCount: withHr.length, source: 'FIT'
+    hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
 }
 
@@ -666,7 +770,7 @@ function parseFallbackGPX(xmlText, fileName) {
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
-    hrCount, source: 'GPX'
+    hrCount, source: 'GPX', sport: 'running'
   };
 }
 
@@ -684,6 +788,7 @@ const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
 let tokenClient;
 let charts = {};
 let allRuns = [];
+let allBikes = [];
 let lastRenderedData = [];
 
 function gapiLoaded(){ gapi.load('client', async () => {
@@ -718,7 +823,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 1;
+const RUN_CACHE_VERSION = 2;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -811,14 +916,25 @@ async function listFiles(){
 
     if(!runs.length){ setStatus('No valid files found.', 'disconnected'); setEmptyTable(); return; }
 
-    allRuns = runs;
-    populateShoeFilter(runs);
-    document.getElementById('filterPanel').style.display = 'block';
-    applyFilters();
+    // Split by sport
+    allRuns = runs.filter(r => r.sport !== 'cycling');
+    allBikes = runs.filter(r => r.sport === 'cycling');
 
+    // Render home page
+    renderHomePage();
+
+    // Set up run page
+    if(allRuns.length) {
+      populateShoeFilter(allRuns);
+      document.getElementById('filterPanel').style.display = 'block';
+      applyFilters();
+    }
+
+    const rc = allRuns.length;
+    const bc = allBikes.length;
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} activities loaded ✓  (${fc} FIT · ${gc} GPX · ${cacheHits} from cache)`, 'connected');
+    setStatus(`${runs.length} activities loaded ✓  (${rc} runs · ${bc} rides · ${fc} FIT · ${gc} GPX · ${cacheHits} cached)`, 'connected');
   } catch(err){
     console.error(err);
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
@@ -1454,6 +1570,182 @@ function renderAcwr(data) {
         x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.04)' } },
         y: { position: 'left', min: 0, ticks: { color: '#ff9100', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'ACWR', color: '#ff9100', font: { family: 'DM Mono', size: 10 } } },
         yKm: { position: 'right', min: 0, ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/day', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } } }
+      }
+    }
+  });
+}
+
+/* ── SPA NAVIGATION ── */
+function showPage(name) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-' + name).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + name).classList.add('active');
+  // Re-render charts on page show (Chart.js needs visible canvas)
+  if(name === 'home' && (allRuns.length || allBikes.length)) renderHomePage();
+  if(name === 'run' && allRuns.length) applyFilters();
+}
+
+function renderHomePage() {
+  const runs = allRuns;
+  const bikes = allBikes;
+
+  // ── Run stats ──
+  if(runs.length) {
+    const totalKm = runs.reduce((s,r) => s + r.distance, 0);
+    const totalSec = runs.reduce((s,r) => s + (r.durationSec || 0), 0);
+    const withPace = runs.filter(r => r.paceSecPerKm);
+    const avgPaceSec = withPace.length ? withPace.reduce((s,r) => s+r.paceSecPerKm, 0) / withPace.length : null;
+    const withHr = runs.filter(r => r.hr);
+    const avgHr = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+    const withCad = runs.filter(r => r.cad);
+    const avgCad = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+    const withPow = runs.filter(r => r.power);
+    const avgPow = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+    const allSplitPaces = runs.flatMap(r => r.kmSplits ? r.kmSplits.map(s => s.paceSec) : []);
+    const bestSplit = allSplitPaces.length ? Math.min(...allSplitPaces) : null;
+
+    document.getElementById('homeRunPace').textContent = avgPaceSec ? paceStr(avgPaceSec) : '—';
+    document.getElementById('homeRunPaceSub').textContent = bestSplit ? 'Best km: ' + paceStr(bestSplit) : '—';
+    document.getElementById('homeRunKm').textContent = totalKm.toFixed(1) + ' km';
+    document.getElementById('homeRunCount').textContent = runs.length + ' activities';
+    document.getElementById('homeRunTime').textContent = secondsToTime(totalSec);
+    document.getElementById('homeRunAvgDist').textContent = (totalKm / runs.length).toFixed(1) + ' km avg/run';
+    document.getElementById('homeRunHr').textContent = avgHr ? avgHr + ' bpm' : '—';
+    document.getElementById('homeRunHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    document.getElementById('homeRunCad').textContent = avgCad ? avgCad + ' spm' : '—';
+    document.getElementById('homeRunPow').textContent = avgPow ? avgPow + ' W' : '—';
+  }
+
+  // ── Bike stats ──
+  if(bikes.length) {
+    const totalKm = bikes.reduce((s,r) => s + r.distance, 0);
+    const totalSec = bikes.reduce((s,r) => s + (r.durationSec || 0), 0);
+    const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
+    const withHr = bikes.filter(r => r.hr);
+    const avgHr = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+    const withCad = bikes.filter(r => r.cad);
+    const avgCad = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+    const withPow = bikes.filter(r => r.power);
+    const avgPow = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
+
+    document.getElementById('homeBikeSpeed').textContent = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
+    document.getElementById('homeBikeSpeedSub').textContent = bikes.length ? 'max ' + Math.max(...bikes.filter(r=>r.durationSec>0).map(r=>(r.distance/(r.durationSec/3600)))).toFixed(1) + ' km/h' : '—';
+    document.getElementById('homeBikeKm').textContent = totalKm.toFixed(1) + ' km';
+    document.getElementById('homeBikeCount').textContent = bikes.length + ' activities';
+    document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
+    document.getElementById('homeBikeAvgDist').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg/ride';
+    document.getElementById('homeBikeHr').textContent = avgHr ? avgHr + ' bpm' : '—';
+    document.getElementById('homeBikeHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    document.getElementById('homeBikeCad').textContent = avgCad ? avgCad + ' rpm' : '—';
+    document.getElementById('homeBikePow').textContent = avgPow ? avgPow + ' W' : '—';
+  }
+
+  // ── Home trend charts ──
+  renderHomeTrendChart('homeTrendRun', 'homeTrendRunChart', allRuns);
+  renderHomeTrendChart('homeTrendBike', 'homeTrendBikeChart', allBikes);
+
+  // ── Home ACWR ──
+  renderHomeAcwr(allRuns, 'homeAcwrRunChart', 'homeAcwrRunSection', 'homeAcwrRunBadges');
+  renderHomeAcwr(allBikes, 'homeAcwrBikeChart', 'homeAcwrBikeSection', 'homeAcwrBikeBadges');
+}
+
+function renderHomeTrendChart(canvasId, chartKey, data) {
+  destroyChart(chartKey);
+  const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 2) return;
+
+  const isBike = sorted[0].sport === 'cycling';
+  const yVals = isBike
+    ? sorted.map(r => r.durationSec > 0 ? r.distance / (r.durationSec / 3600) : null)
+    : sorted.map(r => r.paceSecPerKm / 60);
+  const kmVals = sorted.map(r => r.distance);
+  const labels = sorted.map(r => r.date);
+
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  charts[chartKey] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: isBike ? 'Speed (km/h)' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
+        { label: 'Km', data: kmVals, borderColor:'#00e5ff', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#00e5ff', borderWidth:2.7, yAxisID:'yKm' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#8a9aaa', font:{family:'DM Mono',size:10} } } },
+      scales:{
+        x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
+        yKm:{ position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
+      }
+    }
+  });
+}
+
+function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
+  const chartKey = canvasId;
+  destroyChart(chartKey);
+  if(!data || data.length < 2) { document.getElementById(sectionId).style.display = 'none'; return; }
+
+  const kmByDay = {};
+  data.forEach(r => { kmByDay[r.date] = (kmByDay[r.date] || 0) + r.distance; });
+  const dates = Object.keys(kmByDay).sort();
+  if(dates.length < 7) { document.getElementById(sectionId).style.display = 'none'; return; }
+
+  const startDate = new Date(dates[0]);
+  const endDate = new Date();
+  const allDates = [];
+  for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
+    allDates.push(d.toISOString().split('T')[0]);
+
+  const chartDates = allDates.slice(-60);
+  const acwrPoints = [];
+  chartDates.forEach(dateStr => {
+    const idx = allDates.indexOf(dateStr);
+    const acute7 = allDates.slice(Math.max(0, idx-6), idx+1).reduce((s,d) => s + (kmByDay[d]||0), 0);
+    const chronic28 = allDates.slice(Math.max(0, idx-27), idx+1).reduce((s,d) => s + (kmByDay[d]||0), 0);
+    const acuteAvg = acute7 / 7;
+    const chronicAvg = chronic28 / Math.min(28, idx+1);
+    acwrPoints.push(chronicAvg > 0 ? parseFloat((acuteAvg / chronicAvg).toFixed(3)) : null);
+  });
+
+  const currentAcwr = acwrPoints[acwrPoints.length - 1];
+  let riskColor = 'var(--muted)';
+  if(currentAcwr !== null) {
+    if(currentAcwr < 0.8) riskColor = 'var(--muted2)';
+    else if(currentAcwr <= 1.3) riskColor = 'var(--green)';
+    else if(currentAcwr <= 1.5) riskColor = 'var(--orange)';
+    else riskColor = 'var(--red)';
+  }
+
+  document.getElementById(badgesId).innerHTML =
+    '<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">' +
+    '<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>' +
+    '<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + riskColor + '">' + (currentAcwr !== null ? currentAcwr.toFixed(2) : '—') + '</div></div>';
+
+  document.getElementById(sectionId).style.display = 'block';
+
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  charts[chartKey] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartDates,
+      datasets: [
+        { label:'Sweet (1.3)', data:chartDates.map(()=>1.3), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
+        { label:'Sweet (0.8)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
+        { label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>1.5) return '#ff3d57'; if(v>1.3) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
+        }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y:{ min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
       }
     }
   });
