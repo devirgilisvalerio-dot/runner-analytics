@@ -324,11 +324,11 @@ td b{ font-family:var(--font-mono); }
     </div>
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Pace</div><div class="stat-value green" id="homeRunPace">—</div><div class="stat-sub" id="homeRunPaceSub">—</div></div>
-      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
-      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
+      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeRunTime">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeRunCal">—</div><div class="stat-sub" id="homeRunAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
-      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeRunPow">—</div><div class="stat-sub">watts</div></div>
     </div>
 
     <!-- BIKE STATS -->
@@ -337,12 +337,11 @@ td b{ font-family:var(--font-mono); }
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
     </div>
     <div class="stats-grid">
-      <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
-      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
-      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
+      <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
-      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeBikePow">—</div><div class="stat-sub">watts</div></div>
     </div>
 
     <!-- HOME: Trend Performance side by side -->
@@ -384,27 +383,27 @@ td b{ font-family:var(--font-mono); }
     <div class="stat-card c-km">
       <div class="stat-title">Total Distance</div>
       <div class="stat-value cyan" id="totalKm">—</div>
-      <div class="stat-sub" id="runCountSub">— activities</div>
+      <div class="stat-sub" id="avgDistSub">— km avg/run</div>
     </div>
     <div class="stat-card c-dur">
       <div class="stat-title">Total Time</div>
       <div class="stat-value" id="totalTime">—</div>
-      <div class="stat-sub" id="avgDistSub">— km avg/run</div>
+      <div class="stat-sub" id="runCountSub">— activities</div>
     </div>
     <div class="stat-card c-hr">
       <div class="stat-title">Avg BPM</div>
       <div class="stat-value red" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
+    <div class="stat-card c-pow">
+      <div class="stat-title">Total Calories</div>
+      <div class="stat-value orange" id="totalCal">—</div>
+      <div class="stat-sub" id="avgCalSub">—</div>
+    </div>
     <div class="stat-card c-cad">
       <div class="stat-title">Avg Cadence</div>
       <div class="stat-value purple" id="avgCad">—</div>
-      <div class="stat-sub">steps per minute</div>
-    </div>
-    <div class="stat-card c-pow">
-      <div class="stat-title">Avg Power</div>
-      <div class="stat-value orange" id="avgPow">—</div>
-      <div class="stat-sub" id="powSub">watts</div>
+      <div class="stat-sub">spm</div>
     </div>
   </div>
 
@@ -633,6 +632,8 @@ function parseFIT(buffer) {
         for(const { fNum, fSize } of defn.fields) {
           if(pos + fSize > bytes.length) break;
           if(fNum === 5 && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
+          if(fNum === 7 && fSize === 4) { const v = dv.getUint32(pos, true); if(v !== 0xFFFFFFFF) records._timerTime = v / 1000; }
+          if(fNum === 11 && fSize === 2) { const v = dv.getUint16(pos, true); if(v !== 0xFFFF) records._calories = v; }
           pos += fSize;
         }
       } else if(defn.globalNum === 20) {
@@ -660,12 +661,14 @@ function parseFIT(buffer) {
   }
 
   const sport = records._sport !== undefined ? records._sport : 1;
+  const timerTime = records._timerTime || null;
   if(records.length < 2) return { error: 'No activity data found in FIT file' };
 
   const withTs  = records.filter(r => r.ts);
   const firstTs = withTs[0]?.ts;
   const lastTs  = withTs[withTs.length-1]?.ts;
-  const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
+  const elapsedSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
+  const durationSec = timerTime || elapsedSec;
 
   const withDist = records.filter(r => r.dist != null);
   const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
@@ -700,7 +703,7 @@ function parseFIT(buffer) {
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
-    hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
+    calories: records._calories || null, hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
 }
 
@@ -770,7 +773,7 @@ function parseFallbackGPX(xmlText, fileName) {
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
-    hrCount, source: 'GPX', sport: 'running'
+    calories: null, hrCount, source: 'GPX', sport: 'running'
   };
 }
 
@@ -824,7 +827,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 2;
+const RUN_CACHE_VERSION = 3;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1068,7 +1071,8 @@ function clearStats() {
   document.getElementById('avgHr').innerText      = '—';
   document.getElementById('hrRangeSub').innerText = '—';
   document.getElementById('avgCad').innerText     = '—';
-  document.getElementById('avgPow').innerText     = '—';
+  document.getElementById('totalCal').innerText   = '—';
+  document.getElementById('avgCalSub').innerText  = '—';
 }
 
 function setEmptyTable(){
@@ -1098,16 +1102,21 @@ function renderDashboard(data){
   const withPow = data.filter(r => r.power);
   const avgPow  = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
+  const withCalR = data.filter(r => r.calories);
+  const totalCalR = withCalR.reduce((s,r) => s + r.calories, 0);
+  const avgCalR = withCalR.length ? Math.round(totalCalR / withCalR.length) : null;
+
   document.getElementById('avgPace').innerText     = avgPaceSec ? paceStr(avgPaceSec) : '—';
   document.getElementById('bestPaceSub').innerText = bestSplitPace ? `Best km: ${paceStr(bestSplitPace)}` : '—';
   document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
-  document.getElementById('runCountSub').innerText = data.length + ' activities';
-  document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
   document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km avg/run';
+  document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
+  document.getElementById('runCountSub').innerText = data.length + ' activities';
   document.getElementById('avgHr').innerText       = avgHr ? avgHr + ' bpm' : '—';
   document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
+  document.getElementById('totalCal').innerText    = totalCalR ? totalCalR.toLocaleString() + ' kcal' : '—';
+  document.getElementById('avgCalSub').innerText   = avgCalR ? avgCalR + ' kcal avg' : '—';
   document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
-  document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
 
   lastRenderedData = data;
   renderPaceZones(data);
@@ -1617,16 +1626,21 @@ function renderHomePage() {
     const allSplitPaces = runs.flatMap(r => r.kmSplits ? r.kmSplits.map(s => s.paceSec) : []);
     const bestSplit = allSplitPaces.length ? Math.min(...allSplitPaces) : null;
 
+    const withCal = runs.filter(r => r.calories);
+    const totalCal = withCal.reduce((s,r) => s + r.calories, 0);
+    const avgCal = withCal.length ? Math.round(totalCal / withCal.length) : null;
+
     document.getElementById('homeRunPace').textContent = avgPaceSec ? paceStr(avgPaceSec) : '—';
     document.getElementById('homeRunPaceSub').textContent = bestSplit ? 'Best km: ' + paceStr(bestSplit) : '—';
     document.getElementById('homeRunKm').textContent = totalKm.toFixed(1) + ' km';
-    document.getElementById('homeRunCount').textContent = runs.length + ' activities';
-    document.getElementById('homeRunTime').textContent = secondsToTime(totalSec);
     document.getElementById('homeRunAvgDist').textContent = (totalKm / runs.length).toFixed(1) + ' km avg/run';
+    document.getElementById('homeRunTime').textContent = secondsToTime(totalSec);
+    document.getElementById('homeRunCount').textContent = runs.length + ' activities';
     document.getElementById('homeRunHr').textContent = avgHr ? avgHr + ' bpm' : '—';
     document.getElementById('homeRunHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    document.getElementById('homeRunCal').textContent = totalCal ? totalCal.toLocaleString() + ' kcal' : '—';
+    document.getElementById('homeRunAvgCal').textContent = avgCal ? avgCal + ' kcal avg' : '—';
     document.getElementById('homeRunCad').textContent = avgCad ? avgCad + ' spm' : '—';
-    document.getElementById('homeRunPow').textContent = avgPow ? avgPow + ' W' : '—';
   }
 
   // ── Bike stats ──
@@ -1641,16 +1655,19 @@ function renderHomePage() {
     const withPow = bikes.filter(r => r.power);
     const avgPow = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
-    document.getElementById('homeBikeSpeed').textContent = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
-    document.getElementById('homeBikeSpeedSub').textContent = bikes.length ? 'max ' + Math.max(...bikes.filter(r=>r.durationSec>0).map(r=>(r.distance/(r.durationSec/3600)))).toFixed(1) + ' km/h' : '—';
+    const withCalB = bikes.filter(r => r.calories);
+    const totalCalB = withCalB.reduce((s,r) => s + r.calories, 0);
+    const avgCalB = withCalB.length ? Math.round(totalCalB / withCalB.length) : null;
+
     document.getElementById('homeBikeKm').textContent = totalKm.toFixed(1) + ' km';
-    document.getElementById('homeBikeCount').textContent = bikes.length + ' activities';
-    document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
     document.getElementById('homeBikeAvgDist').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg/ride';
+    document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
+    document.getElementById('homeBikeCount').textContent = bikes.length + ' activities';
     document.getElementById('homeBikeHr').textContent = avgHr ? avgHr + ' bpm' : '—';
     document.getElementById('homeBikeHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    document.getElementById('homeBikeCal').textContent = totalCalB ? totalCalB.toLocaleString() + ' kcal' : '—';
+    document.getElementById('homeBikeAvgCal').textContent = avgCalB ? avgCalB + ' kcal avg' : '—';
     document.getElementById('homeBikeCad').textContent = avgCad ? avgCad + ' rpm' : '—';
-    document.getElementById('homeBikePow').textContent = avgPow ? avgPow + ' W' : '—';
   }
 
   // ── Home trend charts ──
