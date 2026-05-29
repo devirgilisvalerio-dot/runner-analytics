@@ -1652,8 +1652,19 @@ function renderHomePage() {
 
 function renderHomeTrendChart(canvasId, chartKey, data) {
   destroyChart(chartKey);
+  const canvas = document.getElementById(canvasId);
   const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 2) return;
+  if(sorted.length < 2) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.parentNode.style.position = 'relative';
+    let msg = canvas.parentNode.querySelector('.no-data-msg');
+    if(!msg) { msg = document.createElement('div'); msg.className = 'no-data-msg'; msg.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;color:var(--muted);'; canvas.parentNode.appendChild(msg); }
+    msg.textContent = 'Not enough data';
+    return;
+  }
+  const existingMsg = canvas.parentNode.querySelector('.no-data-msg');
+  if(existingMsg) existingMsg.remove();
 
   const isBike = sorted[0].sport === 'cycling';
   const yVals = isBike
@@ -1687,12 +1698,36 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
 function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
   const chartKey = canvasId;
   destroyChart(chartKey);
-  if(!data || data.length < 2) { document.getElementById(sectionId).style.display = 'none'; return; }
+  const section = document.getElementById(sectionId);
+  const canvas = document.getElementById(canvasId);
+  section.style.display = 'block';
+
+  if(!data || data.length < 2) {
+    document.getElementById(badgesId).innerHTML = '';
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.parentNode.style.position = 'relative';
+    let msg = canvas.parentNode.querySelector('.no-data-msg');
+    if(!msg) { msg = document.createElement('div'); msg.className = 'no-data-msg'; msg.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;color:var(--muted);'; canvas.parentNode.appendChild(msg); }
+    msg.textContent = 'Not enough data';
+    return;
+  }
 
   const kmByDay = {};
   data.forEach(r => { kmByDay[r.date] = (kmByDay[r.date] || 0) + r.distance; });
   const dates = Object.keys(kmByDay).sort();
-  if(dates.length < 7) { document.getElementById(sectionId).style.display = 'none'; return; }
+  if(dates.length < 7) {
+    document.getElementById(badgesId).innerHTML = '';
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.parentNode.style.position = 'relative';
+    let msg = canvas.parentNode.querySelector('.no-data-msg');
+    if(!msg) { msg = document.createElement('div'); msg.className = 'no-data-msg'; msg.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;color:var(--muted);'; canvas.parentNode.appendChild(msg); }
+    msg.textContent = 'Not enough data (need 7+ days)';
+    return;
+  }
+  const existingMsg = canvas.parentNode.querySelector('.no-data-msg');
+  if(existingMsg) existingMsg.remove();
 
   const startDate = new Date(dates[0]);
   const endDate = new Date();
