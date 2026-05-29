@@ -635,6 +635,16 @@ function parseFIT(buffer) {
           if(fNum === 5 && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
           pos += fSize;
         }
+      } else if(defn.globalNum === 19) {
+        // Session message — read total_timer_time (field 8) as moving time
+        for(const { fNum, fSize } of defn.fields) {
+          if(pos + fSize > bytes.length) break;
+          if(fNum === 8 && fSize === 4) {
+            const v = dv.getUint32(pos, true);
+            if(v !== 0xFFFFFFFF) records._timerTimeSec = v / 1000;
+          }
+          pos += fSize;
+        }
       } else if(defn.globalNum === 20) {
         const rec = {};
         for(const { fNum, fSize } of defn.fields) {
@@ -665,7 +675,10 @@ function parseFIT(buffer) {
   const withTs  = records.filter(r => r.ts);
   const firstTs = withTs[0]?.ts;
   const lastTs  = withTs[withTs.length-1]?.ts;
-  const durationSec = firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0;
+  // Prefer total_timer_time from session message (moving time, excludes pauses).
+  // Fall back to elapsed wall-clock time only if session data is missing.
+  const durationSec = records._timerTimeSec
+    || (firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0);
 
   const withDist = records.filter(r => r.dist != null);
   const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
