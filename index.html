@@ -327,8 +327,8 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeRunCal">—</div><div class="stat-sub" id="homeRunAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
-      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeRunPow">—</div><div class="stat-sub">watts</div></div>
     </div>
 
     <!-- BIKE STATS -->
@@ -341,8 +341,8 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
-      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="homeBikePow">—</div><div class="stat-sub">watts</div></div>
     </div>
 
     <!-- HOME: Trend Performance side by side -->
@@ -363,11 +363,13 @@ td b{ font-family:var(--font-mono); }
         <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div id="homeAcwrRunBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div style="height:220px;"><canvas id="homeAcwrRunChart"></canvas></div>
+        <p style="margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--font-mono);">acute = 7-day &middot; chronic = 28-day &middot; sweet spot 0.8–1.3</p>
       </div>
       <div class="card" id="homeAcwrBikeSection" style="display:none;">
         <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
         <div id="homeAcwrBikeBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div style="height:220px;"><canvas id="homeAcwrBikeChart"></canvas></div>
+        <p style="margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--font-mono);">acute = 7-day &middot; chronic = 28-day &middot; sweet spot 0.8–1.3</p>
       </div>
     </div>
   </div>
@@ -384,7 +386,7 @@ td b{ font-family:var(--font-mono); }
     <div class="stat-card c-km">
       <div class="stat-title">Total Distance</div>
       <div class="stat-value cyan" id="totalKm">—</div>
-      <div class="stat-sub" id="runCountSub">— activities</div>
+      <div class="stat-sub" id="runCountSub">—</div>
     </div>
     <div class="stat-card c-dur">
       <div class="stat-title">Total Time</div>
@@ -396,15 +398,15 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-value red" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
+    <div class="stat-card c-pow">
+      <div class="stat-title">Total Calories</div>
+      <div class="stat-value orange" id="runTotalCal">—</div>
+      <div class="stat-sub" id="runAvgCal">—</div>
+    </div>
     <div class="stat-card c-cad">
       <div class="stat-title">Avg Cadence</div>
       <div class="stat-value purple" id="avgCad">—</div>
-      <div class="stat-sub">steps per minute</div>
-    </div>
-    <div class="stat-card c-pow">
-      <div class="stat-title">Avg Power</div>
-      <div class="stat-value orange" id="avgPow">—</div>
-      <div class="stat-sub" id="powSub">watts</div>
+      <div class="stat-sub">spm</div>
     </div>
   </div>
 
@@ -569,8 +571,8 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="bikeTotalKm">—</div><div class="stat-sub" id="bikeCountSub">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
+      <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
-      <div class="stat-card c-pow"><div class="stat-title">Avg Power</div><div class="stat-value orange" id="bikeAvgPow">—</div><div class="stat-sub">watts</div></div>
     </div>
     <p style="color:var(--muted);font-size:14px;font-family:var(--font-mono);text-align:center;padding:60px 20px;">Cycling detailed view coming soon.</p>
   </div>
@@ -636,12 +638,16 @@ function parseFIT(buffer) {
           pos += fSize;
         }
       } else if(defn.globalNum === 19) {
-        // Session message — read total_timer_time (field 8) as moving time
+        // Session message — read total_timer_time (field 8) and total_calories (field 11)
         for(const { fNum, fSize } of defn.fields) {
           if(pos + fSize > bytes.length) break;
           if(fNum === 8 && fSize === 4) {
             const v = dv.getUint32(pos, true);
             if(v !== 0xFFFFFFFF) records._timerTimeSec = v / 1000;
+          }
+          if(fNum === 11 && fSize === 2) {
+            const v = dv.getUint16(pos, true);
+            if(v !== 0xFFFF) records._calories = v;
           }
           pos += fSize;
         }
@@ -712,6 +718,7 @@ function parseFIT(buffer) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
+    calories: records._calories || null,
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
@@ -1080,8 +1087,9 @@ function clearStats() {
   document.getElementById('avgDistSub').innerText = '—';
   document.getElementById('avgHr').innerText      = '—';
   document.getElementById('hrRangeSub').innerText = '—';
-  document.getElementById('avgCad').innerText     = '—';
-  document.getElementById('avgPow').innerText     = '—';
+  document.getElementById('runTotalCal').innerText = '—';
+  document.getElementById('runAvgCal').innerText   = '—';
+  document.getElementById('avgCad').innerText      = '—';
 }
 
 function setEmptyTable(){
@@ -1114,13 +1122,15 @@ function renderDashboard(data){
   document.getElementById('avgPace').innerText     = avgPaceSec ? paceStr(avgPaceSec) : '—';
   document.getElementById('bestPaceSub').innerText = bestSplitPace ? `Best km: ${paceStr(bestSplitPace)}` : '—';
   document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
-  document.getElementById('runCountSub').innerText = data.length + ' activities';
+  document.getElementById('runCountSub').innerText = (totalKm / data.length).toFixed(1) + ' km avg';
   document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
   document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km avg/run';
   document.getElementById('avgHr').innerText       = avgHr ? avgHr + ' bpm' : '—';
   document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
+  const runTotalCal = data.reduce((s,r) => s + (r.calories||0), 0);
+  document.getElementById('runTotalCal').innerText = runTotalCal > 0 ? runTotalCal.toLocaleString() + ' kcal' : '—';
+  document.getElementById('runAvgCal').innerText   = runTotalCal > 0 ? Math.round(runTotalCal / data.length) + ' kcal avg' : '—';
   document.getElementById('avgCad').innerText      = avgCad ? avgCad + ' spm' : '—';
-  document.getElementById('avgPow').innerText      = avgPow ? avgPow + ' W' : '—';
 
   lastRenderedData = data;
   renderPaceZones(data);
@@ -1609,6 +1619,33 @@ function showPage(name) {
   // Re-render charts on page show (Chart.js needs visible canvas)
   if(name === 'home' && (allRuns.length || allBikes.length)) renderHomePage();
   if(name === 'run' && allRuns.length) applyFilters();
+  if(name === 'bike' && allBikes.length) renderBikeTab();
+}
+
+function renderBikeTab() {
+  const data = allBikes;
+  if(!data.length) return;
+  const totalKm  = data.reduce((s,r) => s + r.distance, 0);
+  const totalSec = data.reduce((s,r) => s + (r.durationSec || 0), 0);
+  const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
+  const maxSpeedKmh = Math.max(...data.filter(r=>r.durationSec>0).map(r => r.distance / (r.durationSec / 3600)));
+  const withHr  = data.filter(r => r.hr);
+  const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
+  const withCad = data.filter(r => r.cad);
+  const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+  const totalCal = data.reduce((s,r) => s + (r.calories||0), 0);
+
+  document.getElementById('bikeAvgSpeed').textContent   = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
+  document.getElementById('bikeMaxSpeed').textContent   = maxSpeedKmh ? 'max ' + maxSpeedKmh.toFixed(1) + ' km/h' : '—';
+  document.getElementById('bikeTotalKm').textContent    = totalKm.toFixed(1) + ' km';
+  document.getElementById('bikeCountSub').textContent   = (totalKm / data.length).toFixed(1) + ' km avg';
+  document.getElementById('bikeTotalTime').textContent  = secondsToTime(totalSec);
+  document.getElementById('bikeAvgDistSub').textContent = (totalKm / data.length).toFixed(1) + ' km avg/ride';
+  document.getElementById('bikeAvgHr').textContent      = avgHr ? avgHr + ' bpm' : '—';
+  document.getElementById('bikeHrRange').textContent    = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+  document.getElementById('bikeTotalCal').textContent   = totalCal > 0 ? totalCal.toLocaleString() + ' kcal' : '—';
+  document.getElementById('bikeAvgCal').textContent     = totalCal > 0 ? Math.round(totalCal / data.length) + ' kcal avg' : '—';
+  document.getElementById('bikeAvgCad').textContent     = avgCad ? avgCad + ' rpm' : '—';
 }
 
 function renderHomePage() {
@@ -1633,13 +1670,15 @@ function renderHomePage() {
     document.getElementById('homeRunPace').textContent = avgPaceSec ? paceStr(avgPaceSec) : '—';
     document.getElementById('homeRunPaceSub').textContent = bestSplit ? 'Best km: ' + paceStr(bestSplit) : '—';
     document.getElementById('homeRunKm').textContent = totalKm.toFixed(1) + ' km';
-    document.getElementById('homeRunCount').textContent = runs.length + ' activities';
+    document.getElementById('homeRunCount').textContent = (totalKm / runs.length).toFixed(1) + ' km avg';
     document.getElementById('homeRunTime').textContent = secondsToTime(totalSec);
     document.getElementById('homeRunAvgDist').textContent = (totalKm / runs.length).toFixed(1) + ' km avg/run';
     document.getElementById('homeRunHr').textContent = avgHr ? avgHr + ' bpm' : '—';
     document.getElementById('homeRunHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    const totalRunCal = runs.reduce((s,r) => s + (r.calories||0), 0);
+    document.getElementById('homeRunCal').textContent = totalRunCal > 0 ? totalRunCal.toLocaleString() + ' kcal' : '—';
+    document.getElementById('homeRunAvgCal').textContent = totalRunCal > 0 ? Math.round(totalRunCal / runs.length) + ' kcal avg' : '—';
     document.getElementById('homeRunCad').textContent = avgCad ? avgCad + ' spm' : '—';
-    document.getElementById('homeRunPow').textContent = avgPow ? avgPow + ' W' : '—';
   }
 
   // ── Bike stats ──
@@ -1657,13 +1696,15 @@ function renderHomePage() {
     document.getElementById('homeBikeSpeed').textContent = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
     document.getElementById('homeBikeSpeedSub').textContent = bikes.length ? 'max ' + Math.max(...bikes.filter(r=>r.durationSec>0).map(r=>(r.distance/(r.durationSec/3600)))).toFixed(1) + ' km/h' : '—';
     document.getElementById('homeBikeKm').textContent = totalKm.toFixed(1) + ' km';
-    document.getElementById('homeBikeCount').textContent = bikes.length + ' activities';
+    document.getElementById('homeBikeCount').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg';
     document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
     document.getElementById('homeBikeAvgDist').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg/ride';
     document.getElementById('homeBikeHr').textContent = avgHr ? avgHr + ' bpm' : '—';
     document.getElementById('homeBikeHrRange').textContent = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
+    const totalBikeCal = bikes.reduce((s,r) => s + (r.calories||0), 0);
+    document.getElementById('homeBikeCal').textContent = totalBikeCal > 0 ? totalBikeCal.toLocaleString() + ' kcal' : '—';
+    document.getElementById('homeBikeAvgCal').textContent = totalBikeCal > 0 ? Math.round(totalBikeCal / bikes.length) + ' kcal avg' : '—';
     document.getElementById('homeBikeCad').textContent = avgCad ? avgCad + ' rpm' : '—';
-    document.getElementById('homeBikePow').textContent = avgPow ? avgPow + ' W' : '—';
   }
 
   // ── Home trend charts ──
@@ -1780,10 +1821,22 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
     else riskColor = 'var(--red)';
   }
 
+  const lastIdx = allDates.indexOf(chartDates[chartDates.length - 1]);
+  const acute7last = allDates.slice(Math.max(0, lastIdx-6), lastIdx+1).reduce((s,d) => s + (kmByDay[d]||0), 0);
+  const chronic28last = allDates.slice(Math.max(0, lastIdx-27), lastIdx+1).reduce((s,d) => s + (kmByDay[d]||0), 0);
+  const currentAcute = acute7last / 7;
+  const currentChronic = chronic28last / Math.min(28, lastIdx+1);
+  const riskLabel = currentAcwr === null ? '—' : currentAcwr < 0.8 ? 'Undertraining' : currentAcwr <= 1.3 ? 'Optimal' : currentAcwr <= 1.5 ? 'Overreaching' : 'High Risk';
+  const badge = (label, val) => `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">${label}${val}</div>`;
   document.getElementById(badgesId).innerHTML =
-    '<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">' +
-    '<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>' +
-    '<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + riskColor + '">' + (currentAcwr !== null ? currentAcwr.toFixed(2) : '—') + '</div></div>';
+    badge('<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>',
+          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>`) +
+    badge('<div style="color:var(--muted);margin-bottom:2px">Status</div>',
+          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${riskLabel}</div>`) +
+    badge('<div style="color:var(--muted);margin-bottom:2px">Acute load (7d avg)</div>',
+          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`) +
+    badge('<div style="color:var(--muted);margin-bottom:2px">Chronic load (28d avg)</div>',
+          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`);
 
   document.getElementById(sectionId).style.display = 'block';
 
