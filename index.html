@@ -851,7 +851,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 2;
+const RUN_CACHE_VERSION = 3;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
