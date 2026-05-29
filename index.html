@@ -784,7 +784,8 @@ function haversine(lat1, lon1, lat2, lon2) {
 const CLIENT_ID = '556739244653-puulo78gr137h1bmh2ri4s6m3q34qoke.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyClzi40mUVJ5qnZAzpZepU95Q7qPMq5oyw';
 const SCOPES    = 'https://www.googleapis.com/auth/drive.readonly';
-const FOLDER_ID = '1e1j0qJhs3LIaQKzevcZFq1rrV85v7BX3';
+const FOLDER_ID_RUN  = '12IOxK5ZPNPp6kEFBxJoGNfOlbP73Zp1-';
+const FOLDER_ID_BIKE = '15MDq0M8mzxullT4xPPhzfLq3o8WqnqSa';
 let tokenClient;
 let charts = {};
 let allRuns = [];
@@ -858,13 +859,22 @@ async function listFiles(){
   setStatus('Lettura cartella Drive…', 'loading');
   document.getElementById('parseLog').innerText = '';
   try{
-    const resp = await gapi.client.drive.files.list({
-      pageSize: 200,
-      q: `'${FOLDER_ID}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-      fields: 'files(id,name)', orderBy: 'name'
-    });
-    const files = resp.result.files || [];
-    if(!files.length){ setStatus('Nessun file trovato.', 'disconnected'); setEmptyTable(); return; }
+    const [respRun, respBike] = await Promise.all([
+      gapi.client.drive.files.list({
+        pageSize: 200,
+        q: `'${FOLDER_ID_RUN}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+        fields: 'files(id,name)', orderBy: 'name'
+      }),
+      gapi.client.drive.files.list({
+        pageSize: 200,
+        q: `'${FOLDER_ID_BIKE}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+        fields: 'files(id,name)', orderBy: 'name'
+      })
+    ]);
+    const runFiles  = (respRun.result.files || []).map(f => ({ ...f, _folder: 'run' }));
+    const bikeFiles = (respBike.result.files || []).map(f => ({ ...f, _folder: 'bike' }));
+    const files = [...runFiles, ...bikeFiles];
+    if(!files.length){ setStatus('No files found.', 'disconnected'); setEmptyTable(); return; }
 
     const token = gapi.client.getToken().access_token;
     const runs = [], warnings = [];
@@ -899,6 +909,8 @@ async function listFiles(){
           writeCachedRun(file.id, parsed);
         }
         parsed.shoe = extractShoeName(file.name);
+        if(file._folder === 'bike') parsed.sport = 'cycling';
+        else if(file._folder === 'run') parsed.sport = 'running';
         runs.push(parsed);
       } catch(e){ warnings.push(`⚠ ${file.name}: ${e.message}`); }
       finally { done++; updateProgress(); }
