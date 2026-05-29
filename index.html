@@ -304,7 +304,10 @@ td b{ font-family:var(--font-mono); }
         <span id="status-text">Not connected</span>
       </div>
       <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
-      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+      <button id="sync-btn"  class="btn success"  style="display:none;"
+        onclick="listFiles(false)"
+        ondblclick="listFiles(true)"
+        title="Click: sync (uses cache) · Double-click: force full refresh from Drive">Sync Drive</button>
     </div>
   </div>
 
@@ -514,7 +517,7 @@ td b{ font-family:var(--font-mono); }
       <div class="card" id="acwrSection" style="display:none;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
           <span>Acute:Chronic Workload Ratio (ACWR)</span>
-          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)"sweet spot 0.8–1.3</span>
+          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">acute = 7-day · chronic = 28-day · sweet spot 0.8–1.3</span>
         </div>
         <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
         <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
@@ -852,19 +855,24 @@ function extractShoeName(name){
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
 const RUN_CACHE_VERSION = 3;
-function readCachedRun(fileId){
+const META_CACHE_KEY    = 'falcata:filelist';
+const META_TTL_MS       = 10 * 60 * 1000; // 10 minutes
+
+function readCachedRun(fileId, modifiedTime){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
     if(!raw) return null;
     const obj = JSON.parse(raw);
     if(obj.v !== RUN_CACHE_VERSION) return null;
+    // Invalidate if file was modified on Drive after we cached it
+    if(modifiedTime && obj.modifiedTime && obj.modifiedTime !== modifiedTime) return null;
     return obj.run;
   } catch(e){ return null; }
 }
-function writeCachedRun(fileId, run){
+function writeCachedRun(fileId, run, modifiedTime){
   try{
     const { shoe, ...rest } = run;
-    localStorage.setItem(RUN_CACHE_PREFIX + fileId, JSON.stringify({ v: RUN_CACHE_VERSION, run: rest }));
+    localStorage.setItem(RUN_CACHE_PREFIX + fileId, JSON.stringify({ v: RUN_CACHE_VERSION, modifiedTime: modifiedTime || null, run: rest }));
   } catch(e){
     if(e && e.name === 'QuotaExceededError'){
       for(let i = localStorage.length - 1; i >= 0; i--){
@@ -882,25 +890,54 @@ function pruneRunCache(validIds){
   }
 }
 
-async function listFiles(){
+/* ── FILE LIST CACHE ── */
+function readCachedFileList(){
+  try{
+    const raw = localStorage.getItem(META_CACHE_KEY);
+    if(!raw) return null;
+    const { ts, files } = JSON.parse(raw);
+    if(Date.now() - ts > META_TTL_MS) return null;
+    return files;
+  } catch(e){ return null; }
+}
+function writeCachedFileList(files){
+  try{
+    localStorage.setItem(META_CACHE_KEY, JSON.stringify({ ts: Date.now(), files }));
+  } catch(e){}
+}
+function invalidateFileListCache(){
+  localStorage.removeItem(META_CACHE_KEY);
+}
+
+async function listFiles(forceRefresh = false){
   setStatus('Lettura cartella Drive…', 'loading');
   document.getElementById('parseLog').innerText = '';
   try{
-    const [respRun, respBike] = await Promise.all([
-      gapi.client.drive.files.list({
-        pageSize: 200,
-        q: `'${FOLDER_ID_RUN}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-        fields: 'files(id,name)', orderBy: 'name'
-      }),
-      gapi.client.drive.files.list({
-        pageSize: 200,
-        q: `'${FOLDER_ID_BIKE}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
-        fields: 'files(id,name)', orderBy: 'name'
-      })
-    ]);
-    const runFiles  = (respRun.result.files || []).map(f => ({ ...f, _folder: 'run' }));
-    const bikeFiles = (respBike.result.files || []).map(f => ({ ...f, _folder: 'bike' }));
-    const files = [...runFiles, ...bikeFiles];
+    // ── 1. File list: use cache if fresh, otherwise fetch from Drive ──
+    let files;
+    const cachedList = forceRefresh ? null : readCachedFileList();
+    if(cachedList){
+      files = cachedList;
+      setStatus('File list from cache…', 'loading');
+    } else {
+      const [respRun, respBike] = await Promise.all([
+        gapi.client.drive.files.list({
+          pageSize: 1000,
+          q: `'${FOLDER_ID_RUN}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+          fields: 'files(id,name,modifiedTime)', orderBy: 'name'
+        }),
+        gapi.client.drive.files.list({
+          pageSize: 1000,
+          q: `'${FOLDER_ID_BIKE}' in parents and (name contains '.fit' or name contains '.gpx') and trashed = false`,
+          fields: 'files(id,name,modifiedTime)', orderBy: 'name'
+        })
+      ]);
+      const runFiles  = (respRun.result.files || []).map(f => ({ ...f, _folder: 'run' }));
+      const bikeFiles = (respBike.result.files || []).map(f => ({ ...f, _folder: 'bike' }));
+      files = [...runFiles, ...bikeFiles];
+      writeCachedFileList(files);
+    }
+
     if(!files.length){ setStatus('No files found.', 'disconnected'); setEmptyTable(); return; }
 
     const token = gapi.client.getToken().access_token;
@@ -921,7 +958,8 @@ async function listFiles(){
     const processFile = async (file) => {
       const isFit = file.name.toLowerCase().endsWith('.fit');
       try {
-        const cached = readCachedRun(file.id);
+        // Pass modifiedTime so cache is auto-invalidated if the file changed on Drive
+        const cached = readCachedRun(file.id, file.modifiedTime);
         let parsed;
         if(cached){
           parsed = cached;
@@ -933,7 +971,7 @@ async function listFiles(){
           else     { const xml = await r.text();        parsed = parseFallbackGPX(xml, file.name); }
           fetched++;
           if(parsed.error){ warnings.push('⚠ ' + parsed.error); return; }
-          writeCachedRun(file.id, parsed);
+          writeCachedRun(file.id, parsed, file.modifiedTime);
         }
         parsed.shoe = extractShoeName(file.name);
         if(file._folder === 'bike') parsed.sport = 'cycling';
@@ -943,7 +981,8 @@ async function listFiles(){
       finally { done++; updateProgress(); }
     };
 
-    const CONCURRENCY = 12;
+    // Increased concurrency: Drive API handles up to ~20 parallel requests well
+    const CONCURRENCY = 20;
     for(let i = 0; i < eligible.length; i += CONCURRENCY){
       const batch = eligible.slice(i, i + CONCURRENCY);
       await Promise.all(batch.map(processFile));
@@ -1475,15 +1514,15 @@ function renderPredictions(data) {
   const totalW = weights.reduce((a, b) => a + b, 0);
   let basePaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
 
-  // Inactivity penalty: +0.75% per day beyond 7 days since last run
+  // Inactivity penalty: +1% per day beyond 7 days since last run
   const lastRunDate = new Date(sorted[sorted.length - 1].date);
   const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
-  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.0075 : 1;
+  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.01 : 1;
   basePaceSec *= inactivityPenalty;
 
-  // 10K (10 km) — 2% degradation (half of Half Marathon)
+  // 10K (10 km) — 2.5% degradation (half of Half Marathon)
   const tenDist = 10;
-  const tenPaceSec = basePaceSec * 1.02;
+  const tenPaceSec = basePaceSec * 1.025;
   const tenFinishSec = tenPaceSec * tenDist;
   const rustTag = daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '';
   const predHTML = (finSec, paceSec) =>
@@ -1491,15 +1530,15 @@ function renderPredictions(data) {
     '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(paceSec)) + ' /km</span>' + rustTag;
   document.getElementById('predTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
 
-  // Half Marathon (21.0975 km) — 4.25% degradation
+  // Half Marathon (21.0975 km) — 5% degradation
   const hmDist = 21.0975;
-  const hmPaceSec = basePaceSec * 1.0425;
+  const hmPaceSec = basePaceSec * 1.05;
   const hmFinishSec = hmPaceSec * hmDist;
   document.getElementById('predHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
 
-  // Marathon (42.195 km) — 8.5% degradation
+  // Marathon (42.195 km) — 10% degradation
   const mDist = 42.195;
-  const mPaceSec = basePaceSec * 1.085;
+  const mPaceSec = basePaceSec * 1.10;
   const mFinishSec = mPaceSec * mDist;
   document.getElementById('predMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
 
