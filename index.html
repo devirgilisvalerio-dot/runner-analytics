@@ -337,7 +337,6 @@ td b{ font-family:var(--font-mono); }
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
     </div>
     <div class="stats-grid">
-      <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
@@ -635,8 +634,6 @@ function parseFIT(buffer) {
           if(fNum === 5 && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
           if(fNum === 7 && fSize === 4) { const v = dv.getUint32(pos, true); if(v !== 0xFFFFFFFF) records._timerTime = v / 1000; }
           if(fNum === 11 && fSize === 2) { const v = dv.getUint16(pos, true); if(v !== 0xFFFF) records._calories = v; }
-          if(fNum === 14 && fSize === 2) { const v = dv.getUint16(pos, true); if(v !== 0xFFFF) records._avgSpeed = v / 1000 * 3.6; }
-          if(fNum === 124 && fSize === 4) { const v = dv.getUint32(pos, true); if(v !== 0xFFFFFFFF) records._avgSpeed = v / 1000 * 3.6; }
           pos += fSize;
         }
       } else if(defn.globalNum === 20) {
@@ -706,7 +703,7 @@ function parseFIT(buffer) {
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
-    calories: records._calories || null, avgSpeedKmh: records._avgSpeed || null, hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
+    calories: records._calories || null, hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
 }
 
@@ -830,7 +827,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 4;
+const RUN_CACHE_VERSION = 3;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1662,11 +1659,6 @@ function renderHomePage() {
     const totalCalB = withCalB.reduce((s,r) => s + r.calories, 0);
     const avgCalB = withCalB.length ? Math.round(totalCalB / withCalB.length) : null;
 
-    const bikesWithSpeed = bikes.filter(r => r.avgSpeedKmh);
-    const avgSpeedKmh = bikesWithSpeed.length ? bikesWithSpeed.reduce((s,r) => s + r.avgSpeedKmh, 0) / bikesWithSpeed.length : null;
-    const maxSpeedKmh = bikesWithSpeed.length ? Math.max(...bikesWithSpeed.map(r => r.avgSpeedKmh)) : null;
-    document.getElementById('homeBikeSpeed').textContent = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
-    document.getElementById('homeBikeSpeedSub').textContent = maxSpeedKmh ? 'best avg: ' + maxSpeedKmh.toFixed(1) + ' km/h' : '—';
     document.getElementById('homeBikeKm').textContent = totalKm.toFixed(1) + ' km';
     document.getElementById('homeBikeAvgDist').textContent = (totalKm / bikes.length).toFixed(1) + ' km avg/ride';
     document.getElementById('homeBikeTime').textContent = secondsToTime(totalSec);
