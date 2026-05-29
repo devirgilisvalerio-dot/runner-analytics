@@ -393,7 +393,7 @@ td b{ font-family:var(--font-mono); }
         <div style="height:220px;"><canvas id="homeAcwrRunChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
           <span style="color:var(--green)">0.8–1.3</span> = safe training zone &nbsp;·&nbsp;
-          <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk &nbsp;·&nbsp;
+          <span style="color:var(--orange)">&gt; 1.3</span> = elevated injury risk &nbsp;·&nbsp;
           <span style="color:var(--red)">&gt; 1.5</span> = high injury risk &nbsp;·&nbsp;
           <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week
         </p>
@@ -403,9 +403,9 @@ td b{ font-family:var(--font-mono); }
         <div id="homeAcwrBikeBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div style="height:220px;"><canvas id="homeAcwrBikeChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
-          <span style="color:var(--green)">0.8–1.3</span> = safe training zone &nbsp;·&nbsp;
-          <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk &nbsp;·&nbsp;
-          <span style="color:var(--red)">&gt; 1.5</span> = high injury risk &nbsp;·&nbsp;
+          <span style="color:var(--green)">0.8–3.2</span> = safe training zone &nbsp;·&nbsp;
+          <span style="color:var(--orange)">&gt; 3.2</span> = elevated injury risk &nbsp;·&nbsp;
+          <span style="color:var(--red)">&gt; 4.5</span> = high injury risk &nbsp;·&nbsp;
           <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week
         </p>
       </div>
@@ -1805,8 +1805,8 @@ function renderHomePage() {
   if(allBikes.length >= 3) renderBikePredictions(allBikes);
 
   // ── Home ACWR ──
-  renderHomeAcwr(allRuns, 'homeAcwrRunChart', 'homeAcwrRunSection', 'homeAcwrRunBadges');
-  renderHomeAcwr(allBikes, 'homeAcwrBikeChart', 'homeAcwrBikeSection', 'homeAcwrBikeBadges');
+  renderHomeAcwr(allRuns, 'homeAcwrRunChart', 'homeAcwrRunSection', 'homeAcwrRunBadges', 'running');
+  renderHomeAcwr(allBikes, 'homeAcwrBikeChart', 'homeAcwrBikeSection', 'homeAcwrBikeBadges', 'cycling');
 }
 
 function renderHomeTrendChart(canvasId, chartKey, data) {
@@ -1854,7 +1854,10 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
   });
 }
 
-function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
+function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
+  const isBike = sport === 'cycling';
+  const SAFE_HI = isBike ? 3.2 : 1.3;
+  const DANGER_HI = isBike ? 4.5 : 1.5;
   const chartKey = canvasId;
   destroyChart(chartKey);
   const section = document.getElementById(sectionId);
@@ -1909,8 +1912,8 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
   let riskColor = 'var(--muted)';
   if(currentAcwr !== null) {
     if(currentAcwr < 0.8) riskColor = 'var(--muted2)';
-    else if(currentAcwr <= 1.3) riskColor = 'var(--green)';
-    else if(currentAcwr <= 1.5) riskColor = 'var(--orange)';
+    else if(currentAcwr <= SAFE_HI) riskColor = 'var(--green)';
+    else if(currentAcwr <= DANGER_HI) riskColor = 'var(--orange)';
     else riskColor = 'var(--red)';
   }
 
@@ -1919,7 +1922,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
   const chronic28last = allDates.slice(Math.max(0, lastIdx-27), lastIdx+1).reduce((s,d) => s + (kmByDay[d]||0), 0);
   const currentAcute = acute7last / 7;
   const currentChronic = chronic28last / Math.min(28, lastIdx+1);
-  const riskLabel = currentAcwr === null ? '—' : currentAcwr < 0.8 ? 'Undertraining' : currentAcwr <= 1.3 ? 'Optimal' : currentAcwr <= 1.5 ? 'Overreaching' : 'High Risk';
+  const riskLabel = currentAcwr === null ? '—' : currentAcwr < 0.8 ? 'Undertraining' : currentAcwr <= SAFE_HI ? 'Optimal' : currentAcwr <= DANGER_HI ? 'Overreaching' : 'High Risk';
   const badge = (label, val) => `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">${label}${val}</div>`;
   document.getElementById(badgesId).innerHTML =
     badge('<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>',
@@ -1939,10 +1942,10 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'Sweet (1.3)', data:chartDates.map(()=>1.3), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
-        { label:'Sweet (0.8)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
+        { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
+        { label:'Sweet (lo)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
         { label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
-          pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>1.5) return '#ff3d57'; if(v>1.3) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
+          pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         }
       ]
     },
