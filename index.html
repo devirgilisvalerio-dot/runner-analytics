@@ -346,10 +346,24 @@ td b{ font-family:var(--font-mono); }
     </div>
 
     <!-- HOME: Trend Performance side by side -->
-    <div class="two-col" style="margin-top:20px;margin-bottom:20px;">
+    <div class="two-col" style="margin-top:20px;margin-bottom:20px;align-items:start;">
       <div class="card">
         <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendRun"></canvas></div>
+        <div id="homePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>10K TOMORROW</div>
+            <div id="homePredTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
+            <div id="homePredHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>MARATHON TOMORROW</div>
+            <div id="homePredMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          </div>
+        </div>
       </div>
       <div class="card">
         <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
@@ -358,7 +372,7 @@ td b{ font-family:var(--font-mono); }
     </div>
 
     <!-- HOME: ACWR side by side -->
-    <div class="two-col" style="margin-bottom:20px;">
+    <div class="two-col" style="margin-bottom:20px;align-items:start;">
       <div class="card" id="homeAcwrRunSection" style="display:none;">
         <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div id="homeAcwrRunBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
@@ -460,7 +474,11 @@ td b{ font-family:var(--font-mono); }
       <div class="card">
         <div class="card-title"><span>Trend Performance</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
-        <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>10K TOMORROW</div>
+            <div id="predTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          </div>
           <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
             <div id="predHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
@@ -632,23 +650,12 @@ function parseFIT(buffer) {
       if(!defn) break;
       const start = pos;
       if(defn.globalNum === 18) {
+        // Session message: sport (f5), timer_time (f8), calories (f11)
         for(const { fNum, fSize } of defn.fields) {
           if(pos + fSize > bytes.length) break;
-          if(fNum === 5 && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
-          pos += fSize;
-        }
-      } else if(defn.globalNum === 19) {
-        // Session message — read total_timer_time (field 8) and total_calories (field 11)
-        for(const { fNum, fSize } of defn.fields) {
-          if(pos + fSize > bytes.length) break;
-          if(fNum === 8 && fSize === 4) {
-            const v = dv.getUint32(pos, true);
-            if(v !== 0xFFFFFFFF) records._timerTimeSec = v / 1000;
-          }
-          if(fNum === 11 && fSize === 2) {
-            const v = dv.getUint16(pos, true);
-            if(v !== 0xFFFF) records._calories = v;
-          }
+          if(fNum === 5  && fSize === 1) { const v = bytes[pos]; if(v !== 0xFF) records._sport = v; }
+          if(fNum === 8  && fSize === 4) { const v = dv.getUint32(pos, true); if(v !== 0xFFFFFFFF) records._timerTimeSec = v / 1000; }
+          if(fNum === 11 && fSize === 2) { const v = dv.getUint16(pos, true); if(v !== 0xFFFF) records._calories = v; }
           pos += fSize;
         }
       } else if(defn.globalNum === 20) {
@@ -1474,23 +1481,36 @@ function renderPredictions(data) {
   const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.01 : 1;
   basePaceSec *= inactivityPenalty;
 
+  // 10K (10 km) — 2.5% degradation (half of Half Marathon)
+  const tenDist = 10;
+  const tenPaceSec = basePaceSec * 1.025;
+  const tenFinishSec = tenPaceSec * tenDist;
+  const rustTag = daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '';
+  const predHTML = (finSec, paceSec) =>
+    '<span style="color:var(--text)">' + secondsToTime(Math.round(finSec)) + '</span>' +
+    '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(paceSec)) + ' /km</span>' + rustTag;
+  document.getElementById('predTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
+
   // Half Marathon (21.0975 km) — 5% degradation
   const hmDist = 21.0975;
   const hmPaceSec = basePaceSec * 1.05;
   const hmFinishSec = hmPaceSec * hmDist;
-  document.getElementById('predHalf').innerHTML =
-    '<span style="color:var(--text)">' + secondsToTime(Math.round(hmFinishSec)) + '</span>' +
-    '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(hmPaceSec)) + ' /km</span>' +
-    (daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '');
+  document.getElementById('predHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
 
   // Marathon (42.195 km) — 10% degradation
   const mDist = 42.195;
   const mPaceSec = basePaceSec * 1.10;
   const mFinishSec = mPaceSec * mDist;
-  document.getElementById('predMarathon').innerHTML =
-    '<span style="color:var(--text)">' + secondsToTime(Math.round(mFinishSec)) + '</span>' +
-    '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(mPaceSec)) + ' /km</span>' +
-    (daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '');
+  document.getElementById('predMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
+
+  // Mirror to overview tab if elements exist
+  const homeStrip = document.getElementById('homePredStrip');
+  if(homeStrip) {
+    homeStrip.style.display = 'grid';
+    document.getElementById('homePredTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
+    document.getElementById('homePredHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
+    document.getElementById('homePredMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
+  }
 }
 
 function renderAcwr(data) {
@@ -1709,6 +1729,7 @@ function renderHomePage() {
 
   // ── Home trend charts ──
   renderHomeTrendChart('homeTrendRun', 'homeTrendRunChart', allRuns);
+  if(allRuns.length >= 3) renderPredictions(allRuns);
   renderHomeTrendChart('homeTrendBike', 'homeTrendBikeChart', allBikes);
 
   // ── Home ACWR ──
