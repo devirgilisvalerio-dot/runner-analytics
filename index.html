@@ -1555,17 +1555,17 @@ function renderBikePredictions(data) {
     return s + spd * weights[i];
   }, 0) / totalW;
 
-  // Inactivity penalty: -0.5% per day beyond 7 days since last ride
+  // Inactivity penalty: -0.15% per day beyond 7 days since last ride
   const lastRideDate   = new Date(sorted[sorted.length - 1].date);
   const daysSinceLast  = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.005) : 1;
+  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
   baseSpeed *= inactivityMult;
 
-  // Degradation: 45 km → -0.2%, 90 km → -1.5%, 140 km → -3.0%
+  // Degradation: 45 km → -0.1%, 90 km → -1.6%, 140 km → -3.5%
   const targets = [
-    { dist: 45,  deg: 0.002, id: 'homeBikePred45'  },
-    { dist: 90,  deg: 0.015, id: 'homeBikePred90'  },
-    { dist: 140, deg: 0.030, id: 'homeBikePred140' },
+    { dist: 45,  deg: 0.001, id: 'homeBikePred45'  },
+    { dist: 90,  deg: 0.016, id: 'homeBikePred90'  },
+    { dist: 140, deg: 0.035, id: 'homeBikePred140' },
   ];
 
   const rustTag = daysSinceLast > 7
