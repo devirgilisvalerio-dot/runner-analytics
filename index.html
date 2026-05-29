@@ -373,6 +373,16 @@ td b{ font-family:var(--font-mono); }
       <div class="card">
         <div class="card-title"><span>Trend Performance</span></div>
         <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
+        <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
+            <div id="predHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>MARATHON TOMORROW</div>
+            <div id="predMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -939,6 +949,7 @@ function renderDashboard(data){
   renderShoes(data);
   renderTable(data);
   renderTrendChart(data);
+  renderPredictions(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
   renderAvgKmSplits(data);
@@ -1257,6 +1268,42 @@ function renderEfficiencyChart(data) {
 }
 
 /* ACWR */
+function renderPredictions(data) {
+  const strip = document.getElementById('predictionStrip');
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  strip.style.display = 'grid';
+
+  const recent = sorted.slice(-10);
+  const weights = recent.map((_, i) => i + 1);
+  const totalW = weights.reduce((a, b) => a + b, 0);
+  let basePaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
+
+  // Inactivity penalty: +1% per day beyond 7 days since last run
+  const lastRunDate = new Date(sorted[sorted.length - 1].date);
+  const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
+  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.01 : 1;
+  basePaceSec *= inactivityPenalty;
+
+  // Half Marathon (21.0975 km) — 5% degradation
+  const hmDist = 21.0975;
+  const hmPaceSec = basePaceSec * 1.05;
+  const hmFinishSec = hmPaceSec * hmDist;
+  document.getElementById('predHalf').innerHTML =
+    '<span style="color:var(--text)">' + secondsToTime(Math.round(hmFinishSec)) + '</span>' +
+    '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(hmPaceSec)) + ' /km</span>' +
+    (daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '');
+
+  // Marathon (42.195 km) — 10% degradation
+  const mDist = 42.195;
+  const mPaceSec = basePaceSec * 1.10;
+  const mFinishSec = mPaceSec * mDist;
+  document.getElementById('predMarathon').innerHTML =
+    '<span style="color:var(--text)">' + secondsToTime(Math.round(mFinishSec)) + '</span>' +
+    '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(mPaceSec)) + ' /km</span>' +
+    (daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '');
+}
+
 function renderAcwr(data) {
   destroyChart('acwr');
   if(!data || data.length < 2) { document.getElementById('acwrSection').style.display = 'none'; return; }
