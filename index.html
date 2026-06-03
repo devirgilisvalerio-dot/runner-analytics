@@ -667,14 +667,7 @@ function parseFIT(buffer) {
         fields.push({ fNum, fSize });
         size += fSize;
       }
-      if(hasDev) {
-        const n = bytes[pos++];
-        for(let i = 0; i < n; i++) {
-          pos++;
-          size += bytes[pos++];
-          pos++;
-        }
-      }
+      if(hasDev) { const n = bytes[pos++]; pos += n * 3; }
       definitions[localNum] = { globalNum, fields, size };
     } else {
       const defn  = definitions[localNum];
@@ -756,7 +749,7 @@ function parseFIT(buffer) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
-    calories: records._calories || null,
+    calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
@@ -803,22 +796,35 @@ function parseFallbackGPX(xmlText, fileName) {
   const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
   if(trkpts.length < 2) return { error: 'Less than 2 trackpoints: ' + fileName };
 
-  let totalDist = 0, hrSum = 0, hrCount = 0;
+  let totalDist = 0, movingTimeSec = 0, hrSum = 0, hrCount = 0;
   let firstTime = null, lastTime = null;
+  const MOVING_THRESHOLD_KMH = 1.0;
+  const points = [];
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
-    if(i > 0) totalDist += haversine(
-      parseFloat(trkpts[i-1].getAttribute('lat')), parseFloat(trkpts[i-1].getAttribute('lon')),
-      parseFloat(pt.getAttribute('lat')),           parseFloat(pt.getAttribute('lon'))
-    );
+    const lat = parseFloat(pt.getAttribute('lat'));
+    const lon = parseFloat(pt.getAttribute('lon'));
+    let time = null;
+    const tn = pt.getElementsByTagNameNS('*', 'time')[0];
+    if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
-    const tn = pt.getElementsByTagNameNS('*', 'time')[0];
-    if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { if(!firstTime) firstTime = t; lastTime = t; } }
+    if(i > 0) {
+      const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
+      totalDist += dist;
+      if(time && points[i-1].time) {
+        const dt = (time - points[i-1].time) / 1000;
+        if(dt > 0) {
+          const speedKmh = (dist / dt) * 3.6;
+          if(speedKmh > MOVING_THRESHOLD_KMH) movingTimeSec += dt;
+        }
+      }
+    }
+    points.push({ lat, lon, time });
   }
   const distKm = totalDist / 1000;
   if(distKm < 0.1) return { error: `Distance too short: ${distKm.toFixed(2)} km` };
-  const durationSec = (firstTime && lastTime) ? Math.max(0, (lastTime - firstTime) / 1000) : 0;
+  const durationSec = movingTimeSec;
   const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   return {
@@ -827,6 +833,7 @@ function parseFallbackGPX(xmlText, fileName) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
+    calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
     hrCount, source: 'GPX', sport: 'running'
   };
@@ -836,6 +843,19 @@ function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371e3, r = x => x * Math.PI / 180;
   const a = Math.sin(r(lat2-lat1)/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function estimateCalories(avgHr, durationSec, sport) {
+  if(!durationSec || durationSec <= 0) return null;
+  const minutes = durationSec / 60;
+  if(avgHr && avgHr > 50) {
+    // Keytel et al. formula (male, assuming 70 kg, 35 yo)
+    const kcalPerMin = (-55.0969 + 0.6309 * avgHr + 0.1988 * 70 + 0.2017 * 35) / 4.184;
+    if(kcalPerMin > 0) return Math.round(kcalPerMin * minutes);
+  }
+  // Fallback: MET-based estimate without HR
+  const met = sport === 'cycling' ? 8.0 : 9.8;
+  return Math.round((met * 3.5 * 70 / 200) * minutes);
 }
 
 /* ── GOOGLE DRIVE ── */
