@@ -796,9 +796,9 @@ function parseFallbackGPX(xmlText, fileName) {
   const trkpts = doc.getElementsByTagNameNS('*', 'trkpt');
   if(trkpts.length < 2) return { error: 'Less than 2 trackpoints: ' + fileName };
 
-  let totalDist = 0, movingTimeSec = 0, hrSum = 0, hrCount = 0;
+  let movingDist = 0, movingTimeSec = 0, hrSum = 0, hrCount = 0;
   let firstTime = null, lastTime = null;
-  const MOVING_THRESHOLD_KMH = 1.0;
+  const MAX_GAP_SEC = 10;
   const points = [];
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
@@ -811,18 +811,17 @@ function parseFallbackGPX(xmlText, fileName) {
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
     if(i > 0) {
       const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
-      totalDist += dist;
       if(time && points[i-1].time) {
         const dt = (time - points[i-1].time) / 1000;
-        if(dt > 0) {
-          const speedKmh = (dist / dt) * 3.6;
-          if(speedKmh > MOVING_THRESHOLD_KMH) movingTimeSec += dt;
+        if(dt > 0 && dt <= MAX_GAP_SEC) {
+          movingTimeSec += dt;
+          movingDist += dist;
         }
       }
     }
     points.push({ lat, lon, time });
   }
-  const distKm = totalDist / 1000;
+  const distKm = movingDist / 1000;
   if(distKm < 0.1) return { error: `Distance too short: ${distKm.toFixed(2)} km` };
   const durationSec = movingTimeSec;
   const avgHr = hrCount > 0 ? Math.round(hrSum / hrCount) : null;
