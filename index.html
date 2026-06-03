@@ -667,7 +667,14 @@ function parseFIT(buffer) {
         fields.push({ fNum, fSize });
         size += fSize;
       }
-      if(hasDev) { const n = bytes[pos++]; pos += n * 3; }
+      if(hasDev) {
+        const n = bytes[pos++];
+        for(let i = 0; i < n; i++) {
+          pos++;
+          size += bytes[pos++];
+          pos++;
+        }
+      }
       definitions[localNum] = { globalNum, fields, size };
     } else {
       const defn  = definitions[localNum];
