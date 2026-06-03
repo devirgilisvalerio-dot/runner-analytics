@@ -348,7 +348,7 @@ td b{ font-family:var(--font-mono); }
     <!-- HOME: Trend Performance side by side -->
     <div class="two-col" style="margin-top:20px;margin-bottom:20px;align-items:start;">
       <div class="card">
-        <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
+        <div class="card-title"><span>Trend Performance</span> <span id="homeTrendRunTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendRun"></canvas></div>
         <div id="homePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -366,7 +366,7 @@ td b{ font-family:var(--font-mono); }
         </div>
       </div>
       <div class="card">
-        <div class="card-title"><span>Trend Performance</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
+        <div class="card-title"><span>Trend Performance</span> <span id="homeTrendBikeTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendBike"></canvas></div>
         <div id="homeBikePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -388,7 +388,7 @@ td b{ font-family:var(--font-mono); }
     <!-- HOME: ACWR side by side -->
     <div class="two-col" style="margin-bottom:20px;align-items:start;">
       <div class="card" id="homeAcwrRunSection" style="display:none;">
-        <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
+        <div class="card-title"><span>ACWR</span> <span id="homeAcwrRunTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div id="homeAcwrRunBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div style="height:220px;"><canvas id="homeAcwrRunChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
@@ -399,7 +399,7 @@ td b{ font-family:var(--font-mono); }
         </p>
       </div>
       <div class="card" id="homeAcwrBikeSection" style="display:none;">
-        <div class="card-title"><span>ACWR</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
+        <div class="card-title"><span>ACWR</span> <span id="homeAcwrBikeTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
         <div id="homeAcwrBikeBadges" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div style="height:220px;"><canvas id="homeAcwrBikeChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
@@ -1180,9 +1180,9 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 275,  color: '#ff9100', desc: '< 4:55 · Race pace 5–10 km, high intensity' },
-    { label: 'Threshold', min: 275, max: 310,  color: '#ffea00', desc: '4:55–5:15 · Half-marathon target pace, lactate threshold' },
-    { label: 'Aerobic',   min: 310, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
+    { label: 'Fast',      min: 0,   max: 295,  color: '#ff9100', desc: '< 4:55 · Race pace 5–10 km, high intensity' },
+    { label: 'Threshold', min: 295, max: 315,  color: '#ffea00', desc: '4:55–5:15 · Half-marathon target pace, lactate threshold' },
+    { label: 'Aerobic',   min: 315, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
     { label: 'Easy',      min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
@@ -1499,17 +1499,17 @@ function renderPredictions(data) {
   const totalW = weights.reduce((a, b) => a + b, 0);
   let basePaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
 
-  // Inactivity penalty: +0.75% per day beyond 7 days since last run
+  // Inactivity penalty: +0.75% per day beyond 8 days since last run
   const lastRunDate = new Date(sorted[sorted.length - 1].date);
   const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
-  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.0075 : 1;
+  const inactivityPenalty = daysSinceLastRun > 8 ? 1 + (daysSinceLastRun - 8) * 0.0075 : 1;
   basePaceSec *= inactivityPenalty;
 
   // 10K (10 km) — 2% degradation (half of Half Marathon)
   const tenDist = 10;
-  const tenPaceSec = basePaceSec * 1.02;
+  const tenPaceSec = basePaceSec * 1.005;
   const tenFinishSec = tenPaceSec * tenDist;
-  const rustTag = daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '';
+  const rustTag = daysSinceLastRun > 8 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 8) + '% rust</span>' : '';
   const predHTML = (finSec, paceSec) =>
     '<span style="color:var(--text)">' + secondsToTime(Math.round(finSec)) + '</span>' +
     '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(paceSec)) + ' /km</span>' + rustTag;
@@ -1521,9 +1521,9 @@ function renderPredictions(data) {
   const hmFinishSec = hmPaceSec * hmDist;
   document.getElementById('predHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
 
-  // Marathon (42.195 km) — 8.5% degradation
+  // Marathon (42.195 km) — 8.75% degradation
   const mDist = 42.195;
-  const mPaceSec = basePaceSec * 1.085;
+  const mPaceSec = basePaceSec * 1.0875;
   const mFinishSec = mPaceSec * mDist;
   document.getElementById('predMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
 
@@ -1555,17 +1555,17 @@ function renderBikePredictions(data) {
     return s + spd * weights[i];
   }, 0) / totalW;
 
-  // Inactivity penalty: -0.15% per day beyond 7 days since last ride
+  // Inactivity penalty: -0.05% per day beyond 8 days since last ride
   const lastRideDate   = new Date(sorted[sorted.length - 1].date);
   const daysSinceLast  = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
+  const inactivityMult = daysSinceLast > 8 ? Math.max(0.95, 1 - (daysSinceLast - 8) * 0.0015) : 1;
   baseSpeed *= inactivityMult;
 
   // Degradation: 45 km → -0.1%, 90 km → -1.6%, 140 km → -3.5%
   const targets = [
     { dist: 45,  deg: 0.001, id: 'homeBikePred45'  },
-    { dist: 90,  deg: 0.016, id: 'homeBikePred90'  },
-    { dist: 140, deg: 0.035, id: 'homeBikePred140' },
+    { dist: 90,  deg: 0.020, id: 'homeBikePred90'  },
+    { dist: 140, deg: 0.040, id: 'homeBikePred140' },
   ];
 
   const rustTag = daysSinceLast > 7
@@ -1803,6 +1803,16 @@ function renderHomePage() {
   if(allRuns.length >= 3) renderPredictions(allRuns);
   renderHomeTrendChart('homeTrendBike', 'homeTrendBikeChart', allBikes);
   if(allBikes.length >= 3) renderBikePredictions(allBikes);
+
+  // ── Update chart titles with activity counts ──
+  const trendRunTitle = document.getElementById('homeTrendRunTitle');
+  if(trendRunTitle) trendRunTitle.textContent = `— Running (${allRuns.length} activit${allRuns.length === 1 ? 'y' : 'ies'})`;
+  const trendBikeTitle = document.getElementById('homeTrendBikeTitle');
+  if(trendBikeTitle) trendBikeTitle.textContent = `— Cycling (${allBikes.length} activit${allBikes.length === 1 ? 'y' : 'ies'})`;
+  const acwrRunTitle = document.getElementById('homeAcwrRunTitle');
+  if(acwrRunTitle) acwrRunTitle.textContent = `— Running (${allRuns.length} activit${allRuns.length === 1 ? 'y' : 'ies'})`;
+  const acwrBikeTitle = document.getElementById('homeAcwrBikeTitle');
+  if(acwrBikeTitle) acwrBikeTitle.textContent = `— Cycling (${allBikes.length} activit${allBikes.length === 1 ? 'y' : 'ies'})`;
 
   // ── Home ACWR ──
   renderHomeAcwr(allRuns, 'homeAcwrRunChart', 'homeAcwrRunSection', 'homeAcwrRunBadges', 'running');
