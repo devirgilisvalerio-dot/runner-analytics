@@ -271,22 +271,23 @@ td b{ font-family:var(--font-mono); }
 
 @media(max-width:480px){
   body{ padding:14px 10px 30px; }
+  .container{ overflow-x:hidden; }
   .header{ flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:20px; }
   .logo h1{ font-size:32px; }
   .actions{ width:100%; flex-wrap:wrap; }
   .status-pill{ max-width:100%; font-size:11px; }
   .btn{ padding:10px 14px; font-size:14px; }
-  .nav-bar{ gap:6px; margin-bottom:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .nav-btn{ padding:10px 14px; font-size:14px; white-space:nowrap; }
-  .sport-icon{ font-size:16px; margin-right:4px; }
+  .nav-bar{ gap:6px; margin-bottom:16px; padding-bottom:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
+  .nav-btn{ padding:9px 12px; font-size:13px; white-space:nowrap; flex-shrink:0; scroll-snap-align:start; }
+  .sport-icon{ font-size:14px; margin-right:3px; }
   .stats-grid{ grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px; }
   .stat-card{ padding:14px 12px; }
   .stat-title{ font-size:11px; letter-spacing:1px; margin-bottom:6px; }
-  .stat-value{ font-size:26px; }
-  .stat-sub{ font-size:12px; }
+  .stat-value{ font-size:24px; }
+  .stat-sub{ font-size:11px; }
   .main-grid{ gap:14px; }
   .card{ padding:16px 14px; margin-bottom:12px; }
-  .card-title{ font-size:16px; margin-bottom:14px; }
+  .card-title{ font-size:15px; margin-bottom:14px; }
   .two-col{ grid-template-columns:1fr; gap:14px; }
   .chart-box{ height:220px; }
   .chart-box-lg{ height:240px; }
@@ -295,25 +296,30 @@ td b{ font-family:var(--font-mono); }
   .split-pace{ font-size:18px; }
   .shoe-card{ min-width:unset!important; max-width:unset!important; }
   #shoeContainer{ flex-direction:column; }
-  .table-wrapper{ font-size:12px; }
+  .table-wrapper{ font-size:12px; overflow-x:auto; }
   table th, table td{ padding:10px 6px 10px 0; }
   .filter-panel{ padding:14px; }
   .filter-row{ gap:14px; }
   .shoe-chip{ padding:5px 10px; font-size:12px; }
-  #homePredStrip, #predictionStrip, #homeBikePredStrip{
+  #homePredStrip, #predictionStrip, #homeBikePredStrip, #bikePredictionStrip{
     grid-template-columns:1fr!important; gap:8px!important;
   }
   #homeAcwrRunSection .no-data-msg,
   #homeAcwrBikeSection .no-data-msg{ font-size:12px; }
-  #acwrBadges, #homeAcwrRunBadges, #homeAcwrBikeBadges{
+  #acwrBadges, #homeAcwrRunBadges, #homeAcwrBikeBadges, #bikeAcwrBadgesTab,
+  #runFitnessBadges, #bikeFitnessBadges{
     display:grid!important; grid-template-columns:1fr 1fr; gap:8px!important;
   }
-  #acwrBadges > div, #homeAcwrRunBadges > div, #homeAcwrBikeBadges > div{
+  #acwrBadges > div, #homeAcwrRunBadges > div, #homeAcwrBikeBadges > div, #bikeAcwrBadgesTab > div,
+  #runFitnessBadges > div, #bikeFitnessBadges > div{
     padding:8px 12px!important;
   }
-  #acwrBadges [style*="font-size:28px"],
-  #homeAcwrRunBadges [style*="font-size:24px"],
-  #homeAcwrBikeBadges [style*="font-size:24px"]{ font-size:20px!important; }
+  #runPolarizedSection > div:first-of-type, #bikePolarizedSection > div:first-of-type{
+    flex-direction:column!important; align-items:stretch!important;
+  }
+  #runPRContainer > div, #bikePRContainer > div{
+    grid-template-columns:repeat(2, 1fr)!important;
+  }
 }
 
 /* ── PAGES / SPA ── */
@@ -628,6 +634,46 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
+  <div class="card" id="runFitnessSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
+    <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+    <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+      <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
+      <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
+      <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
+      <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
+      <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
+      <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
+      <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+    </p>
+  </div>
+
+  <!-- POLARIZED TRAINING CHECK -->
+  <div class="card" id="runPolarizedSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title"><span>Polarized Training Check</span></div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+      <div style="width:200px;height:200px;"><canvas id="runPolarizedChart"></canvas></div>
+      <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
+    </div>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+      Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z1–Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+      <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
+      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed. Avoid spending more than 5–10% here.<br>
+      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work, VO2max. This is where speed improves.
+    </p>
+  </div>
+
+  <!-- PERSONAL RECORDS -->
+  <div class="card" id="runPRSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title"><span>Personal Records</span></div>
+    <div id="runPRContainer"></div>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+      Your fastest verified times at key distances. PRs are extracted from your actual GPS data — a new record appears when you run a distance faster than ever before. If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
+    </p>
+  </div>
+
   <!-- HISTORY TABLE -->
   <div class="card">
     <div class="card-title"><span>Training Log</span></div>
@@ -730,6 +776,46 @@ td b{ font-family:var(--font-mono); }
           </p>
         </div>
       </div>
+    </div>
+
+    <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
+    <div class="card" id="bikeFitnessSection" style="display:none;margin-top:20px;margin-bottom:20px;">
+      <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
+      <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+      <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+        <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
+        <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
+        <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
+        <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
+        <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
+        <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
+        <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+      </p>
+    </div>
+
+    <!-- POLARIZED TRAINING CHECK -->
+    <div class="card" id="bikePolarizedSection" style="display:none;margin-bottom:20px;">
+      <div class="card-title"><span>Polarized Training Check</span></div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <div style="width:200px;height:200px;"><canvas id="bikePolarizedChart"></canvas></div>
+        <div id="bikePolarizedDetails" style="flex:1;min-width:200px;"></div>
+      </div>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+        Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z1–Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+        <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
+        <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed.<br>
+        <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. High-intensity intervals, threshold efforts.
+      </p>
+    </div>
+
+    <!-- PERSONAL RECORDS -->
+    <div class="card" id="bikePRSection" style="display:none;margin-bottom:20px;">
+      <div class="card-title"><span>Personal Records</span></div>
+      <div id="bikePRContainer"></div>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
+        Your fastest verified times at key distances. PRs are extracted from your actual GPS data. If no new PRs appear for weeks, consider changing your training stimulus — more intervals, longer rides, or structured rest.
+      </p>
     </div>
 
     <!-- HISTORY TABLE -->
@@ -1335,6 +1421,9 @@ function renderDashboard(data){
   renderEfficiencyChart(data);
   renderAvgKmSplits(data);
   renderAcwr(data);
+  renderFitnessChart(data, 'running');
+  renderPolarizedChart(data, 'running');
+  renderPersonalRecords(data, 'running');
   document.getElementById('splitsSection').style.display = 'block';
 }
 
@@ -1906,6 +1995,9 @@ function renderBikeTab() {
   renderBikeHrZones(data);
   renderBikeSpeedDist(data);
   renderBikeAcwr(data);
+  renderFitnessChart(data, 'cycling');
+  renderPolarizedChart(data, 'cycling');
+  renderPersonalRecords(data, 'cycling');
   renderBikeTable(data);
 }
 
@@ -2424,6 +2516,359 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
       }
     }
   });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FITNESS / FATIGUE / FORM (CTL / ATL / TSB)
+══════════════════════════════════════════════════════════════════ */
+function computeTrimp(hr, durationSec, maxHr, restHr) {
+  if(!hr || !durationSec || durationSec <= 0) return 0;
+  const minutes = durationSec / 60;
+  const hrRatio = (hr - restHr) / (maxHr - restHr);
+  if(hrRatio <= 0) return 0;
+  return minutes * hrRatio * 0.64 * Math.exp(1.92 * hrRatio);
+}
+
+function renderFitnessChart(data, sport) {
+  const prefix = sport === 'cycling' ? 'bike' : 'run';
+  const chartKey = prefix + 'Fitness';
+  destroyChart(chartKey);
+
+  const section = document.getElementById(prefix + 'FitnessSection');
+  const maxHrInput = document.getElementById(sport === 'cycling' ? 'bikeMaxHrInput' : 'maxHrInput');
+  const maxHr = maxHrInput ? parseInt(maxHrInput.value, 10) || 187 : 187;
+  const restHr = 50;
+
+  const withHr = data.filter(r => r.hr && r.durationSec > 0);
+  if(withHr.length < 5) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const sorted = [...withHr].sort((a,b) => new Date(a.date) - new Date(b.date));
+  const trimpByDay = {};
+  sorted.forEach(r => {
+    const trimp = computeTrimp(r.hr, r.durationSec, maxHr, restHr);
+    trimpByDay[r.date] = (trimpByDay[r.date] || 0) + trimp;
+  });
+
+  const startDate = new Date(sorted[0].date);
+  const endDate = new Date();
+  const allDates = [];
+  for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
+    allDates.push(d.toISOString().split('T')[0]);
+
+  const CTL_DAYS = 42, ATL_DAYS = 7;
+  const ctlDecay = 2 / (CTL_DAYS + 1);
+  const atlDecay = 2 / (ATL_DAYS + 1);
+
+  let ctl = 0, atl = 0;
+  const ctlArr = [], atlArr = [], tsbArr = [];
+  const chartDates = allDates.slice(-120);
+
+  allDates.forEach((d, i) => {
+    const trimp = trimpByDay[d] || 0;
+    ctl = ctl * (1 - ctlDecay) + trimp * ctlDecay;
+    atl = atl * (1 - atlDecay) + trimp * atlDecay;
+    if(i >= allDates.length - 120) {
+      ctlArr.push(parseFloat(ctl.toFixed(1)));
+      atlArr.push(parseFloat(atl.toFixed(1)));
+      tsbArr.push(parseFloat((ctl - atl).toFixed(1)));
+    }
+  });
+
+  const currentCTL = ctlArr[ctlArr.length - 1];
+  const currentATL = atlArr[atlArr.length - 1];
+  const currentTSB = tsbArr[tsbArr.length - 1];
+
+  let formLabel, formColor;
+  if(currentTSB >= 10) { formLabel = 'Race Ready'; formColor = 'var(--green)'; }
+  else if(currentTSB >= 0) { formLabel = 'Fresh'; formColor = 'var(--accent)'; }
+  else if(currentTSB >= -30) { formLabel = 'Building'; formColor = 'var(--orange)'; }
+  else { formLabel = 'Fatigued'; formColor = 'var(--red)'; }
+
+  document.getElementById(prefix + 'FitnessBadges').innerHTML = `
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Fitness (CTL)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentCTL.toFixed(0)}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Fatigue (ATL)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--red)">${currentATL.toFixed(0)}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Form (TSB)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${formColor}">${currentTSB > 0 ? '+' : ''}${currentTSB.toFixed(0)}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Status</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${formColor}">${formLabel}</div>
+    </div>`;
+
+  const ctx = document.getElementById(prefix + 'FitnessChart').getContext('2d');
+  charts[chartKey] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartDates,
+      datasets: [
+        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'ATL (Fatigue)', data:atlArr, borderColor:'#ff3d57', backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'TSB (Form)', data:tsbArr, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7, borderDash:[4,3] }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
+      },
+      scales: {
+        x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   POLARIZED TRAINING CHECK
+══════════════════════════════════════════════════════════════════ */
+function renderPolarizedChart(data, sport) {
+  const prefix = sport === 'cycling' ? 'bike' : 'run';
+  const chartKey = prefix + 'Polarized';
+  destroyChart(chartKey);
+
+  const section = document.getElementById(prefix + 'PolarizedSection');
+  const maxHrInput = document.getElementById(sport === 'cycling' ? 'bikeMaxHrInput' : 'maxHrInput');
+  const maxHr = maxHrInput ? parseInt(maxHrInput.value, 10) || 187 : 187;
+
+  const withHr = data.filter(r => r.hr && r.hr > 50);
+  if(withHr.length < 3) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const easyThresh = maxHr * 0.80;
+  const hardThresh = maxHr * 0.88;
+
+  let easy = 0, grey = 0, hard = 0;
+  withHr.forEach(r => {
+    if(r.hr < easyThresh) easy++;
+    else if(r.hr < hardThresh) grey++;
+    else hard++;
+  });
+  const total = easy + grey + hard;
+  const easyPct = (easy / total * 100).toFixed(0);
+  const greyPct = (grey / total * 100).toFixed(0);
+  const hardPct = (hard / total * 100).toFixed(0);
+
+  let verdict, verdictColor;
+  if(easyPct >= 70 && hardPct >= 10 && greyPct <= 20) { verdict = 'Well Polarized'; verdictColor = 'var(--green)'; }
+  else if(greyPct > 40) { verdict = 'Too Much Grey Zone'; verdictColor = 'var(--red)'; }
+  else if(easyPct < 60) { verdict = 'Not Enough Easy'; verdictColor = 'var(--orange)'; }
+  else if(hardPct < 10) { verdict = 'Not Enough Hard'; verdictColor = 'var(--orange)'; }
+  else { verdict = 'Moderate'; verdictColor = 'var(--muted2)'; }
+
+  document.getElementById(prefix + 'PolarizedDetails').innerHTML = `
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${verdictColor};margin-bottom:8px">${verdict}</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Based on ${total} sessions with HR data</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:var(--green);flex-shrink:0"></span>
+        <span style="font-family:var(--font-mono);font-size:14px;color:var(--text);min-width:50px"><b>${easyPct}%</b></span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Easy (Z1–Z2) &lt;${Math.round(easyThresh)} bpm</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted2);margin-left:auto">target 75–80%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:var(--orange);flex-shrink:0"></span>
+        <span style="font-family:var(--font-mono);font-size:14px;color:var(--text);min-width:50px"><b>${greyPct}%</b></span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Grey (Z3) ${Math.round(easyThresh)}–${Math.round(hardThresh)} bpm</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted2);margin-left:auto">target &lt;10%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
+        <span style="font-family:var(--font-mono);font-size:14px;color:var(--text);min-width:50px"><b>${hardPct}%</b></span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Hard (Z4–Z5) &gt;${Math.round(hardThresh)} bpm</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted2);margin-left:auto">target 15–20%</span>
+      </div>
+    </div>`;
+
+  const ctx = document.getElementById(prefix + 'PolarizedChart').getContext('2d');
+  charts[chartKey] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Easy (Z1-Z2)', 'Grey Zone (Z3)', 'Hard (Z4-Z5)'],
+      datasets: [{
+        data: [easy, grey, hard],
+        backgroundColor: ['#00e67680', '#ff910080', '#ff3d5780'],
+        borderColor: ['#00e676', '#ff9100', '#ff3d57'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      cutout: '60%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.label}: ${c.raw} sessions (${(c.raw/total*100).toFixed(0)}%)` } }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PERSONAL RECORDS
+══════════════════════════════════════════════════════════════════ */
+function renderPersonalRecords(data, sport) {
+  const prefix = sport === 'cycling' ? 'bike' : 'run';
+  const section = document.getElementById(prefix + 'PRSection');
+  const container = document.getElementById(prefix + 'PRContainer');
+
+  if(!data || data.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  if(sport === 'running') {
+    const distances = [
+      { label: '1 KM', key: '1km', target: 1 },
+      { label: '5 KM', key: '5km', target: 5 },
+      { label: '10 KM', key: '10km', target: 10 },
+      { label: 'HALF MARATHON', key: 'hm', target: 21.1 },
+      { label: 'MARATHON', key: 'marathon', target: 42.195 },
+    ];
+
+    const prs = {};
+    distances.forEach(d => { prs[d.key] = null; });
+
+    // Best 1km from km splits
+    sorted.forEach(r => {
+      if(r.kmSplits && r.kmSplits.length > 0) {
+        const best1km = Math.min(...r.kmSplits.map(s => s.paceSec));
+        if(!prs['1km'] || best1km < prs['1km'].time) {
+          prs['1km'] = { time: best1km, date: r.date, pace: best1km };
+        }
+      }
+    });
+
+    // Best 5km from consecutive km splits
+    sorted.forEach(r => {
+      if(r.kmSplits && r.kmSplits.length >= 5) {
+        for(let i = 0; i <= r.kmSplits.length - 5; i++) {
+          const seg = r.kmSplits.slice(i, i + 5);
+          const totalSec = seg.reduce((s, k) => s + k.paceSec, 0);
+          if(!prs['5km'] || totalSec < prs['5km'].time) {
+            prs['5km'] = { time: totalSec, date: r.date, pace: totalSec / 5 };
+          }
+        }
+      }
+    });
+
+    // Best 10km, HM, Marathon from full sessions
+    sorted.forEach(r => {
+      if(!r.durationSec || !r.distance) return;
+      if(r.distance >= 9.5 && r.distance <= 11) {
+        const pace = r.durationSec / r.distance;
+        const time10k = pace * 10;
+        if(!prs['10km'] || time10k < prs['10km'].time) {
+          prs['10km'] = { time: time10k, date: r.date, pace: pace };
+        }
+      }
+      if(r.distance >= 20.5 && r.distance <= 22) {
+        const pace = r.durationSec / r.distance;
+        const timeHm = pace * 21.0975;
+        if(!prs['hm'] || timeHm < prs['hm'].time) {
+          prs['hm'] = { time: timeHm, date: r.date, pace: pace };
+        }
+      }
+      if(r.distance >= 41.5 && r.distance <= 43) {
+        const pace = r.durationSec / r.distance;
+        const timeM = pace * 42.195;
+        if(!prs['marathon'] || timeM < prs['marathon'].time) {
+          prs['marathon'] = { time: timeM, date: r.date, pace: pace };
+        }
+      }
+    });
+
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">';
+    distances.forEach(d => {
+      const pr = prs[d.key];
+      if(!pr) {
+        html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;opacity:.5;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--muted)">—</div>
+          <div style="font-size:12px;color:var(--muted);font-family:var(--font-mono);margin-top:4px">No data</div>
+        </div>`;
+      } else {
+        const timeStr = d.key === '1km' ? paceStr(pr.time) : secondsToTime(Math.round(pr.time));
+        const paceDisplay = paceStr(Math.round(pr.pace));
+        html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${timeStr}</div>
+          <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${paceDisplay} /km · ${pr.date}</div>
+        </div>`;
+      }
+    });
+    html += '</div>';
+    container.innerHTML = html;
+
+  } else {
+    // Cycling PRs
+    const distances = [
+      { label: '30 KM', key: '30km', min: 28, max: 32, target: 30 },
+      { label: '50 KM', key: '50km', min: 48, max: 52, target: 50 },
+      { label: '75 KM', key: '75km', min: 73, max: 77, target: 75 },
+      { label: '100 KM', key: '100km', min: 97, max: 103, target: 100 },
+      { label: 'LONGEST RIDE', key: 'longest', min: 0, max: 99999, target: 0 },
+    ];
+
+    const prs = {};
+    distances.forEach(d => { prs[d.key] = null; });
+
+    sorted.forEach(r => {
+      if(!r.durationSec || !r.distance) return;
+      const speed = r.distance / (r.durationSec / 3600);
+
+      distances.forEach(d => {
+        if(d.key === 'longest') {
+          if(!prs['longest'] || r.distance > prs['longest'].distance) {
+            prs['longest'] = { distance: r.distance, time: r.durationSec, date: r.date, speed: speed };
+          }
+        } else if(r.distance >= d.min && r.distance <= d.max) {
+          const normalizedTime = (r.durationSec / r.distance) * d.target;
+          if(!prs[d.key] || normalizedTime < prs[d.key].time) {
+            prs[d.key] = { time: normalizedTime, date: r.date, speed: d.target / (normalizedTime / 3600) };
+          }
+        }
+      });
+    });
+
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">';
+    distances.forEach(d => {
+      const pr = prs[d.key];
+      if(!pr) {
+        html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;opacity:.5;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--muted)">—</div>
+          <div style="font-size:12px;color:var(--muted);font-family:var(--font-mono);margin-top:4px">No data</div>
+        </div>`;
+      } else {
+        if(d.key === 'longest') {
+          html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${pr.distance.toFixed(1)} km</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${secondsToTime(Math.round(pr.time))} · ${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+          </div>`;
+        } else {
+          html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(pr.time))}</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+          </div>`;
+        }
+      }
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
 }
 
 /* ── UTILS ── */
