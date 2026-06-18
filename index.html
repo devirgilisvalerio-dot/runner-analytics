@@ -269,6 +269,53 @@ td b{ font-family:var(--font-mono); }
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } }
 @media(max-width:700px){ .two-col{ grid-template-columns:1fr; } }
 
+@media(max-width:480px){
+  body{ padding:14px 10px 30px; }
+  .header{ flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:20px; }
+  .logo h1{ font-size:32px; }
+  .actions{ width:100%; flex-wrap:wrap; }
+  .status-pill{ max-width:100%; font-size:11px; }
+  .btn{ padding:10px 14px; font-size:14px; }
+  .nav-bar{ gap:6px; margin-bottom:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .nav-btn{ padding:10px 14px; font-size:14px; white-space:nowrap; }
+  .sport-icon{ font-size:16px; margin-right:4px; }
+  .stats-grid{ grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px; }
+  .stat-card{ padding:14px 12px; }
+  .stat-title{ font-size:11px; letter-spacing:1px; margin-bottom:6px; }
+  .stat-value{ font-size:26px; }
+  .stat-sub{ font-size:12px; }
+  .main-grid{ gap:14px; }
+  .card{ padding:16px 14px; margin-bottom:12px; }
+  .card-title{ font-size:16px; margin-bottom:14px; }
+  .two-col{ grid-template-columns:1fr; gap:14px; }
+  .chart-box{ height:220px; }
+  .chart-box-lg{ height:240px; }
+  .splits-grid{ grid-template-columns:repeat(3, 1fr); gap:6px; }
+  .split-cell{ padding:8px 10px; }
+  .split-pace{ font-size:18px; }
+  .shoe-card{ min-width:unset!important; max-width:unset!important; }
+  #shoeContainer{ flex-direction:column; }
+  .table-wrapper{ font-size:12px; }
+  table th, table td{ padding:10px 6px 10px 0; }
+  .filter-panel{ padding:14px; }
+  .filter-row{ gap:14px; }
+  .shoe-chip{ padding:5px 10px; font-size:12px; }
+  #homePredStrip, #predictionStrip, #homeBikePredStrip{
+    grid-template-columns:1fr!important; gap:8px!important;
+  }
+  #homeAcwrRunSection .no-data-msg,
+  #homeAcwrBikeSection .no-data-msg{ font-size:12px; }
+  #acwrBadges, #homeAcwrRunBadges, #homeAcwrBikeBadges{
+    display:grid!important; grid-template-columns:1fr 1fr; gap:8px!important;
+  }
+  #acwrBadges > div, #homeAcwrRunBadges > div, #homeAcwrBikeBadges > div{
+    padding:8px 12px!important;
+  }
+  #acwrBadges [style*="font-size:28px"],
+  #homeAcwrRunBadges [style*="font-size:24px"],
+  #homeAcwrBikeBadges [style*="font-size:24px"]{ font-size:20px!important; }
+}
+
 /* ── PAGES / SPA ── */
 .hidden{ display:none!important; }
 .nav-bar{
@@ -616,7 +663,95 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
-    <p style="color:var(--muted);font-size:14px;font-family:var(--font-mono);text-align:center;padding:60px 20px;">Cycling detailed view coming soon.</p>
+
+    <!-- ROW 1: HR Zones (L) + Trend Performance (R) -->
+    <div class="main-grid" style="margin-top:20px;">
+      <div>
+        <div class="card">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span>HR Zones</span>
+            <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+              Max HR:
+              <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
+                style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
+                oninput="renderBikeHrZones(allBikes)">
+            </span>
+          </div>
+          <div id="bikeHrZoneContainer">
+            <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title"><span>Trend Performance</span></div>
+          <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
+          <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>45 KM TOMORROW</div>
+              <div id="bikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🚴</span>90 KM TOMORROW</div>
+              <div id="bikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>140 KM TOMORROW</div>
+              <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Speed Distribution (L) + ACWR (R) -->
+    <div class="main-grid">
+      <div>
+        <div class="card">
+          <div class="card-title"><span>Speed Distribution</span></div>
+          <div class="chart-box"><canvas id="bikeSpeedDistChart"></canvas></div>
+          <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each speed zone. Bars to the right mean faster riding. A broad distribution indicates varied training intensity.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" id="bikeAcwrSection" style="display:none;">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+            <span>Acute:Chronic Workload Ratio (ACWR)</span>
+            <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">sweet spot 0.8–2.2</span>
+          </div>
+          <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+          <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
+          <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
+            ACWR compares your last 7 days of load (km) against your 28-day average.
+            <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
+            <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
+            <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
+            <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TABLE -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title"><span>Ride Log</span></div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>Distance</th><th>Duration</th>
+              <th>Avg Speed</th><th>BPM</th><th>Cadence</th>
+              <th>Calories</th><th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="bikeTable">
+            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+              No rides loaded. Connect Google Drive to get started.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="footer">CRONO Elite &nbsp;·&nbsp; TRACK. PUSH. EVOLVE.</div>
@@ -1023,7 +1158,7 @@ async function listFiles(){
     const bc = allBikes.length;
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} activities loaded ✓  (${rc} runs · ${bc} rides · ${fc} FIT · ${gc} GPX · ${cacheHits} cached)`, 'connected');
+    setStatus(`${runs.length} loaded ✓  (${rc} runs · ${bc} rides · ${fc} FIT · ${gc} GPX · ${cacheHits} cached)`, 'connected');
   } catch(err){
     console.error(err);
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
@@ -1181,7 +1316,7 @@ function renderDashboard(data){
   document.getElementById('totalKm').innerText     = totalKm.toFixed(1) + ' km';
   document.getElementById('runCountSub').innerText = (totalKm / data.length).toFixed(1) + ' km avg';
   document.getElementById('totalTime').innerText   = secondsToTime(totalSec);
-  document.getElementById('avgDistSub').innerText  = (totalKm / data.length).toFixed(1) + ' km avg/run';
+  document.getElementById('avgDistSub').innerText  = secondsToTime(Math.round(totalSec / data.length)) + ' avg/run';
   document.getElementById('avgHr').innerText       = avgHr ? avgHr + ' bpm' : '—';
   document.getElementById('hrRangeSub').innerText  = withHr.length ? `min ${Math.min(...withHr.map(r=>r.hr))} · max ${Math.max(...withHr.map(r=>r.hr))}` : '—';
   const runTotalCal = data.reduce((s,r) => s + (r.calories||0), 0);
@@ -1742,6 +1877,8 @@ function showPage(name) {
 function renderBikeTab() {
   const data = allBikes;
   if(!data.length) return;
+  data.sort((a,b) => new Date(b.date) - new Date(a.date));
+
   const totalKm  = data.reduce((s,r) => s + r.distance, 0);
   const totalSec = data.reduce((s,r) => s + (r.durationSec || 0), 0);
   const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
@@ -1757,12 +1894,304 @@ function renderBikeTab() {
   document.getElementById('bikeTotalKm').textContent    = totalKm.toFixed(1) + ' km';
   document.getElementById('bikeCountSub').textContent   = (totalKm / data.length).toFixed(1) + ' km avg';
   document.getElementById('bikeTotalTime').textContent  = secondsToTime(totalSec);
-  document.getElementById('bikeAvgDistSub').textContent = (totalKm / data.length).toFixed(1) + ' km avg/ride';
+  document.getElementById('bikeAvgDistSub').textContent = secondsToTime(Math.round(totalSec / data.length)) + ' avg/ride';
   document.getElementById('bikeAvgHr').textContent      = avgHr ? avgHr + ' bpm' : '—';
   document.getElementById('bikeHrRange').textContent    = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
   document.getElementById('bikeTotalCal').textContent   = totalCal > 0 ? totalCal.toLocaleString() + ' kcal' : '—';
   document.getElementById('bikeAvgCal').textContent     = totalCal > 0 ? Math.round(totalCal / data.length) + ' kcal avg' : '—';
   document.getElementById('bikeAvgCad').textContent     = avgCad ? avgCad + ' rpm' : '—';
+
+  renderBikeTrendChart(data);
+  renderBikeTabPredictions(data);
+  renderBikeHrZones(data);
+  renderBikeSpeedDist(data);
+  renderBikeAcwr(data);
+  renderBikeTable(data);
+}
+
+/* BIKE: HR ZONES */
+function renderBikeHrZones(data) {
+  if(!data) return;
+  const maxHr = parseInt(document.getElementById('bikeMaxHrInput').value, 10) || 190;
+  const zones = [
+    { label: 'Z1 Recovery',  min: 0,    max: 0.60, color: '#5a6a7a', desc: '< 60% · Active recovery, very easy spin' },
+    { label: 'Z2 Endurance', min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, long rides, fat burning' },
+    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Sustained effort, sweetspot training' },
+    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · FTP intervals, time trial pace' },
+    { label: 'Z5 VO2max',    min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · Short high-intensity intervals' },
+  ];
+  const runsWithHr = data.filter(r => r.hr && r.hr > 0);
+  if(!runsWithHr.length) {
+    document.getElementById('bikeHrZoneContainer').innerHTML =
+      '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No HR data available.</p>';
+    return;
+  }
+  const counts = zones.map(z => runsWithHr.filter(r => r.hr >= z.min * maxHr && r.hr < z.max * maxHr).length);
+  const total = runsWithHr.length;
+  const maxCount = Math.max(...counts);
+  let html = '<div class="pace-zones">';
+  zones.forEach((z, i) => {
+    const pct  = total ? (counts[i] / total * 100).toFixed(0) : 0;
+    const barW = maxCount ? (counts[i] / maxCount * 100) : 0;
+    const bpmLo = Math.round(z.min * maxHr);
+    const bpmHi = z.max === 1.00 ? maxHr : Math.round(z.max * maxHr);
+    html += `
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pz-dot" style="background:${z.color}"></span>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted);margin-right:4px">${bpmLo}–${bpmHi} bpm</span>
+        <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+        <span class="pz-val">${pct}%</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('bikeHrZoneContainer').innerHTML = html;
+}
+
+/* BIKE: TREND CHART */
+function renderBikeTrendChart(data) {
+  destroyChart('bikeTrend');
+  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 2) return;
+
+  const speedVals = sorted.map(r => r.distance / (r.durationSec / 3600));
+  const hrVals    = sorted.map(r => r.hr);
+  const kmVals    = sorted.map(r => r.distance);
+  const labels    = sorted.map(r => r.date);
+
+  const ctx = document.getElementById('bikeTrendChart').getContext('2d');
+  charts['bikeTrend'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Speed', data:speedVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
+        { label:'BPM',   data:hrVals,   borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
+        { label:'Km',    data:kmVals,   borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { labels: { color:'#8a9aaa', font:{family:'DM Mono',size:10} } },
+        tooltip: { callbacks: { label: ctx => {
+          const v = ctx.parsed.y;
+          if(ctx.dataset.yAxisID === 'ySpeed') return `${ctx.dataset.label}: ${v.toFixed(1)} km/h`;
+          if(ctx.dataset.yAxisID === 'yKm') return `${ctx.dataset.label}: ${v.toFixed(1)} km`;
+          return `${ctx.dataset.label}: ${Math.round(v)} bpm`;
+        }}}
+      },
+      scales: {
+        x: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
+        ySpeed: { type:'linear', position:'left', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#00e676',font:{family:'DM Mono',size:10}} },
+        yHr: { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
+        yKm: { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+}
+
+/* BIKE: PREDICTIONS */
+function renderBikeTabPredictions(data) {
+  const strip = document.getElementById('bikePredictionStrip');
+  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  strip.style.display = 'grid';
+
+  const recent  = sorted.slice(-10);
+  const weights = recent.map((_, i) => i + 1);
+  const totalW  = weights.reduce((a, b) => a + b, 0);
+  let baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
+
+  const lastRideDate  = new Date(sorted[sorted.length - 1].date);
+  const daysSinceLast = Math.floor((new Date() - lastRideDate) / 86400000);
+  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
+  baseSpeed *= inactivityMult;
+
+  const rustTag = daysSinceLast > 7
+    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 7}d rust</span>` : '';
+
+  const targets = [
+    { dist: 45,  deg: 0.001, id: 'bikePred45'  },
+    { dist: 90,  deg: 0.016, id: 'bikePred90'  },
+    { dist: 140, deg: 0.035, id: 'bikePred140' },
+  ];
+  targets.forEach(({ dist, deg, id }) => {
+    const speed   = baseSpeed * (1 - deg);
+    const timeSec = (dist / speed) * 3600;
+    const el      = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML =
+      `<span style="color:var(--text)">${secondsToTime(Math.round(timeSec))}</span>` +
+      `<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">${speed.toFixed(1)} km/h</span>` + rustTag;
+  });
+}
+
+/* BIKE: SPEED DISTRIBUTION */
+function renderBikeSpeedDist(data) {
+  destroyChart('bikeSpeedDist');
+  const ridesWithSpeed = data.filter(r => r.durationSec > 0 && r.distance > 0);
+  if(!ridesWithSpeed.length) return;
+
+  const buckets = {};
+  for(let s = 15; s <= 45; s += 2) buckets[s] = 0;
+  ridesWithSpeed.forEach(r => {
+    const speed = r.distance / (r.durationSec / 3600);
+    const bucket = Math.round(speed / 2) * 2;
+    if(buckets[bucket] !== undefined) buckets[bucket]++;
+  });
+
+  const keys   = Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  const labels = keys.map(k => k + ' km/h');
+  const vals   = keys.map(k => buckets[k]);
+  const total  = vals.reduce((a,b)=>a+b,0);
+  const pcts   = vals.map(v => total ? (v/total*100).toFixed(1) : 0);
+
+  const ctx = document.getElementById('bikeSpeedDistChart').getContext('2d');
+  charts['bikeSpeedDist'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '% rides', data: pcts,
+        backgroundColor: keys.map(k => k >= 30 ? '#00e67680' : k >= 25 ? '#ffe56680' : '#ff3d5750'),
+        borderColor:     keys.map(k => k >= 30 ? '#00e676'   : k >= 25 ? '#ffe566'   : '#ff3d57'),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Avg Speed',color:'#5a6a7a',font:{family:'DM Mono',size:10}} },
+        y: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10},callback:v=>v+'%'}, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+}
+
+/* BIKE: ACWR */
+function renderBikeAcwr(data) {
+  destroyChart('bikeAcwrTab');
+  const SAFE_HI = 2.2;
+  const DANGER_HI = 3.5;
+
+  if(!data || data.length < 2) { document.getElementById('bikeAcwrSection').style.display = 'none'; return; }
+
+  const kmByDay = {};
+  data.forEach(r => { kmByDay[r.date] = (kmByDay[r.date] || 0) + r.distance; });
+  const dates = Object.keys(kmByDay).sort();
+  const startDate = new Date(dates[0]);
+  const endDate   = new Date();
+  const allDates  = [];
+  for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
+    allDates.push(d.toISOString().split('T')[0]);
+
+  const CHART_DAYS = 90;
+  const chartDates = allDates.slice(-CHART_DAYS);
+  const acwrPoints = [], acutePoints = [], chronicPoints = [];
+
+  chartDates.forEach(dateStr => {
+    const idx = allDates.indexOf(dateStr);
+    const acute7   = allDates.slice(Math.max(0, idx - 6),  idx + 1).reduce((s, d) => s + (kmByDay[d] || 0), 0);
+    const chronic28 = allDates.slice(Math.max(0, idx - 27), idx + 1).reduce((s, d) => s + (kmByDay[d] || 0), 0);
+    const acuteAvg   = acute7  / 7;
+    const chronicAvg = chronic28 / Math.min(28, idx + 1);
+    acutePoints.push(parseFloat(acuteAvg.toFixed(2)));
+    chronicPoints.push(parseFloat(chronicAvg.toFixed(2)));
+    acwrPoints.push(chronicAvg > 0 ? parseFloat((acuteAvg / chronicAvg).toFixed(3)) : null);
+  });
+
+  const currentAcwr    = acwrPoints[acwrPoints.length - 1];
+  const currentAcute   = acutePoints[acutePoints.length - 1];
+  const currentChronic = chronicPoints[chronicPoints.length - 1];
+
+  let riskLabel, riskColor;
+  if(currentAcwr === null)       { riskLabel = '—';             riskColor = 'var(--muted)'; }
+  else if(currentAcwr < 0.8)    { riskLabel = 'Undertraining'; riskColor = 'var(--muted2)'; }
+  else if(currentAcwr <= SAFE_HI)   { riskLabel = 'Optimal';   riskColor = 'var(--green)'; }
+  else if(currentAcwr <= DANGER_HI) { riskLabel = 'Overreaching'; riskColor = 'var(--orange)'; }
+  else                            { riskLabel = 'High Risk';    riskColor = 'var(--red)'; }
+
+  document.getElementById('bikeAcwrBadgesTab').innerHTML = `
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Status</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+    </div>`;
+
+  document.getElementById('bikeAcwrSection').style.display = 'block';
+
+  const ctx = document.getElementById('bikeAcwrTabChart').getContext('2d');
+  charts['bikeAcwrTab'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartDates,
+      datasets: [
+        { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
+        { label:'Sweet zone bottom', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
+        {
+          label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
+        },
+        { label:'Acute 7d (km/day)', data:acutePoints, borderColor:'#00e5ff', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
+        { label:'Chronic 28d (km/day)', data:chronicPoints, borderColor:'#bf40ff', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, filter: item => item.datasetIndex >= 2 },
+        tooltip: { callbacks: { label: c => {
+          if(c.datasetIndex < 2) return null;
+          if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
+          return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
+        }}}
+      },
+      scales: {
+        x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:12}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { position:'left', min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'ACWR',color:'#ff9100',font:{family:'DM Mono',size:10}} },
+        yKm: { position:'right', min:0, ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/day',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+}
+
+/* BIKE: TABLE */
+function renderBikeTable(data) {
+  const tbody = document.getElementById('bikeTable');
+  tbody.innerHTML = '';
+  data.forEach(r => {
+    const speed = r.durationSec > 0 ? (r.distance / (r.durationSec / 3600)).toFixed(1) + ' km/h' : '—';
+    const srcBadge = r.source === 'FIT'
+      ? `<span class="badge badge-fit">FIT</span>`
+      : `<span class="badge badge-gpx">GPX</span>`;
+    tbody.innerHTML += `
+    <tr>
+      <td style="font-family:var(--font-mono)">${r.date}</td>
+      <td><b>${r.distance} km</b></td>
+      <td style="font-family:var(--font-mono)">${r.duration}</td>
+      <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
+      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.cad !== null ? r.cad + ' rpm' : nd()}</td>
+      <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
+      <td>${srcBadge}</td>
+    </tr>`;
+  });
 }
 
 function renderHomePage() {
