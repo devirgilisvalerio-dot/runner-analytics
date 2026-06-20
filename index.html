@@ -707,11 +707,11 @@ td b{ font-family:var(--font-mono); }
             <th>Date</th><th>Distance</th><th>Duration</th>
             <th>Avg Pace</th><th>Best km</th>
             <th>BPM</th><th>Cadence</th><th>Power</th>
-            <th>Vert.Osc</th><th>Shoe</th><th>Source</th>
+            <th>Vert.Osc</th><th>Shoe</th>
           </tr>
         </thead>
         <tbody id="runsTable">
-          <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+          <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
             No activities loaded. Connect Google Drive to get started.
           </td></tr>
         </tbody>
@@ -732,76 +732,69 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
 
-    <!-- ROW 1: HR Zones (L) + Trend Performance (R) -->
-    <div class="main-grid" style="margin-top:20px;">
-      <div>
-        <div class="card">
-          <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span>HR Zones</span>
-            <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
-              Max HR:
-              <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
-                style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
-                oninput="renderBikeHrZones(allBikes)">
-            </span>
-          </div>
-          <div id="bikeHrZoneContainer">
-            <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
-          </div>
+    <!-- TREND PERFORMANCE -->
+    <div class="card" style="margin-top:20px;margin-bottom:20px;">
+      <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 10 weeks</span></div>
+      <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
+      <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>45 KM TOMORROW</div>
+          <div id="bikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
         </div>
-      </div>
-      <div>
-        <div class="card">
-          <div class="card-title"><span>Trend Performance</span></div>
-          <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
-          <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>45 KM TOMORROW</div>
-              <div id="bikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
-            </div>
-            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🚴</span>90 KM TOMORROW</div>
-              <div id="bikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
-            </div>
-            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-              <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>140 KM TOMORROW</div>
-              <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
-            </div>
-          </div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🚴</span>90 KM TOMORROW</div>
+          <div id="bikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>140 KM TOMORROW</div>
+          <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
         </div>
       </div>
     </div>
 
-    <!-- ROW 2: Speed Distribution (L) + ACWR (R) -->
-    <div class="main-grid">
-      <div>
-        <div class="card">
-          <div class="card-title"><span>Speed Distribution</span></div>
-          <div class="chart-box"><canvas id="bikeSpeedDistChart"></canvas></div>
-          <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">How much time you spend at each speed zone. Bars to the right mean faster riding. A broad distribution indicates varied training intensity.</p>
+    <!-- ACWR -->
+    <div class="card" id="bikeAcwrSection" style="display:none;margin-bottom:20px;">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+        <span>Acute:Chronic Workload Ratio (ACWR)</span>
+        <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">sweet spot 0.8–2.2</span>
+      </div>
+      <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+      <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
+      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
+        ACWR compares your last 7 days of load (km) against your 28-day average.
+        <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
+        <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
+        <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
+        <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+      </p>
+    </div>
+
+    <!-- TWO COL: Speed Zones + HR Zones -->
+    <div class="two-col" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title"><span>Speed Zones</span></div>
+        <div id="bikeSpeedZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
         </div>
       </div>
-      <div>
-        <div class="card" id="bikeAcwrSection" style="display:none;">
-          <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
-            <span>Acute:Chronic Workload Ratio (ACWR)</span>
-            <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">sweet spot 0.8–2.2</span>
-          </div>
-          <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
-          <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
-          <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-            ACWR compares your last 7 days of load (km) against your 28-day average.
-            <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
-            <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
-            <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
-            <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
-          </p>
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span>HR Zones</span>
+          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+            Max HR:
+            <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
+              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
+              oninput="renderBikeHrZones(allBikes)">
+          </span>
+        </div>
+        <div id="bikeHrZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
         </div>
       </div>
     </div>
 
     <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
-    <div class="card" id="bikeFitnessSection" style="display:none;margin-top:20px;margin-bottom:20px;">
+    <div class="card" id="bikeFitnessSection" style="display:none;margin-bottom:20px;">
       <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
@@ -840,20 +833,51 @@ td b{ font-family:var(--font-mono); }
       </p>
     </div>
 
-    <!-- HISTORY TABLE -->
-    <div class="card" style="margin-top:20px;">
+    <!-- RIDE LOG -->
+    <div class="card" style="margin-bottom:20px;">
       <div class="card-title"><span>Ride Log</span></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
+        <div class="filter-group">
+          <div class="filter-label">From</div>
+          <input type="date" class="filter-input" id="bikeLogDateFrom" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">To</div>
+          <input type="date" class="filter-input" id="bikeLogDateTo" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Min Dist (km)</div>
+          <input type="number" class="filter-input" id="bikeLogDistMin" placeholder="0" step="1" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Max Dist (km)</div>
+          <input type="number" class="filter-input" id="bikeLogDistMax" placeholder="999" step="1" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Min Speed (km/h)</div>
+          <input type="number" class="filter-input" id="bikeLogSpeedMin" placeholder="0" step="0.5" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Min BPM</div>
+          <input type="number" class="filter-input" id="bikeLogBpmMin" placeholder="0" oninput="filterBikeTable()">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Max BPM</div>
+          <input type="number" class="filter-input" id="bikeLogBpmMax" placeholder="220" oninput="filterBikeTable()">
+        </div>
+        <button class="btn-reset" onclick="clearBikeLogFilters()" style="margin-bottom:0;">Clear</button>
+      </div>
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
               <th>Date</th><th>Distance</th><th>Duration</th>
               <th>Avg Speed</th><th>BPM</th><th>Cadence</th>
-              <th>Calories</th><th>Source</th>
+              <th>Calories</th>
             </tr>
           </thead>
           <tbody id="bikeTable">
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
               No rides loaded. Connect Google Drive to get started.
             </td></tr>
           </tbody>
@@ -1618,9 +1642,6 @@ function renderTable(data) {
   data.forEach(r => {
     const pace = r.paceSecPerKm ? paceStr(r.paceSecPerKm) : '—';
     const bestPace = r.bestSplitPace ? paceStr(r.bestSplitPace) : '—';
-    const srcBadge = r.source === 'FIT'
-      ? `<span class="badge badge-fit">FIT</span>`
-      : `<span class="badge badge-gpx">GPX</span>`;
     tbody.innerHTML += `
     <tr>
       <td style="font-family:var(--font-mono)">${r.date}</td>
@@ -1633,7 +1654,6 @@ function renderTable(data) {
       <td>${r.power !== null ? r.power + ' W' : nd()}</td>
       <td>${r.vertOsc !== null ? r.vertOsc + ' mm' : nd()}</td>
       <td><span class="badge badge-shoe">${r.shoe}</span></td>
-      <td>${srcBadge}</td>
     </tr>`;
   });
 }
@@ -2016,13 +2036,51 @@ function renderBikeTab() {
 
   renderBikeTrendChart(data);
   renderBikeTabPredictions(data);
+  renderBikeSpeedZones(data);
   renderBikeHrZones(data);
-  renderBikeSpeedDist(data);
   renderBikeAcwr(data);
   renderFitnessChart(data, 'cycling');
   renderPolarizedChart(data, 'cycling');
   renderPersonalRecords(data, 'cycling');
   renderBikeTable(data);
+}
+
+/* BIKE: SPEED ZONES */
+function renderBikeSpeedZones(data) {
+  const zones = [
+    { label: 'Fast',      min: 30,  max: 9999, color: '#ff9100', desc: '> 30 km/h · Race pace, high intensity sprints' },
+    { label: 'Threshold', min: 28,  max: 30,   color: '#ffea00', desc: '28–30 km/h · Sustained power, FTP zone' },
+    { label: 'Aerobic',   min: 24,  max: 28,   color: '#00e676', desc: '24–28 km/h · Endurance base, long rides' },
+    { label: 'Easy',      min: 0,   max: 24,   color: '#5a6a7a', desc: '< 24 km/h · Recovery, warm-up, cool-down' },
+  ];
+  const ridesWithSpeed = data.filter(r => r.durationSec > 0 && r.distance > 0);
+  if(!ridesWithSpeed.length) {
+    document.getElementById('bikeSpeedZoneContainer').innerHTML =
+      '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">No data available.</p>';
+    return;
+  }
+  const speeds = ridesWithSpeed.map(r => r.distance / (r.durationSec / 3600));
+  const total = speeds.length;
+  const counts = zones.map(z => speeds.filter(s => s >= z.min && s < z.max).length);
+  const maxCount = Math.max(...counts);
+
+  let html = '<div class="pace-zones">';
+  zones.forEach((z, i) => {
+    const pct = total ? (counts[i]/total*100).toFixed(0) : 0;
+    const barW = maxCount ? (counts[i]/maxCount*100) : 0;
+    html += `
+    <div class="pz-row" style="flex-direction:column;align-items:stretch;gap:4px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pz-dot" style="background:${z.color}"></span>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${z.color};text-transform:uppercase;letter-spacing:.5px">${z.label}</span>
+        <div class="pz-bar-wrap" style="flex:1"><div class="pz-bar" style="width:${barW}%;background:${z.color}"></div></div>
+        <span class="pz-val">${pct}%</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);padding-left:18px;line-height:1.4">${z.desc}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('bikeSpeedZoneContainer').innerHTML = html;
 }
 
 /* BIKE: HR ZONES */
@@ -2289,14 +2347,13 @@ function renderBikeAcwr(data) {
 }
 
 /* BIKE: TABLE */
+let lastBikeTableData = [];
 function renderBikeTable(data) {
+  lastBikeTableData = data;
   const tbody = document.getElementById('bikeTable');
   tbody.innerHTML = '';
   data.forEach(r => {
     const speed = r.durationSec > 0 ? (r.distance / (r.durationSec / 3600)).toFixed(1) + ' km/h' : '—';
-    const srcBadge = r.source === 'FIT'
-      ? `<span class="badge badge-fit">FIT</span>`
-      : `<span class="badge badge-gpx">GPX</span>`;
     tbody.innerHTML += `
     <tr>
       <td style="font-family:var(--font-mono)">${r.date}</td>
@@ -2306,9 +2363,57 @@ function renderBikeTable(data) {
       <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
       <td>${r.cad !== null ? r.cad + ' rpm' : nd()}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
-      <td>${srcBadge}</td>
     </tr>`;
   });
+}
+
+function filterBikeTable() {
+  if(!lastBikeTableData.length) return;
+  const from     = document.getElementById('bikeLogDateFrom').value;
+  const to       = document.getElementById('bikeLogDateTo').value;
+  const distMin  = parseFloat(document.getElementById('bikeLogDistMin').value) || 0;
+  const distMax  = parseFloat(document.getElementById('bikeLogDistMax').value) || 99999;
+  const speedMin = parseFloat(document.getElementById('bikeLogSpeedMin').value) || 0;
+  const bpmMin   = parseInt(document.getElementById('bikeLogBpmMin').value) || 0;
+  const bpmMax   = parseInt(document.getElementById('bikeLogBpmMax').value) || 999;
+
+  const filtered = lastBikeTableData.filter(r => {
+    if(from && r.date < from) return false;
+    if(to && r.date > to) return false;
+    if(r.distance < distMin || r.distance > distMax) return false;
+    if(r.durationSec > 0) {
+      const spd = r.distance / (r.durationSec / 3600);
+      if(spd < speedMin) return false;
+    }
+    if(r.hr && (r.hr < bpmMin || r.hr > bpmMax)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('bikeTable');
+  tbody.innerHTML = '';
+  filtered.forEach(r => {
+    const speed = r.durationSec > 0 ? (r.distance / (r.durationSec / 3600)).toFixed(1) + ' km/h' : '—';
+    tbody.innerHTML += `
+    <tr>
+      <td style="font-family:var(--font-mono)">${r.date}</td>
+      <td><b>${r.distance} km</b></td>
+      <td style="font-family:var(--font-mono)">${r.duration}</td>
+      <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
+      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.cad !== null ? r.cad + ' rpm' : nd()}</td>
+      <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
+    </tr>`;
+  });
+}
+
+function clearBikeLogFilters() {
+  document.getElementById('bikeLogDateFrom').value = '';
+  document.getElementById('bikeLogDateTo').value = '';
+  document.getElementById('bikeLogDistMin').value = '';
+  document.getElementById('bikeLogDistMax').value = '';
+  document.getElementById('bikeLogSpeedMin').value = '';
+  document.getElementById('bikeLogBpmMin').value = '';
+  document.getElementById('bikeLogBpmMax').value = '';
+  renderBikeTable(lastBikeTableData);
 }
 
 function renderHomePage() {
