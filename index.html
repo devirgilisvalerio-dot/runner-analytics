@@ -107,8 +107,9 @@ body::before{
   display:none;
 }
 .filter-row{
-  display:flex; gap:20px; align-items:flex-end; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  display:flex; gap:16px; align-items:flex-end; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap;
 }
+.filter-row .filter-group{ flex-shrink:0; }
 .filter-group{
   display:flex; flex-direction:column; gap:6px;
 }
@@ -517,7 +518,7 @@ td b{ font-family:var(--font-mono); }
       <div class="filter-group">
         <div class="filter-label">Year</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">< 2025</div>
+          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">&lt;2025</div>
           <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
           <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
           <input type="number" class="filter-input" id="runFilterYearCustom" placeholder="Year" min="2020" max="2030" style="width:70px;" oninput="applyFilters()">
@@ -526,9 +527,9 @@ td b{ font-family:var(--font-mono); }
       <div class="filter-group">
         <div class="filter-label">Distance (km)</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <div class="shoe-chip active" data-dist="short" onclick="toggleFilterChip(this)">≤ 10k</div>
-          <div class="shoe-chip active" data-dist="mid" onclick="toggleFilterChip(this)">10k – 20k</div>
-          <div class="shoe-chip active" data-dist="long" onclick="toggleFilterChip(this)">≥ 20k</div>
+          <div class="shoe-chip active" data-dist="short" onclick="toggleFilterChip(this)">≤10k</div>
+          <div class="shoe-chip active" data-dist="mid" onclick="toggleFilterChip(this)">10k–20k</div>
+          <div class="shoe-chip active" data-dist="long" onclick="toggleFilterChip(this)">≥20k</div>
           <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
           <input type="number" class="filter-input" id="runFilterDistMin" placeholder="Min" step="1" style="width:65px;" oninput="applyFilters()">
           <span style="color:var(--muted);font-size:12px;">–</span>
@@ -765,7 +766,7 @@ td b{ font-family:var(--font-mono); }
         <div class="filter-group">
           <div class="filter-label">Year</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <div class="shoe-chip active" data-bikeyear="pre2025" onclick="toggleBikeFilterChip(this)">< 2025</div>
+            <div class="shoe-chip active" data-bikeyear="pre2025" onclick="toggleBikeFilterChip(this)">&lt;2025</div>
             <div class="shoe-chip active" data-bikeyear="2025" onclick="toggleBikeFilterChip(this)">2025</div>
             <div class="shoe-chip active" data-bikeyear="2026" onclick="toggleBikeFilterChip(this)">2026</div>
             <input type="number" class="filter-input" id="bikeFilterYearCustom" placeholder="Year" min="2020" max="2030" style="width:70px;" oninput="applyBikeFilters()">
@@ -774,9 +775,9 @@ td b{ font-family:var(--font-mono); }
         <div class="filter-group">
           <div class="filter-label">Distance (km)</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <div class="shoe-chip active" data-bikedist="short" onclick="toggleBikeFilterChip(this)">≤ 40k</div>
-            <div class="shoe-chip active" data-bikedist="mid" onclick="toggleBikeFilterChip(this)">40k – 80k</div>
-            <div class="shoe-chip active" data-bikedist="long" onclick="toggleBikeFilterChip(this)">≥ 80k</div>
+            <div class="shoe-chip active" data-bikedist="short" onclick="toggleBikeFilterChip(this)">≤40k</div>
+            <div class="shoe-chip active" data-bikedist="mid" onclick="toggleBikeFilterChip(this)">40k–80k</div>
+            <div class="shoe-chip active" data-bikedist="long" onclick="toggleBikeFilterChip(this)">≥80k</div>
             <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
             <input type="number" class="filter-input" id="bikeFilterDistMin" placeholder="Min" step="1" style="width:65px;" oninput="applyBikeFilters()">
             <span style="color:var(--muted);font-size:12px;">–</span>
