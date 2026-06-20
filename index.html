@@ -513,7 +513,7 @@ td b{ font-family:var(--font-mono); }
         <button class="btn-reset" onclick="resetFilters()">Select All</button>
       </div>
     </div>
-    <div class="filter-row">
+    <div class="filter-row" style="align-items:flex-end;">
       <div class="filter-group">
         <div class="filter-label">Year</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -524,27 +524,27 @@ td b{ font-family:var(--font-mono); }
         </div>
       </div>
       <div class="filter-group">
-        <div class="filter-label">Distance</div>
+        <div class="filter-label">Distance (km)</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <div class="shoe-chip active" data-dist="short" onclick="toggleFilterChip(this)">≤ 10k</div>
           <div class="shoe-chip active" data-dist="mid" onclick="toggleFilterChip(this)">10k – 20k</div>
           <div class="shoe-chip active" data-dist="long" onclick="toggleFilterChip(this)">≥ 20k</div>
           <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
-          <input type="number" class="filter-input" id="runFilterDistMin" placeholder="Min km" step="1" style="width:70px;" oninput="applyFilters()">
+          <input type="number" class="filter-input" id="runFilterDistMin" placeholder="Min" step="1" style="width:65px;" oninput="applyFilters()">
           <span style="color:var(--muted);font-size:12px;">–</span>
-          <input type="number" class="filter-input" id="runFilterDistMax" placeholder="Max km" step="1" style="width:70px;" oninput="applyFilters()">
+          <input type="number" class="filter-input" id="runFilterDistMax" placeholder="Max" step="1" style="width:65px;" oninput="applyFilters()">
         </div>
       </div>
       <div class="filter-group">
         <div class="filter-label">Pace (min:sec /km)</div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <input type="number" class="filter-input" id="runFilterPaceMinM" placeholder="min" min="0" max="15" style="width:50px;" oninput="applyFilters()">
+          <input type="number" class="filter-input" id="runFilterPaceMinM" placeholder="min" min="0" max="15" style="width:60px;" oninput="applyFilters()">
           <span style="color:var(--muted);font-size:14px;">:</span>
-          <input type="number" class="filter-input" id="runFilterPaceMinS" placeholder="sec" min="0" max="59" style="width:50px;" oninput="applyFilters()">
-          <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin:0 4px;">to</span>
-          <input type="number" class="filter-input" id="runFilterPaceMaxM" placeholder="min" min="0" max="15" style="width:50px;" oninput="applyFilters()">
+          <input type="number" class="filter-input" id="runFilterPaceMinS" placeholder="sec" min="0" max="59" style="width:60px;" oninput="applyFilters()">
+          <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin:0 6px;">to</span>
+          <input type="number" class="filter-input" id="runFilterPaceMaxM" placeholder="min" min="0" max="15" style="width:60px;" oninput="applyFilters()">
           <span style="color:var(--muted);font-size:14px;">:</span>
-          <input type="number" class="filter-input" id="runFilterPaceMaxS" placeholder="sec" min="0" max="59" style="width:50px;" oninput="applyFilters()">
+          <input type="number" class="filter-input" id="runFilterPaceMaxS" placeholder="sec" min="0" max="59" style="width:60px;" oninput="applyFilters()">
         </div>
       </div>
       <div class="filter-group" id="shoeFilterGroup" style="display:none;">
@@ -761,7 +761,7 @@ td b{ font-family:var(--font-mono); }
           <button class="btn-reset" onclick="resetBikeFilters()">Select All</button>
         </div>
       </div>
-      <div class="filter-row">
+      <div class="filter-row" style="align-items:flex-end;">
         <div class="filter-group">
           <div class="filter-label">Year</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -772,24 +772,23 @@ td b{ font-family:var(--font-mono); }
           </div>
         </div>
         <div class="filter-group">
-          <div class="filter-label">Distance</div>
+          <div class="filter-label">Distance (km)</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <div class="shoe-chip active" data-bikedist="short" onclick="toggleBikeFilterChip(this)">≤ 40k</div>
             <div class="shoe-chip active" data-bikedist="mid" onclick="toggleBikeFilterChip(this)">40k – 80k</div>
             <div class="shoe-chip active" data-bikedist="long" onclick="toggleBikeFilterChip(this)">≥ 80k</div>
             <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
-            <input type="number" class="filter-input" id="bikeFilterDistMin" placeholder="Min km" step="1" style="width:70px;" oninput="applyBikeFilters()">
+            <input type="number" class="filter-input" id="bikeFilterDistMin" placeholder="Min" step="1" style="width:65px;" oninput="applyBikeFilters()">
             <span style="color:var(--muted);font-size:12px;">–</span>
-            <input type="number" class="filter-input" id="bikeFilterDistMax" placeholder="Max km" step="1" style="width:70px;" oninput="applyBikeFilters()">
+            <input type="number" class="filter-input" id="bikeFilterDistMax" placeholder="Max" step="1" style="width:65px;" oninput="applyBikeFilters()">
           </div>
         </div>
         <div class="filter-group">
           <div class="filter-label">Avg Speed (km/h)</div>
           <div style="display:flex;gap:6px;align-items:center;">
-            <input type="number" class="filter-input" id="bikeFilterSpeedMin" placeholder="Min" min="0" max="60" step="0.5" style="width:65px;" oninput="applyBikeFilters()">
-            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;">to</span>
-            <input type="number" class="filter-input" id="bikeFilterSpeedMax" placeholder="Max" min="0" max="60" step="0.5" style="width:65px;" oninput="applyBikeFilters()">
-            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">km/h</span>
+            <input type="number" class="filter-input" id="bikeFilterSpeedMin" placeholder="Min" min="0" max="60" step="0.5" style="width:80px;" oninput="applyBikeFilters()">
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin:0 6px;">to</span>
+            <input type="number" class="filter-input" id="bikeFilterSpeedMax" placeholder="Max" min="0" max="60" step="0.5" style="width:80px;" oninput="applyBikeFilters()">
           </div>
         </div>
       </div>
