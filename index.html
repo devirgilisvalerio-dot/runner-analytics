@@ -1628,7 +1628,8 @@ function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts
 
 function renderTrendChart(data) {
   destroyChart('trend');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 70);
+  const sorted = [...data].filter(r => r.paceSecPerKm && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
   if(sorted.length < 2) return;
 
   const paceVals = sorted.map(r => r.paceSecPerKm / 60);
@@ -2046,7 +2047,8 @@ function renderBikeHrZones(data) {
 /* BIKE: TREND CHART */
 function renderBikeTrendChart(data) {
   destroyChart('bikeTrend');
-  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 70);
+  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0 && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
   if(sorted.length < 2) return;
 
   const speedVals = sorted.map(r => r.distance / (r.durationSec / 3600));
@@ -2369,7 +2371,8 @@ function renderHomePage() {
 function renderHomeTrendChart(canvasId, chartKey, data) {
   destroyChart(chartKey);
   const canvas = document.getElementById(canvasId);
-  const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 70);
+  const sorted = [...data].filter(r => (r.paceSecPerKm || r.durationSec) && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
   if(sorted.length < 2) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
