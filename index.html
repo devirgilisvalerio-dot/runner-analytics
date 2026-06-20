@@ -518,7 +518,6 @@ td b{ font-family:var(--font-mono); }
       <div class="filter-group">
         <div class="filter-label">Year</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">&lt;2025</div>
           <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
           <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
           <input type="number" class="filter-input" id="runFilterYearCustom" placeholder="Year" min="2020" max="2030" style="width:70px;" oninput="applyFilters()">
@@ -557,7 +556,7 @@ td b{ font-family:var(--font-mono); }
 
   <!-- TREND PERFORMANCE -->
   <div class="card" style="margin-bottom:20px;">
-    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 weeks</span></div>
+    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 activities</span></div>
     <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
     <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -797,7 +796,7 @@ td b{ font-family:var(--font-mono); }
 
     <!-- TREND PERFORMANCE -->
     <div class="card" style="margin-top:20px;margin-bottom:20px;">
-      <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 weeks</span></div>
+      <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 activities</span></div>
       <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
       <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -1769,8 +1768,7 @@ function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts
 
 function renderTrendChart(data) {
   destroyChart('trend');
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 105);
-  const sorted = [...data].filter(r => r.paceSecPerKm && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
   if(sorted.length < 2) return;
 
   const paceVals = sorted.map(r => r.paceSecPerKm / 60);
@@ -2313,8 +2311,7 @@ function renderBikeHrZones(data) {
 /* BIKE: TREND CHART */
 function renderBikeTrendChart(data) {
   destroyChart('bikeTrend');
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 105);
-  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0 && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
   if(sorted.length < 2) return;
 
   const speedVals = sorted.map(r => r.distance / (r.durationSec / 3600));
@@ -2684,8 +2681,7 @@ function renderHomePage() {
 function renderHomeTrendChart(canvasId, chartKey, data) {
   destroyChart(chartKey);
   const canvas = document.getElementById(canvasId);
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 105);
-  const sorted = [...data].filter(r => (r.paceSecPerKm || r.durationSec) && new Date(r.date) >= cutoff).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
   if(sorted.length < 2) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
