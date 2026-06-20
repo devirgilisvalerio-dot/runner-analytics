@@ -516,18 +516,35 @@ td b{ font-family:var(--font-mono); }
     <div class="filter-row">
       <div class="filter-group">
         <div class="filter-label">Year</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <div class="shoe-chip active" data-year="pre2025" onclick="toggleFilterChip(this)">< 2025</div>
           <div class="shoe-chip active" data-year="2025" onclick="toggleFilterChip(this)">2025</div>
           <div class="shoe-chip active" data-year="2026" onclick="toggleFilterChip(this)">2026</div>
+          <input type="number" class="filter-input" id="runFilterYearCustom" placeholder="Year" min="2020" max="2030" style="width:70px;" oninput="applyFilters()">
         </div>
       </div>
       <div class="filter-group">
         <div class="filter-label">Distance</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <div class="shoe-chip active" data-dist="short" onclick="toggleFilterChip(this)">≤ 10k</div>
           <div class="shoe-chip active" data-dist="mid" onclick="toggleFilterChip(this)">10k – 20k</div>
           <div class="shoe-chip active" data-dist="long" onclick="toggleFilterChip(this)">≥ 20k</div>
+          <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
+          <input type="number" class="filter-input" id="runFilterDistMin" placeholder="Min km" step="1" style="width:70px;" oninput="applyFilters()">
+          <span style="color:var(--muted);font-size:12px;">–</span>
+          <input type="number" class="filter-input" id="runFilterDistMax" placeholder="Max km" step="1" style="width:70px;" oninput="applyFilters()">
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Pace (min:sec /km)</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="number" class="filter-input" id="runFilterPaceMinM" placeholder="min" min="0" max="15" style="width:50px;" oninput="applyFilters()">
+          <span style="color:var(--muted);font-size:14px;">:</span>
+          <input type="number" class="filter-input" id="runFilterPaceMinS" placeholder="sec" min="0" max="59" style="width:50px;" oninput="applyFilters()">
+          <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin:0 4px;">to</span>
+          <input type="number" class="filter-input" id="runFilterPaceMaxM" placeholder="min" min="0" max="15" style="width:50px;" oninput="applyFilters()">
+          <span style="color:var(--muted);font-size:14px;">:</span>
+          <input type="number" class="filter-input" id="runFilterPaceMaxS" placeholder="sec" min="0" max="59" style="width:50px;" oninput="applyFilters()">
         </div>
       </div>
       <div class="filter-group" id="shoeFilterGroup" style="display:none;">
@@ -730,6 +747,52 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
+    </div>
+
+    <!-- BIKE FILTERS -->
+    <div class="filter-panel" id="bikeFilterPanel" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
+          <span id="bikeFilterBadge" class="filter-badge" style="display:none;">0 of 0</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-reset" onclick="clearAllBikeFilters()">Clear All</button>
+          <button class="btn-reset" onclick="resetBikeFilters()">Select All</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-group">
+          <div class="filter-label">Year</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <div class="shoe-chip active" data-bikeyear="pre2025" onclick="toggleBikeFilterChip(this)">< 2025</div>
+            <div class="shoe-chip active" data-bikeyear="2025" onclick="toggleBikeFilterChip(this)">2025</div>
+            <div class="shoe-chip active" data-bikeyear="2026" onclick="toggleBikeFilterChip(this)">2026</div>
+            <input type="number" class="filter-input" id="bikeFilterYearCustom" placeholder="Year" min="2020" max="2030" style="width:70px;" oninput="applyBikeFilters()">
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Distance</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <div class="shoe-chip active" data-bikedist="short" onclick="toggleBikeFilterChip(this)">≤ 40k</div>
+            <div class="shoe-chip active" data-bikedist="mid" onclick="toggleBikeFilterChip(this)">40k – 80k</div>
+            <div class="shoe-chip active" data-bikedist="long" onclick="toggleBikeFilterChip(this)">≥ 80k</div>
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">or</span>
+            <input type="number" class="filter-input" id="bikeFilterDistMin" placeholder="Min km" step="1" style="width:70px;" oninput="applyBikeFilters()">
+            <span style="color:var(--muted);font-size:12px;">–</span>
+            <input type="number" class="filter-input" id="bikeFilterDistMax" placeholder="Max km" step="1" style="width:70px;" oninput="applyBikeFilters()">
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Avg Speed (km/h)</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" class="filter-input" id="bikeFilterSpeedMin" placeholder="Min" min="0" max="60" step="0.5" style="width:65px;" oninput="applyBikeFilters()">
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;">to</span>
+            <input type="number" class="filter-input" id="bikeFilterSpeedMax" placeholder="Max" min="0" max="60" step="0.5" style="width:65px;" oninput="applyBikeFilters()">
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:12px;margin-left:4px;">km/h</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- TREND PERFORMANCE -->
@@ -1323,10 +1386,22 @@ function getFilteredRuns() {
   // Year chips
   const yearChips = document.querySelectorAll('[data-year]');
   const activeYears = [...yearChips].filter(c => c.classList.contains('active')).map(c => c.dataset.year);
+  const customYear = parseInt(document.getElementById('runFilterYearCustom').value) || 0;
 
   // Distance chips
   const distChips = document.querySelectorAll('[data-dist]');
   const activeDists = [...distChips].filter(c => c.classList.contains('active')).map(c => c.dataset.dist);
+  const customDistMin = parseFloat(document.getElementById('runFilterDistMin').value) || 0;
+  const customDistMax = parseFloat(document.getElementById('runFilterDistMax').value) || 0;
+  const hasCustomDist = customDistMin > 0 || customDistMax > 0;
+
+  // Pace filter
+  const paceMinM = parseInt(document.getElementById('runFilterPaceMinM').value) || 0;
+  const paceMinS = parseInt(document.getElementById('runFilterPaceMinS').value) || 0;
+  const paceMaxM = parseInt(document.getElementById('runFilterPaceMaxM').value) || 0;
+  const paceMaxS = parseInt(document.getElementById('runFilterPaceMaxS').value) || 0;
+  const paceMinSec = (paceMinM || paceMinS) ? paceMinM * 60 + paceMinS : 0;
+  const paceMaxSec = (paceMaxM || paceMaxS) ? paceMaxM * 60 + paceMaxS : 0;
 
   // Shoe chips
   const shoeChips = document.querySelectorAll('.shoe-chip[data-shoe]');
@@ -1336,8 +1411,10 @@ function getFilteredRuns() {
 
   return allRuns.filter(r => {
     // Year filter
-    if(yearChips.length) {
-      const year = parseInt(r.date.split('-')[0], 10);
+    const year = parseInt(r.date.split('-')[0], 10);
+    if(customYear > 0) {
+      if(year !== customYear) return false;
+    } else if(yearChips.length) {
       let yearMatch = false;
       if(activeYears.includes('pre2025') && year < 2025) yearMatch = true;
       if(activeYears.includes('2025') && year === 2025) yearMatch = true;
@@ -1346,13 +1423,20 @@ function getFilteredRuns() {
     }
 
     // Distance filter
-    if(distChips.length) {
+    if(hasCustomDist) {
+      if(customDistMin > 0 && r.distance < customDistMin) return false;
+      if(customDistMax > 0 && r.distance > customDistMax) return false;
+    } else if(distChips.length) {
       let distMatch = false;
       if(activeDists.includes('short') && r.distance <= 10) distMatch = true;
       if(activeDists.includes('mid') && r.distance > 10 && r.distance < 20) distMatch = true;
       if(activeDists.includes('long') && r.distance >= 20) distMatch = true;
       if(!distMatch) return false;
     }
+
+    // Pace filter
+    if(paceMinSec > 0 && r.paceSecPerKm && r.paceSecPerKm < paceMinSec) return false;
+    if(paceMaxSec > 0 && r.paceSecPerKm && r.paceSecPerKm > paceMaxSec) return false;
 
     // Shoe filter
     if(activeShoes && activeShoes.length === 0) return false;
@@ -1393,12 +1477,26 @@ function updateFilterBadge(count) {
 }
 
 function resetFilters() {
-  document.querySelectorAll('.shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.add('active'));
+  document.querySelectorAll('#filterPanel .shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.add('active'));
+  document.getElementById('runFilterYearCustom').value = '';
+  document.getElementById('runFilterDistMin').value = '';
+  document.getElementById('runFilterDistMax').value = '';
+  document.getElementById('runFilterPaceMinM').value = '';
+  document.getElementById('runFilterPaceMinS').value = '';
+  document.getElementById('runFilterPaceMaxM').value = '';
+  document.getElementById('runFilterPaceMaxS').value = '';
   applyFilters();
 }
 
 function clearAllFilters() {
-  document.querySelectorAll('.shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#filterPanel .shoe-chip, [data-year], [data-dist]').forEach(c => c.classList.remove('active'));
+  document.getElementById('runFilterYearCustom').value = '';
+  document.getElementById('runFilterDistMin').value = '';
+  document.getElementById('runFilterDistMax').value = '';
+  document.getElementById('runFilterPaceMinM').value = '';
+  document.getElementById('runFilterPaceMinS').value = '';
+  document.getElementById('runFilterPaceMaxM').value = '';
+  document.getElementById('runFilterPaceMaxS').value = '';
   applyFilters();
 }
 
@@ -2008,8 +2106,95 @@ function showPage(name) {
 }
 
 function renderBikeTab() {
-  const data = allBikes;
-  if(!data.length) return;
+  if(!allBikes.length) return;
+  document.getElementById('bikeFilterPanel').style.display = 'block';
+  applyBikeFilters();
+}
+
+function getFilteredBikes() {
+  const yearChips = document.querySelectorAll('[data-bikeyear]');
+  const activeYears = [...yearChips].filter(c => c.classList.contains('active')).map(c => c.dataset.bikeyear);
+  const customYear = parseInt(document.getElementById('bikeFilterYearCustom').value) || 0;
+
+  const distChips = document.querySelectorAll('[data-bikedist]');
+  const activeDists = [...distChips].filter(c => c.classList.contains('active')).map(c => c.dataset.bikedist);
+  const customDistMin = parseFloat(document.getElementById('bikeFilterDistMin').value) || 0;
+  const customDistMax = parseFloat(document.getElementById('bikeFilterDistMax').value) || 0;
+  const hasCustomDist = customDistMin > 0 || customDistMax > 0;
+
+  const speedMin = parseFloat(document.getElementById('bikeFilterSpeedMin').value) || 0;
+  const speedMax = parseFloat(document.getElementById('bikeFilterSpeedMax').value) || 0;
+
+  return allBikes.filter(r => {
+    const year = parseInt(r.date.split('-')[0], 10);
+    if(customYear > 0) {
+      if(year !== customYear) return false;
+    } else if(yearChips.length) {
+      let yearMatch = false;
+      if(activeYears.includes('pre2025') && year < 2025) yearMatch = true;
+      if(activeYears.includes('2025') && year === 2025) yearMatch = true;
+      if(activeYears.includes('2026') && year === 2026) yearMatch = true;
+      if(!yearMatch) return false;
+    }
+
+    if(hasCustomDist) {
+      if(customDistMin > 0 && r.distance < customDistMin) return false;
+      if(customDistMax > 0 && r.distance > customDistMax) return false;
+    } else if(distChips.length) {
+      let distMatch = false;
+      if(activeDists.includes('short') && r.distance <= 40) distMatch = true;
+      if(activeDists.includes('mid') && r.distance > 40 && r.distance < 80) distMatch = true;
+      if(activeDists.includes('long') && r.distance >= 80) distMatch = true;
+      if(!distMatch) return false;
+    }
+
+    if((speedMin > 0 || speedMax > 0) && r.durationSec > 0) {
+      const spd = r.distance / (r.durationSec / 3600);
+      if(speedMin > 0 && spd < speedMin) return false;
+      if(speedMax > 0 && spd > speedMax) return false;
+    }
+    return true;
+  });
+}
+
+function applyBikeFilters() {
+  if(!allBikes.length) return;
+  const filtered = getFilteredBikes();
+  const badge = document.getElementById('bikeFilterBadge');
+  badge.style.display = 'inline-flex';
+  badge.textContent = `${filtered.length} of ${allBikes.length} rides`;
+  badge.className = 'filter-badge' + (filtered.length < allBikes.length ? ' dimmed' : '');
+
+  if(!filtered.length) return;
+  renderBikeDashboard(filtered);
+}
+
+function toggleBikeFilterChip(el) {
+  el.classList.toggle('active');
+  applyBikeFilters();
+}
+
+function resetBikeFilters() {
+  document.querySelectorAll('[data-bikeyear], [data-bikedist]').forEach(c => c.classList.add('active'));
+  document.getElementById('bikeFilterYearCustom').value = '';
+  document.getElementById('bikeFilterDistMin').value = '';
+  document.getElementById('bikeFilterDistMax').value = '';
+  document.getElementById('bikeFilterSpeedMin').value = '';
+  document.getElementById('bikeFilterSpeedMax').value = '';
+  applyBikeFilters();
+}
+
+function clearAllBikeFilters() {
+  document.querySelectorAll('[data-bikeyear], [data-bikedist]').forEach(c => c.classList.remove('active'));
+  document.getElementById('bikeFilterYearCustom').value = '';
+  document.getElementById('bikeFilterDistMin').value = '';
+  document.getElementById('bikeFilterDistMax').value = '';
+  document.getElementById('bikeFilterSpeedMin').value = '';
+  document.getElementById('bikeFilterSpeedMax').value = '';
+  applyBikeFilters();
+}
+
+function renderBikeDashboard(data) {
   data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
   const totalKm  = data.reduce((s,r) => s + r.distance, 0);
