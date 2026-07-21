@@ -655,6 +655,12 @@ td b{ font-family:var(--font-mono); }
     </p>
   </div>
 
+  <!-- KM SPLITS -->
+  <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
+    <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
+    <div class="splits-grid" id="splitsGrid"></div>
+  </div>
+
   <!-- TWO COL: Pace Zones + HR Zones -->
   <div class="two-col" style="margin-bottom:20px;">
     <div class="card" style="margin-bottom:0;">
@@ -677,12 +683,6 @@ td b{ font-family:var(--font-mono); }
         <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
       </div>
     </div>
-  </div>
-
-  <!-- KM SPLITS -->
-  <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
-    <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
-    <div class="splits-grid" id="splitsGrid"></div>
   </div>
 
   <!-- TWO COL: Distribution + Efficiency -->
@@ -1721,7 +1721,7 @@ function renderAvgKmSplits(data) {
   }
 
   // Fixed pace-based color coding: < 5:25 green, 5:25–5:35 amber, > 5:35 red.
-  const paceClass = sec => sec < 325 ? 'pace-fast' : sec <= 335 ? 'pace-mid' : 'pace-slow';
+  const paceClass = sec => sec <= 325 ? 'pace-fast' : sec <= 335 ? 'pace-mid' : 'pace-slow';
 
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
