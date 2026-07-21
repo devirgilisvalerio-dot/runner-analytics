@@ -556,7 +556,7 @@ td b{ font-family:var(--font-mono); }
 
   <!-- TREND PERFORMANCE -->
   <div class="card" style="margin-bottom:20px;">
-    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 activities</span></div>
+    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 12 activities</span></div>
     <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
     <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -645,10 +645,10 @@ td b{ font-family:var(--font-mono); }
       <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z1–Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+      Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
       <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
-      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed. Avoid spending more than 5–10% here.<br>
-      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work, VO2max. This is where speed improves.
+      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here.<br>
+      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work. This is where speed improves.
     </p>
   </div>
 
@@ -657,7 +657,7 @@ td b{ font-family:var(--font-mono); }
     <div class="card-title"><span>Personal Records</span></div>
     <div id="runPRContainer"></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Your fastest verified times at key distances. PRs are extracted from your actual GPS data — a new record appears when you run a distance faster than ever before. If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
+      Your fastest verified times at key distances (PRs). If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
     </p>
   </div>
 
@@ -1574,10 +1574,10 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 295,  color: '#ff9100', desc: '< 4:55 · Race pace 5–10 km, high intensity' },
-    { label: 'Threshold', min: 295, max: 315,  color: '#ffea00', desc: '4:55–5:15 · Half-marathon target pace, lactate threshold' },
-    { label: 'Aerobic',   min: 315, max: 350,  color: '#00e676', desc: '5:15–5:50 · Long run, marathon pace, fat-burning zone' },
-    { label: 'Easy',      min: 350, max: 9999, color: '#5a6a7a', desc: '> 5:50 · Warm-up, cool-down, recovery runs' },
+    { label: 'Fast',      min: 0,   max: 295,  color: '#ff9100', desc: '< 4:55 · high intensity' },
+    { label: 'Threshold', min: 295, max: 325,  color: '#ffea00', desc: '4:55–5:25 · Half-marathon target pace' },
+    { label: 'Aerobic',   min: 325, max: 360,  color: '#00e676', desc: '5:25–6:00 · Long run, marathon pace, fat-burning zone' },
+    { label: 'Easy',      min: 360, max: 9999, color: '#5a6a7a', desc: '> 6:00 · Recovery runs' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
   if(!allSplits.length) return;
@@ -1614,7 +1614,7 @@ function renderHrZones(data) {
     { label: 'Z2 Aerobic',   min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, fat burning, long runs' },
     { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Comfortable hard, improves efficiency' },
     { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · Lactate threshold, race pace work' },
-    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · VO2 max intervals, short bursts' },
+    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · Short bursts' },
   ];
 
   const runsWithHr = data.filter(r => r.hr && r.hr > 0);
@@ -1768,7 +1768,7 @@ function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts
 
 function renderTrendChart(data) {
   destroyChart('trend');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
+  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-12);
   if(sorted.length < 2) return;
 
   const paceVals = sorted.map(r => r.paceSecPerKm / 60);
@@ -1989,7 +1989,7 @@ function renderAcwr(data) {
     allDates.push(d.toISOString().split('T')[0]);
   }
 
-  const CHART_DAYS = 90;
+  const CHART_DAYS = 60;
   const chartDates = allDates.slice(-CHART_DAYS);
 
   const acwrPoints = [];
@@ -2681,7 +2681,7 @@ function renderHomePage() {
 function renderHomeTrendChart(canvasId, chartKey, data) {
   destroyChart(chartKey);
   const canvas = document.getElementById(canvasId);
-  const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
+  const sorted = [...data].filter(r => r.paceSecPerKm || r.durationSec).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-12);
   if(sorted.length < 2) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2767,7 +2767,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
   for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
     allDates.push(d.toLocaleDateString('en-CA'));
 
-  const chartDates = allDates.slice(-60);
+  const chartDates = allDates.slice(-45);
   const acwrPoints = [];
   chartDates.forEach(dateStr => {
     const idx = allDates.indexOf(dateStr);
@@ -2874,13 +2874,13 @@ function renderFitnessChart(data, sport) {
 
   let ctl = 0, atl = 0;
   const ctlArr = [], atlArr = [], tsbArr = [];
-  const chartDates = allDates.slice(-120);
+  const chartDates = allDates.slice(-90);
 
   allDates.forEach((d, i) => {
     const trimp = trimpByDay[d] || 0;
     ctl = ctl * (1 - ctlDecay) + trimp * ctlDecay;
     atl = atl * (1 - atlDecay) + trimp * atlDecay;
-    if(i >= allDates.length - 120) {
+    if(i >= allDates.length - 90) {
       ctlArr.push(parseFloat(ctl.toFixed(1)));
       atlArr.push(parseFloat(atl.toFixed(1)));
       tsbArr.push(parseFloat((ctl - atl).toFixed(1)));
