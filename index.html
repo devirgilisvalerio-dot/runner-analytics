@@ -138,6 +138,15 @@ body::before{
   border-color:var(--purple); color:var(--purple);
   background:rgba(191,64,255,0.08);
 }
+/* compact per-chart window controls (Trend / ACWR) */
+.mini-filter{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:2px 0 16px; font-family:var(--font-mono); }
+.mini-filter-label{ color:var(--muted); font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-right:2px; }
+.mini-chip{ cursor:pointer; font-size:12px; color:var(--muted2); background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:4px 11px; transition:all 0.15s; user-select:none; }
+.mini-chip:hover{ border-color:var(--accent); color:var(--accent); }
+.mini-chip.active{ border-color:var(--accent); color:var(--accent); background:rgba(0,229,255,0.08); }
+.mini-input{ width:66px; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--font-mono); font-size:12px; padding:4px 8px; outline:none; color-scheme:dark; }
+.mini-input:focus{ border-color:var(--accent); }
+.mini-note{ color:var(--muted); font-size:12px; margin-left:6px; }
 .filter-badge{
   display:inline-flex; align-items:center;
   background:rgba(0,229,255,0.08); border:1px solid var(--accent);
@@ -556,7 +565,8 @@ td b{ font-family:var(--font-mono); }
 
   <!-- TREND PERFORMANCE -->
   <div class="card" style="margin-bottom:20px;">
-    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 12 activities</span></div>
+    <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— most recent activities</span></div>
+    <div class="mini-filter" id="trendControlsRun"></div>
     <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
     <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -580,6 +590,7 @@ td b{ font-family:var(--font-mono); }
       <span>Acute:Chronic Workload Ratio (ACWR)</span>
       <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">sweet spot 0.8–1.3</span>
     </div>
+    <div class="mini-filter" id="acwrControlsRun"></div>
     <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
@@ -645,7 +656,7 @@ td b{ font-family:var(--font-mono); }
       <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+      Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
       <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
       <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here.<br>
       <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work. This is where speed improves.
@@ -796,7 +807,8 @@ td b{ font-family:var(--font-mono); }
 
     <!-- TREND PERFORMANCE -->
     <div class="card" style="margin-top:20px;margin-bottom:20px;">
-      <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— last 15 activities</span></div>
+      <div class="card-title"><span>Trend Performance</span> <span style="color:var(--muted);font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— most recent activities</span></div>
+      <div class="mini-filter" id="trendControlsBike"></div>
       <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
       <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
@@ -820,6 +832,7 @@ td b{ font-family:var(--font-mono); }
         <span>Acute:Chronic Workload Ratio (ACWR)</span>
         <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">sweet spot 0.8–2.2</span>
       </div>
+      <div class="mini-filter" id="acwrControlsBike"></div>
       <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
@@ -879,7 +892,7 @@ td b{ font-family:var(--font-mono); }
         <div id="bikePolarizedDetails" style="flex:1;min-width:200px;"></div>
       </div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Research shows elite endurance athletes follow the <b style="color:var(--text)">80/20 rule</b>: ~80% of training at low intensity (Z1–Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+        Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
         <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
         <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed.<br>
         <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. High-intensity intervals, threshold efforts.
@@ -1197,6 +1210,15 @@ let charts = {};
 let allRuns = [];
 let allBikes = [];
 let lastRenderedData = [];
+let lastBikeRenderedData = [];
+
+/* Shared windows for Trend Performance (activity count) and ACWR (day count).
+   Both Running and Cycling read the SAME values so the two tabs always show the
+   same slice. 0 / 'all' means "all activities". Presets are defined once here. */
+let TREND_N = 12;   // number of most-recent activities in Trend Performance
+let ACWR_DAYS = 60; // number of days shown in the ACWR chart
+const TREND_PRESETS = [8, 12, 20, 0];      // 0 = All
+const ACWR_PRESETS  = [30, 60, 90, 180];
 
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
@@ -1655,27 +1677,36 @@ function renderHrZones(data) {
 /* AVERAGE KM SPLITS */
 function renderAvgKmSplits(data) {
   const MAX_KM = 20;
+  // Median instead of mean: robust to a single paused/stopped run inflating a
+  // km split. Matters most for high-km cells with few samples, where one bad
+  // split (raw wall-clock time includes stops) would otherwise skew the average.
+  const median = arr => {
+    if(!arr.length) return null;
+    const s = [...arr].sort((a,b) => a - b);
+    const mid = Math.floor(s.length / 2);
+    return s.length % 2 ? s[mid] : (s[mid-1] + s[mid]) / 2;
+  };
+
   const byKm = {};
   data.forEach(r => {
     if(!r.kmSplits) return;
     r.kmSplits.forEach(s => {
       if(s.km > MAX_KM) return;
-      if(!byKm[s.km]) byKm[s.km] = { paceSum: 0, paceCount: 0, hrSum: 0, hrCount: 0 };
-      byKm[s.km].paceSum   += s.paceSec;
-      byKm[s.km].paceCount += 1;
-      if(s.hr){ byKm[s.km].hrSum += s.hr; byKm[s.km].hrCount += 1; }
+      if(!byKm[s.km]) byKm[s.km] = { paces: [], hrs: [] };
+      byKm[s.km].paces.push(s.paceSec);
+      if(s.hr) byKm[s.km].hrs.push(s.hr);
     });
   });
 
   const avgs = [];
   for(let km = 1; km <= MAX_KM; km++) {
     const d = byKm[km];
-    if(!d || d.paceCount === 0) { avgs.push(null); continue; }
+    if(!d || d.paces.length === 0) { avgs.push(null); continue; }
     avgs.push({
       km,
-      avgPaceSec: Math.round(d.paceSum / d.paceCount),
-      avgHr: d.hrCount ? Math.round(d.hrSum / d.hrCount) : null,
-      count: d.paceCount
+      avgPaceSec: Math.round(median(d.paces)),
+      avgHr: d.hrs.length ? Math.round(median(d.hrs)) : null,
+      count: d.paces.length
     });
   }
 
@@ -1766,9 +1797,72 @@ const CHART_OPTS = {
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
+/* ── SHARED TREND / ACWR WINDOW CONTROLS ──
+   One set of chips per card, but all bound to the shared TREND_N / ACWR_DAYS,
+   so Running and Cycling always show the same window. */
+function trendLabel(n){ return n > 0 ? String(n) : 'All'; }
+
+function buildTrendControls(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const chips = TREND_PRESETS.map(n =>
+    `<div class="mini-chip${n === TREND_N ? ' active' : ''}" onclick="setTrendN(${n})">${trendLabel(n)}</div>`
+  ).join('');
+  const customActive = !TREND_PRESETS.includes(TREND_N);
+  el.innerHTML =
+    `<span class="mini-filter-label">Activities</span>${chips}` +
+    `<input type="number" min="2" max="500" step="1" class="mini-input" placeholder="custom"` +
+      ` value="${customActive ? TREND_N : ''}" onchange="setTrendN(parseInt(this.value,10))"` +
+      ` oninput="this.value=this.value.replace(/[^0-9]/g,'')">` +
+    `<span class="mini-note" id="${containerId === 'trendControlsRun' ? 'trendNoteRun' : 'trendNoteBike'}"></span>`;
+}
+
+function buildAcwrControls(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const chips = ACWR_PRESETS.map(d =>
+    `<div class="mini-chip${d === ACWR_DAYS ? ' active' : ''}" onclick="setAcwrDays(${d})">${d}d</div>`
+  ).join('');
+  const customActive = !ACWR_PRESETS.includes(ACWR_DAYS);
+  el.innerHTML =
+    `<span class="mini-filter-label">Days</span>${chips}` +
+    `<input type="number" min="14" max="730" step="1" class="mini-input" placeholder="custom"` +
+      ` value="${customActive ? ACWR_DAYS : ''}" onchange="setAcwrDays(parseInt(this.value,10))"` +
+      ` oninput="this.value=this.value.replace(/[^0-9]/g,'')">` +
+    `<span class="mini-note" id="${containerId === 'acwrControlsRun' ? 'acwrNoteRun' : 'acwrNoteBike'}"></span>`;
+}
+
+function updateTrendNote(id, shown, total){
+  const el = document.getElementById(id);
+  if(el) el.textContent = `Showing ${shown} of ${total} activit${total === 1 ? 'y' : 'ies'}`;
+}
+function updateAcwrNote(id, days, activities){
+  const el = document.getElementById(id);
+  if(el) el.textContent = `Last ${days} day${days === 1 ? '' : 's'} · ${activities} activit${activities === 1 ? 'y' : 'ies'}`;
+}
+
+function setTrendN(n){
+  if(!Number.isFinite(n) || n < 0) return;
+  if(n !== 0 && n < 2) n = 2;
+  TREND_N = n;
+  ['trendControlsRun','trendControlsBike'].forEach(buildTrendControls);
+  if(lastRenderedData && lastRenderedData.length) renderTrendChart(lastRenderedData);
+  if(lastBikeRenderedData && lastBikeRenderedData.length) renderBikeTrendChart(lastBikeRenderedData);
+}
+function setAcwrDays(d){
+  if(!Number.isFinite(d) || d < 14) return;
+  ACWR_DAYS = d;
+  ['acwrControlsRun','acwrControlsBike'].forEach(buildAcwrControls);
+  if(lastRenderedData && lastRenderedData.length) renderAcwr(lastRenderedData);
+  if(lastBikeRenderedData && lastBikeRenderedData.length) renderBikeAcwr(lastBikeRenderedData);
+}
+
 function renderTrendChart(data) {
   destroyChart('trend');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-12);
+  buildTrendControls('trendControlsRun');
+  const all = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const sorted = TREND_N > 0 ? all.slice(-TREND_N) : all;
+  updateTrendNote('trendNoteRun', sorted.length, all.length);
   if(sorted.length < 2) return;
 
   const paceVals = sorted.map(r => r.paceSecPerKm / 60);
@@ -1976,6 +2070,7 @@ function renderBikePredictions(data) {
 
 function renderAcwr(data) {
   destroyChart('acwr');
+  buildAcwrControls('acwrControlsRun');
   if(!data || data.length < 2) { document.getElementById('acwrSection').style.display = 'none'; return; }
 
   const kmByDay = {};
@@ -1989,8 +2084,9 @@ function renderAcwr(data) {
     allDates.push(d.toISOString().split('T')[0]);
   }
 
-  const CHART_DAYS = 60;
+  const CHART_DAYS = ACWR_DAYS;
   const chartDates = allDates.slice(-CHART_DAYS);
+  updateAcwrNote('acwrNoteRun', chartDates.length, data.length);
 
   const acwrPoints = [];
   const acutePoints = [];
@@ -2194,6 +2290,7 @@ function clearAllBikeFilters() {
 
 function renderBikeDashboard(data) {
   data.sort((a,b) => new Date(b.date) - new Date(a.date));
+  lastBikeRenderedData = data;
 
   const totalKm  = data.reduce((s,r) => s + r.distance, 0);
   const totalSec = data.reduce((s,r) => s + (r.durationSec || 0), 0);
@@ -2311,7 +2408,10 @@ function renderBikeHrZones(data) {
 /* BIKE: TREND CHART */
 function renderBikeTrendChart(data) {
   destroyChart('bikeTrend');
-  const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-15);
+  buildTrendControls('trendControlsBike');
+  const all = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const sorted = TREND_N > 0 ? all.slice(-TREND_N) : all;
+  updateTrendNote('trendNoteBike', sorted.length, all.length);
   if(sorted.length < 2) return;
 
   const speedVals = sorted.map(r => r.distance / (r.durationSec / 3600));
@@ -2433,6 +2533,7 @@ function renderBikeSpeedDist(data) {
 /* BIKE: ACWR */
 function renderBikeAcwr(data) {
   destroyChart('bikeAcwrTab');
+  buildAcwrControls('acwrControlsBike');
   const SAFE_HI = 2.2;
   const DANGER_HI = 3.5;
 
@@ -2447,8 +2548,9 @@ function renderBikeAcwr(data) {
   for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
     allDates.push(d.toISOString().split('T')[0]);
 
-  const CHART_DAYS = 90;
+  const CHART_DAYS = ACWR_DAYS;
   const chartDates = allDates.slice(-CHART_DAYS);
+  updateAcwrNote('acwrNoteBike', chartDates.length, data.length);
   const acwrPoints = [], acutePoints = [], chronicPoints = [];
 
   chartDates.forEach(dateStr => {
