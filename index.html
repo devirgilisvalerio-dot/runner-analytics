@@ -142,10 +142,10 @@ body::before{
 .mini-filter{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:2px 0 16px; font-family:var(--font-mono); }
 .mini-filter-label{ color:var(--muted); font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-right:2px; }
 .mini-chip{ cursor:pointer; font-size:12px; color:var(--muted2); background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:4px 11px; transition:all 0.15s; user-select:none; }
-.mini-chip:hover{ border-color:var(--accent); color:var(--accent); }
-.mini-chip.active{ border-color:var(--accent); color:var(--accent); background:rgba(0,229,255,0.08); }
+.mini-chip:hover{ border-color:var(--purple); color:var(--purple); }
+.mini-chip.active{ border-color:var(--purple); color:var(--purple); background:rgba(191,64,255,0.08); }
 .mini-input{ width:66px; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--font-mono); font-size:12px; padding:4px 8px; outline:none; color-scheme:dark; }
-.mini-input:focus{ border-color:var(--accent); }
+.mini-input:focus{ border-color:var(--purple); }
 .mini-note{ color:var(--muted); font-size:12px; margin-left:6px; }
 .filter-badge{
   display:inline-flex; align-items:center;
@@ -237,6 +237,11 @@ body::before{
 .pace-fast{ color:var(--green); }
 .pace-mid{ color:#ffe566; }
 .pace-slow{ color:var(--red); }
+.split-tag{ font-size:10px; font-family:var(--font-mono); letter-spacing:.5px; margin-top:4px; }
+.split-highlight{ border-width:2px; }
+.split-highlight.highlight-pace-fast{ border-color:var(--green); box-shadow:0 0 0 1px var(--green), 0 0 12px rgba(0,230,118,0.25); }
+.split-highlight.highlight-pace-mid{ border-color:#ffe566; box-shadow:0 0 0 1px #ffe566, 0 0 12px rgba(255,229,102,0.25); }
+.split-highlight.highlight-pace-slow{ border-color:var(--red); box-shadow:0 0 0 1px var(--red), 0 0 12px rgba(255,61,87,0.25); }
 
 /* ── CHARTS ── */
 .chart-box{ height:280px; }
@@ -582,6 +587,13 @@ td b{ font-family:var(--font-mono); }
         <div id="predMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
       </div>
     </div>
+    <!-- SHOE ROTATION (moved under the trend predictions) -->
+    <div id="shoeSection" style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
+      <div class="card-title"><span>Shoe Rotation</span></div>
+      <div id="shoeContainer" style="display:flex;flex-direction:row;gap:14px;flex-wrap:wrap;">
+        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
+      </div>
+    </div>
   </div>
 
   <!-- ACWR -->
@@ -602,39 +614,10 @@ td b{ font-family:var(--font-mono); }
     </p>
   </div>
 
-  <!-- THREE COL: Pace Zones + HR Zones + Shoe Rotation -->
-  <div class="three-col" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
-    <div class="card" style="margin-bottom:0;">
-      <div class="card-title"><span>Pace Zones</span></div>
-      <div id="paceZoneContainer">
-        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:0;">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
-        <span>HR Zones</span>
-        <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
-          Max HR:
-          <input id="maxHrInput" type="number" value="187" min="140" max="220"
-            style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
-            oninput="renderHrZones(lastRenderedData)">
-        </span>
-      </div>
-      <div id="hrZoneContainer">
-        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
-      </div>
-    </div>
-    <div class="card" id="shoeSection" style="margin-bottom:0;">
-      <div class="card-title"><span>Shoe Rotation</span></div>
-      <div id="shoeContainer" style="display:flex;flex-direction:column;gap:14px;flex-wrap:wrap;">
-        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
-      </div>
-    </div>
-  </div>
-
   <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
   <div class="card" id="runFitnessSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
+    <div class="mini-filter" id="fitnessControlsRun"></div>
     <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
@@ -670,6 +653,30 @@ td b{ font-family:var(--font-mono); }
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
       Your fastest verified times at key distances (PRs). If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
     </p>
+  </div>
+
+  <!-- TWO COL: Pace Zones + HR Zones -->
+  <div class="two-col" style="margin-bottom:20px;">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title"><span>Pace Zones</span></div>
+      <div id="paceZoneContainer">
+        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+        <span>HR Zones</span>
+        <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+          Max HR:
+          <input id="maxHrInput" type="number" value="187" min="140" max="220"
+            style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
+            oninput="renderHrZones(lastRenderedData)">
+        </span>
+      </div>
+      <div id="hrZoneContainer">
+        <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+      </div>
+    </div>
   </div>
 
   <!-- KM SPLITS -->
@@ -844,33 +851,10 @@ td b{ font-family:var(--font-mono); }
       </p>
     </div>
 
-    <!-- TWO COL: Speed Zones + HR Zones -->
-    <div class="two-col" style="margin-bottom:20px;">
-      <div class="card">
-        <div class="card-title"><span>Speed Zones</span></div>
-        <div id="bikeSpeedZoneContainer">
-          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
-          <span>HR Zones</span>
-          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
-            Max HR:
-            <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
-              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
-              oninput="renderBikeHrZones(allBikes)">
-          </span>
-        </div>
-        <div id="bikeHrZoneContainer">
-          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
-        </div>
-      </div>
-    </div>
-
     <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
     <div class="card" id="bikeFitnessSection" style="display:none;margin-bottom:20px;">
       <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
+      <div class="mini-filter" id="fitnessControlsBike"></div>
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
@@ -906,6 +890,30 @@ td b{ font-family:var(--font-mono); }
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
         Your fastest verified times at key distances. PRs are extracted from your actual GPS data. If no new PRs appear for weeks, consider changing your training stimulus — more intervals, longer rides, or structured rest.
       </p>
+    </div>
+
+    <!-- TWO COL: Speed Zones + HR Zones -->
+    <div class="two-col" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title"><span>Speed Zones</span></div>
+        <div id="bikeSpeedZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span>HR Zones</span>
+          <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted);display:flex;align-items:center;gap:6px;">
+            Max HR:
+            <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
+              style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
+              oninput="renderBikeHrZones(allBikes)">
+          </span>
+        </div>
+        <div id="bikeHrZoneContainer">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to visualize.</p>
+        </div>
+      </div>
     </div>
 
     <!-- RIDE LOG -->
@@ -1217,8 +1225,10 @@ let lastBikeRenderedData = [];
    same slice. 0 / 'all' means "all activities". Presets are defined once here. */
 let TREND_N = 12;   // number of most-recent activities in Trend Performance
 let ACWR_DAYS = 60; // number of days shown in the ACWR chart
-const TREND_PRESETS = [8, 12, 20, 0];      // 0 = All
+const TREND_PRESETS = [8, 12, 15, 20, 0];  // 0 = All
 const ACWR_PRESETS  = [30, 60, 90, 180];
+let FITNESS_DAYS = 90;                      // days shown in Fitness/Fatigue/Form
+const FITNESS_PRESETS = [30, 60, 90, 180];
 
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
@@ -1710,9 +1720,12 @@ function renderAvgKmSplits(data) {
     });
   }
 
+  // Fixed pace-based color coding: < 5:25 green, 5:25–5:35 amber, > 5:35 red.
+  const paceClass = sec => sec < 325 ? 'pace-fast' : sec <= 335 ? 'pace-mid' : 'pace-slow';
+
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
-  const minP = validPaces.length ? Math.min(...validPaces) : 0;
-  const maxP = validPaces.length ? Math.max(...validPaces) : 0;
+  const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
+  const slowestPace = validPaces.length ? Math.max(...validPaces) : null;
 
   const grid = document.getElementById('splitsGrid');
   grid.innerHTML = avgs.map((a, i) => {
@@ -1722,14 +1735,18 @@ function renderAvgKmSplits(data) {
       <div class="split-pace" style="color:var(--muted)">—</div>
       <div class="split-hr" style="color:var(--muted2)">no data</div>
     </div>`;
-    const norm = maxP > minP ? (a.avgPaceSec - minP) / (maxP - minP) : 0.5;
-    const cls  = norm < 0.33 ? 'pace-fast' : norm < 0.66 ? 'pace-mid' : 'pace-slow';
+    const cls = paceClass(a.avgPaceSec);
+    // Highlight the fastest and slowest km, tinting the border/glow to match the cell's color code.
+    let highlight = '', tag = '';
+    if(a.avgPaceSec === fastestPace)      { highlight = ` split-highlight highlight-${cls}`; tag = '<div class="split-tag" style="color:var(--green)">▲ fastest</div>'; }
+    else if(a.avgPaceSec === slowestPace) { highlight = ` split-highlight highlight-${cls}`; tag = '<div class="split-tag" style="color:var(--red)">▼ slowest</div>'; }
     return `
-    <div class="split-cell">
+    <div class="split-cell${highlight}">
       <div class="split-km">KM ${a.km}</div>
       <div class="split-pace ${cls}">${paceStr(a.avgPaceSec)}</div>
       <div class="split-hr" style="color:var(--muted2)">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
       <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${a.count} run${a.count===1?'':'s'}</div>
+      ${tag}
     </div>`;
   }).join('');
 }
@@ -1830,6 +1847,32 @@ function buildAcwrControls(containerId){
       ` value="${customActive ? ACWR_DAYS : ''}" onchange="setAcwrDays(parseInt(this.value,10))"` +
       ` oninput="this.value=this.value.replace(/[^0-9]/g,'')">` +
     `<span class="mini-note" id="${containerId === 'acwrControlsRun' ? 'acwrNoteRun' : 'acwrNoteBike'}"></span>`;
+}
+
+function buildFitnessControls(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const chips = FITNESS_PRESETS.map(d =>
+    `<div class="mini-chip${d === FITNESS_DAYS ? ' active' : ''}" onclick="setFitnessDays(${d})">${d}d</div>`
+  ).join('');
+  const customActive = !FITNESS_PRESETS.includes(FITNESS_DAYS);
+  el.innerHTML =
+    `<span class="mini-filter-label">Days</span>${chips}` +
+    `<input type="number" min="14" max="730" step="1" class="mini-input" placeholder="custom"` +
+      ` value="${customActive ? FITNESS_DAYS : ''}" onchange="setFitnessDays(parseInt(this.value,10))"` +
+      ` oninput="this.value=this.value.replace(/[^0-9]/g,'')">` +
+    `<span class="mini-note" id="${containerId === 'fitnessControlsRun' ? 'fitnessNoteRun' : 'fitnessNoteBike'}"></span>`;
+}
+function setFitnessDays(d){
+  if(!Number.isFinite(d) || d < 14) return;
+  FITNESS_DAYS = d;
+  ['fitnessControlsRun','fitnessControlsBike'].forEach(buildFitnessControls);
+  if(lastRenderedData && lastRenderedData.length) renderFitnessChart(lastRenderedData, 'running');
+  if(lastBikeRenderedData && lastBikeRenderedData.length) renderFitnessChart(lastBikeRenderedData, 'cycling');
+}
+function updateFitnessNote(id, days){
+  const el = document.getElementById(id);
+  if(el) el.textContent = `Last ${days} day${days === 1 ? '' : 's'}`;
 }
 
 function updateTrendNote(id, shown, total){
@@ -2948,6 +2991,9 @@ function renderFitnessChart(data, sport) {
   const chartKey = prefix + 'Fitness';
   destroyChart(chartKey);
 
+  buildFitnessControls(sport === 'cycling' ? 'fitnessControlsBike' : 'fitnessControlsRun');
+  updateFitnessNote(sport === 'cycling' ? 'fitnessNoteBike' : 'fitnessNoteRun', FITNESS_DAYS);
+
   const section = document.getElementById(prefix + 'FitnessSection');
   const maxHrInput = document.getElementById(sport === 'cycling' ? 'bikeMaxHrInput' : 'maxHrInput');
   const maxHr = maxHrInput ? parseInt(maxHrInput.value, 10) || 187 : 187;
@@ -2976,13 +3022,14 @@ function renderFitnessChart(data, sport) {
 
   let ctl = 0, atl = 0;
   const ctlArr = [], atlArr = [], tsbArr = [];
-  const chartDates = allDates.slice(-90);
+  const WINDOW = FITNESS_DAYS;
+  const chartDates = allDates.slice(-WINDOW);
 
   allDates.forEach((d, i) => {
     const trimp = trimpByDay[d] || 0;
     ctl = ctl * (1 - ctlDecay) + trimp * ctlDecay;
     atl = atl * (1 - atlDecay) + trimp * atlDecay;
-    if(i >= allDates.length - 90) {
+    if(i >= allDates.length - WINDOW) {
       ctlArr.push(parseFloat(ctl.toFixed(1)));
       atlArr.push(parseFloat(atl.toFixed(1)));
       tsbArr.push(parseFloat((ctl - atl).toFixed(1)));
