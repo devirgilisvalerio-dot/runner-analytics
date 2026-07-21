@@ -1062,10 +1062,11 @@ function parseFIT(buffer) {
   const withTs  = records.filter(r => r.ts);
   const firstTs = withTs[0]?.ts;
   const lastTs  = withTs[withTs.length-1]?.ts;
-  // Prefer total_timer_time from session message (moving time, excludes pauses).
-  // Fall back to elapsed wall-clock time only if session data is missing.
-  const durationSec = records._timerTimeSec
-    || (firstTs && lastTs ? (lastTs - firstTs) / 1000 : 0);
+  // ALWAYS use moving time, never elapsed/wall-clock (running and cycling alike).
+  // Prefer total_timer_time from the session message (Garmin's own moving time);
+  // if it's missing, compute moving time from the records by summing only the
+  // gaps ≤ MAX_GAP_SEC, which drops paused/stopped stretches.
+  const durationSec = records._timerTimeSec || computeMovingTime(records);
 
   const withDist = records.filter(r => r.dist != null);
   const distM    = withDist.length ? Math.max(...withDist.map(r => r.dist)) : 0;
@@ -1105,23 +1106,49 @@ function parseFIT(buffer) {
   };
 }
 
-function computeKmSplits(records) {
-  const sorted = [...records].filter(r => r.dist != null && r.ts != null).sort((a,b) => a.dist - b.dist);
-  const splits = [];
-  const maxKm  = Math.floor(Math.max(...sorted.map(r => r.dist)) / 1000);
+// Moving time from FIT records: sum only the inter-point gaps ≤ MAX_GAP_SEC so
+// paused/stopped stretches are excluded. Used when the file has no session
+// total_timer_time. Mirrors the GPX parser's moving-time rule.
+function computeMovingTime(records, MAX_GAP_SEC = 10) {
+  const byTime = [...records].filter(r => r.ts != null).sort((a,b) => a.ts - b.ts);
+  let sec = 0;
+  for(let i = 1; i < byTime.length; i++) {
+    const dt = (byTime[i].ts - byTime[i-1].ts) / 1000;
+    if(dt > 0 && dt <= MAX_GAP_SEC) sec += dt;
+  }
+  return sec;
+}
 
+function computeKmSplits(records) {
+  // Walk the track in TIME order and accumulate MOVING time per km, dropping any
+  // gap longer than MAX_GAP_SEC (a pause/stop). Using raw wall-clock time here
+  // would dump a mid-run standstill into whichever km it happened in — e.g. a
+  // 12-min break at the 10k mark would report km 11 as ~17:40 instead of ~5:07.
+  const MAX_GAP_SEC = 10;
+  const byTime = [...records].filter(r => r.dist != null && r.ts != null).sort((a,b) => a.ts - b.ts);
+  if(byTime.length < 2) return [];
+
+  const maxKm = Math.floor(byTime[byTime.length - 1].dist / 1000);
+  const movingSec = {}, distM = {}, hrSum = {}, hrCount = {};
+
+  for(let i = 1; i < byTime.length; i++) {
+    const prev = byTime[i - 1], cur = byTime[i];
+    const dt = (cur.ts - prev.ts) / 1000;
+    const dd = cur.dist - prev.dist;
+    if(dt <= 0 || dt > MAX_GAP_SEC || dd < 0) continue;  // skip pauses & backwards points
+    const km = Math.floor(prev.dist / 1000) + 1;         // bucket by where the segment starts
+    if(km < 1 || km > maxKm) continue;
+    movingSec[km] = (movingSec[km] || 0) + dt;
+    distM[km]     = (distM[km]     || 0) + dd;
+    if(cur.hr) { hrSum[km] = (hrSum[km] || 0) + cur.hr; hrCount[km] = (hrCount[km] || 0) + 1; }
+  }
+
+  const splits = [];
   for(let km = 1; km <= maxKm; km++) {
-    const prevM = (km - 1) * 1000;
-    const currM = km * 1000;
-    const start = sorted.find(r => r.dist >= prevM);
-    const end   = sorted.find(r => r.dist >= currM);
-    if(!start || !end) continue;
-    const sec  = (end.ts - start.ts) / 1000;
-    const dist = end.dist - start.dist;
-    if(sec <= 0 || dist <= 0) continue;
+    const sec = movingSec[km], dist = distM[km];
+    if(!sec || !dist || sec <= 0 || dist <= 0) continue;
     const paceSec = sec / (dist / 1000);
-    const hrs = sorted.filter(r => r.dist >= prevM && r.dist < currM && r.hr);
-    const avgHr = hrs.length ? Math.round(hrs.reduce((s,r) => s+r.hr, 0) / hrs.length) : null;
+    const avgHr = hrCount[km] ? Math.round(hrSum[km] / hrCount[km]) : null;
     splits.push({ km, paceSec: Math.round(paceSec), hr: avgHr });
   }
   return splits;
