@@ -147,6 +147,39 @@ body::before{
 .mini-input{ width:66px; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--font-mono); font-size:12px; padding:4px 8px; outline:none; color-scheme:dark; }
 .mini-input:focus{ border-color:var(--purple); }
 .mini-note{ color:var(--muted); font-size:12px; margin-left:6px; }
+
+/* ── PROGRESS ANALYZER ── */
+.pa-block{ display:grid; grid-template-columns:280px 1fr; gap:20px; align-items:center;
+  background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+.pa-label{ font-family:var(--font-mono); font-size:12px; letter-spacing:1.2px; text-transform:uppercase; color:var(--purple); margin-bottom:14px; }
+.pa-metric{ margin-bottom:12px; }
+.pa-metric:last-child{ margin-bottom:0; }
+.pa-metric-name{ font-family:var(--font-mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.pa-metric-big{ font-family:var(--font-display); font-size:28px; font-weight:700; line-height:1.1; }
+.pa-metric-sub{ font-family:var(--font-mono); font-size:12px; color:var(--muted2); }
+.pa-chart{ height:180px; }
+.pa-up{ color:var(--green); } .pa-down{ color:var(--red); } .pa-neutral{ color:var(--accent); }
+.pa-cap{ font-family:var(--font-mono); font-size:12px; color:var(--muted); margin:6px 0 14px; line-height:1.5; }
+.pa-verdict{ border-radius:10px; margin:14px 0 0; border:1px solid; overflow:hidden; }
+.pa-verdict-up{ background:rgba(0,230,118,0.07); border-color:var(--green); }
+.pa-verdict-flat{ background:rgba(0,229,255,0.06); border-color:var(--accent); }
+.pa-verdict-down{ background:rgba(255,145,0,0.07); border-color:var(--orange); }
+.pa-verdict > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:14px; padding:16px 20px; user-select:none; }
+.pa-verdict > summary::-webkit-details-marker{ display:none; }
+.pa-verdict > summary::after{ content:'▾'; margin-left:auto; color:var(--muted); font-size:16px; transition:transform .2s; }
+.pa-verdict[open] > summary::after{ transform:rotate(180deg); }
+.pa-vicon{ font-size:28px; line-height:1; }
+.pa-vhead{ font-family:var(--font-display); font-size:23px; font-weight:700; }
+.pa-vbody{ font-size:14px; line-height:1.5; color:var(--muted2); font-family:var(--font-mono); padding:0 20px 16px; }
+.pa-vbody b{ color:var(--text); }
+.pa-tips{ margin:0 16px 16px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; }
+.pa-tips-title{ font-family:var(--font-mono); font-size:12px; letter-spacing:.5px; color:var(--text); margin-bottom:8px; }
+.pa-tips ul{ margin:0; padding-left:20px; }
+.pa-tips li{ font-family:var(--font-mono); font-size:13px; line-height:1.6; color:var(--muted2); margin-bottom:5px; }
+.pa-tips li b{ color:var(--text); }
+.pa-empty{ font-family:var(--font-mono); font-size:13px; color:var(--muted); padding:10px 0; }
+@media(max-width:760px){ .pa-block{ grid-template-columns:1fr; gap:14px; } .pa-chart{ height:200px; } }
+
 .filter-badge{
   display:inline-flex; align-items:center;
   background:rgba(0,229,255,0.08); border:1px solid var(--accent);
@@ -596,6 +629,13 @@ td b{ font-family:var(--font-mono); }
     </div>
   </div>
 
+  <!-- PROGRESS ANALYZER -->
+  <div class="card" id="runProgressSection" style="margin-bottom:20px;">
+    <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— are you improving on comparable runs?</span></div>
+    <div class="mini-filter" id="progressBandRun"></div>
+    <div id="runProgressBody"></div>
+  </div>
+
   <!-- ACWR -->
   <div class="card" id="acwrSection" style="display:none;margin-bottom:20px;">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
@@ -831,6 +871,13 @@ td b{ font-family:var(--font-mono); }
           <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
         </div>
       </div>
+    </div>
+
+    <!-- PROGRESS ANALYZER -->
+    <div class="card" id="bikeProgressSection" style="margin-bottom:20px;">
+      <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— are you improving on comparable rides?</span></div>
+      <div class="mini-filter" id="progressBandBike"></div>
+      <div id="bikeProgressBody"></div>
     </div>
 
     <!-- ACWR -->
@@ -1257,6 +1304,13 @@ const ACWR_PRESETS  = [30, 60, 90, 180];
 let FITNESS_DAYS = 90;                      // days shown in Fitness/Fatigue/Form
 const FITNESS_PRESETS = [30, 60, 90, 180];
 
+// Progress Analyzer: distance bands (km) shared by running & cycling. Each tab
+// keeps its own selected band since typical run vs ride distances differ.
+const PA_BANDS_RUN  = [[5,7],[7,9],[9,12],[12,15],[15,99]];
+const PA_BANDS_BIKE = [[10,25],[25,40],[40,60],[60,90],[90,999]];
+let PA_BAND_RUN  = [9,12];    // default running band
+let PA_BAND_BIKE = [40,60];   // default cycling band
+
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
 }); }
@@ -1625,6 +1679,7 @@ function renderDashboard(data){
   renderAvgKmSplits(data);
   renderAcwr(data);
   renderFitnessChart(data, 'running');
+  renderProgress(data, 'running');
   renderPolarizedChart(data, 'running');
   renderPersonalRecords(data, 'running');
   document.getElementById('splitsSection').style.display = 'block';
@@ -1839,6 +1894,18 @@ const CHART_OPTS = {
   }
 };
 
+// Shared "whole-column" hover/tap for the trend charts: pointing anywhere in a
+// day's vertical band (not just on a line) surfaces ALL series for that day, and
+// every point in the column gets highlighted. Works for mouse and touch.
+const TREND_INTERACTION = { mode: 'index', intersect: false, axis: 'x' };
+// Roomy, readable tooltip that also works on small/phone screens.
+const TREND_TOOLTIP_STYLE = {
+  backgroundColor: 'rgba(14,19,24,0.96)', borderColor: '#1e2a34', borderWidth: 1,
+  titleColor: '#e8edf2', bodyColor: '#e8edf2', padding: 10, cornerRadius: 8,
+  titleFont: { family: 'DM Mono', size: 12 }, bodyFont: { family: 'DM Mono', size: 13 },
+  bodySpacing: 5, caretSize: 6, displayColors: true, usePointStyle: true
+};
+
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
 /* ── SHARED TREND / ACWR WINDOW CONTROLS ──
@@ -1953,11 +2020,14 @@ function renderTrendChart(data) {
     },
     options: {
       ...CHART_OPTS,
+      interaction: TREND_INTERACTION,
       plugins: {
         legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } } },
         tooltip: {
+          ...TREND_TOOLTIP_STYLE,
           callbacks: {
             label: ctx => {
+              if(ctx.parsed.y == null) return null;
               const v = ctx.parsed.y;
               if(ctx.dataset.yAxisID === 'yPace') { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${ctx.dataset.label}: ${m}:${String(s).padStart(2,'0')} /km`; }
               if(ctx.dataset.yAxisID === 'yKm') return `${ctx.dataset.label}: ${v.toFixed(1)} km`;
@@ -2390,6 +2460,7 @@ function renderBikeDashboard(data) {
   renderBikeHrZones(data);
   renderBikeAcwr(data);
   renderFitnessChart(data, 'cycling');
+  renderProgress(data, 'cycling');
   renderPolarizedChart(data, 'cycling');
   renderPersonalRecords(data, 'cycling');
   renderBikeTable(data);
@@ -2502,9 +2573,11 @@ function renderBikeTrendChart(data) {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
+      interaction: TREND_INTERACTION,
       plugins: {
         legend: { labels: { color:'#8a9aaa', font:{family:'DM Mono',size:10} } },
-        tooltip: { callbacks: { label: ctx => {
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { label: ctx => {
+          if(ctx.parsed.y == null) return null;
           const v = ctx.parsed.y;
           if(ctx.dataset.yAxisID === 'ySpeed') return `${ctx.dataset.label}: ${v.toFixed(1)} km/h`;
           if(ctx.dataset.yAxisID === 'yKm') return `${ctx.dataset.label}: ${v.toFixed(1)} km`;
@@ -2871,6 +2944,7 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
     ? sorted.map(r => r.durationSec > 0 ? r.distance / (r.durationSec / 3600) : null)
     : sorted.map(r => r.paceSecPerKm / 60);
   const kmVals = sorted.map(r => r.distance);
+  const hrVals = sorted.map(r => r.hr);
   const labels = sorted.map(r => r.date);
 
   const ctx = document.getElementById(canvasId).getContext('2d');
@@ -2879,16 +2953,28 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
     data: {
       labels,
       datasets: [
-        { label: isBike ? 'Speed (km/h)' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
+        { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
+        { label: 'BPM', data: hrVals, borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ff3d57', borderWidth:2.7, yAxisID:'yHr' },
         { label: 'Km', data: kmVals, borderColor:'#00e5ff', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#00e5ff', borderWidth:2.7, yAxisID:'yKm' }
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ labels:{ color:'#8a9aaa', font:{family:'DM Mono',size:10} } } },
+      interaction: TREND_INTERACTION,
+      plugins:{
+        legend:{ labels:{ color:'#8a9aaa', font:{family:'DM Mono',size:10} } },
+        tooltip:{ ...TREND_TOOLTIP_STYLE, callbacks:{ label: c => {
+          if(c.parsed.y == null) return null;
+          const v = c.parsed.y;
+          if(c.dataset.yAxisID === 'yHr') return `BPM: ${Math.round(v)} bpm`;
+          if(c.dataset.yAxisID === 'yKm') return `Km: ${v.toFixed(1)} km`;
+          return isBike ? `Speed: ${v.toFixed(1)} km/h` : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return `Pace: ${m}:${String(s).padStart(2,'0')} /km`;})();
+        }}}
+      },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
+        yHr:{ position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
         yKm:{ position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
       }
     }
@@ -3113,6 +3199,246 @@ function renderFitnessChart(data, sport) {
         y: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
       }
     }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PROGRESS ANALYZER — "am I improving on comparable activities?"
+   Filters to a distance band, then fits a least-squares trend across ALL
+   comparable activities (not 3-vs-3). Reports three pivots:
+     ① same distance  → what pace & HR did          (both charts)
+     ② same effort/BPM → what pace did               (pace chart)
+     ③ same pace       → what HR did                 (HR chart)
+   plus a collapsible verdict with rule-based coaching tips.
+══════════════════════════════════════════════════════════════════ */
+const PA_MIN_ACTS = 3;          // minimum comparable activities to analyze
+const PA_SIGNIFICANCE = 0.015;  // ±1.5% trend change = dead-zone (noise)
+
+// Least-squares fit over index; returns {first, last, slope} of the fitted line.
+function paTrend(ys){
+  const n = ys.length, xs = ys.map((_,i)=>i);
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num=0, den=0;
+  xs.forEach((x,i)=>{ num += (x-mx)*(ys[i]-my); den += (x-mx)**2; });
+  const slope = den ? num/den : 0, b = my - slope*mx;
+  return { first: b, last: slope*(n-1) + b, slope, fitted: xs.map(x=>slope*x+b) };
+}
+
+function paBands(sport){ return sport === 'cycling' ? PA_BANDS_BIKE : PA_BANDS_RUN; }
+function paBand(sport){ return sport === 'cycling' ? PA_BAND_BIKE : PA_BAND_RUN; }
+function paBandLabel(b){ return b[1] >= 99 ? `${b[0]}+ km` : `${b[0]}–${b[1]} km`; }
+
+function buildProgressBand(sport){
+  const containerId = sport === 'cycling' ? 'progressBandBike' : 'progressBandRun';
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const cur = paBand(sport);
+  const chips = paBands(sport).map(b => {
+    const active = b[0] === cur[0] && b[1] === cur[1];
+    return `<div class="mini-chip${active ? ' active' : ''}" onclick="setProgressBand('${sport}',${b[0]},${b[1]})">${paBandLabel(b)}</div>`;
+  }).join('');
+  const noteId = sport === 'cycling' ? 'progressNoteBike' : 'progressNoteRun';
+  el.innerHTML =
+    `<span class="mini-filter-label">Distance band</span>${chips}` +
+    `<input type="number" class="mini-input" placeholder="min" id="paMin_${sport}" step="0.5">` +
+    `<input type="number" class="mini-input" placeholder="max" id="paMax_${sport}" step="0.5">` +
+    `<div class="mini-chip" onclick="applyProgressCustom('${sport}')">Apply</div>` +
+    `<span class="mini-note" id="${noteId}"></span>`;
+}
+
+function setProgressBand(sport, min, max){
+  if(sport === 'cycling') PA_BAND_BIKE = [min,max]; else PA_BAND_RUN = [min,max];
+  buildProgressBand(sport);
+  renderProgress(sport === 'cycling' ? lastBikeRenderedData : lastRenderedData, sport);
+}
+function applyProgressCustom(sport){
+  const min = parseFloat(document.getElementById('paMin_'+sport).value);
+  const max = parseFloat(document.getElementById('paMax_'+sport).value);
+  if(!isFinite(min) || !isFinite(max) || max <= min) return;
+  setProgressBand(sport, min, max);
+}
+
+function renderProgress(data, sport){
+  const isBike = sport === 'cycling';
+  buildProgressBand(sport);
+  const bodyId = isBike ? 'bikeProgressBody' : 'runProgressBody';
+  const noteId = isBike ? 'progressNoteBike' : 'progressNoteRun';
+  const body = document.getElementById(bodyId);
+  if(!body) return;
+  const band = paBand(sport);
+
+  // comparable activities: in band, with HR and a valid speed/pace, oldest→newest
+  const comp = (data || [])
+    .filter(r => r.distance >= band[0] && r.distance < band[1] && r.hr && r.durationSec > 0)
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  const note = document.getElementById(noteId);
+  if(note) note.innerHTML = `<b style="color:var(--purple);font-weight:600">${comp.length} activit${comp.length===1?'y':'ies'}</b> · with HR · oldest → newest`;
+
+  if(comp.length < PA_MIN_ACTS){
+    body.innerHTML = `<p class="pa-empty">🔍 Need at least <b style="color:var(--purple)">${PA_MIN_ACTS}</b> activities with HR in the ${paBandLabel(band)} band to spot a trend — found ${comp.length}. Try a wider band or log more comparable ${isBike?'rides':'runs'}.</p>`;
+    ['paDist_'+sport,'paSpeed_'+sport,'paHr_'+sport].forEach(destroyChart);
+    return;
+  }
+
+  // series
+  const labels  = comp.map(r => r.date);
+  const hrVals  = comp.map(r => r.hr);
+  // "speed metric": running uses pace (sec/km, lower=better); cycling uses km/h (higher=better)
+  const paceVals = comp.map(r => r.paceSecPerKm ? r.paceSecPerKm/60 : (r.durationSec/60)/r.distance); // min/km
+  const spdVals  = comp.map(r => r.distance / (r.durationSec/3600)); // km/h
+  const perfVals = isBike ? spdVals : paceVals;
+
+  const hrT   = paTrend(hrVals);
+  const perfT = paTrend(perfVals);
+
+  // deltas (trend start → end)
+  const hrDelta = hrT.last - hrT.first;                    // bpm (neg = fitter)
+  // pct improvement in the performance metric (speed up = good; pace down = good)
+  const perfPct = isBike ? (perfT.last - perfT.first)/perfT.first
+                         : (perfT.first - perfT.last)/perfT.first;
+  const hrPct = (hrT.first - hrT.last)/hrT.first;          // pos = HR dropped = fitter
+
+  const fmtPaceMin = v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; };
+  const cls = good => good > 0 ? 'pa-up' : good < 0 ? 'pa-down' : '';
+  const sign = n => (n>0?'+':'') + n;
+
+  // pivot readouts
+  const perfName = isBike ? 'Speed' : 'Pace';
+  let perfBig, perfSub;
+  if(isBike){
+    const d = perfT.last - perfT.first;
+    perfBig = `<span class="${cls(d)}">${sign(d.toFixed(1))} km/h</span>`;
+    perfSub = `${perfT.first.toFixed(1)} → ${perfT.last.toFixed(1)} km/h`;
+  } else {
+    const dSec = Math.round((perfT.last - perfT.first)*60);   // sec/km, neg=faster
+    perfBig = `<span class="${cls(-dSec)}">${sign(dSec)} s/km</span>`;
+    perfSub = `${fmtPaceMin(perfT.first)} → ${fmtPaceMin(perfT.last)} /km`;
+  }
+  const hrBig = `<span class="${cls(-hrDelta)}">${sign(Math.round(hrDelta))} bpm</span>`;
+  const hrSub = `${Math.round(hrT.first)} → ${Math.round(hrT.last)} avg`;
+
+  // ── verdict ──
+  const perfImproved = perfPct >  PA_SIGNIFICANCE;
+  const perfWorse    = perfPct < -PA_SIGNIFICANCE;
+  const hrImproved   = hrPct   >  PA_SIGNIFICANCE;
+  const hrWorse      = hrPct   < -PA_SIGNIFICANCE;
+  let state; // 'up' | 'flat' | 'down'
+  if((perfImproved || hrImproved) && !perfWorse && !hrWorse) state = 'up';
+  else if(perfWorse || hrWorse) state = 'down';
+  else state = 'flat';
+
+  const verdictMap = {
+    up:   { cls:'pa-verdict-up',   icon:'📈', head:'You\'re getting fitter', headCls:'pa-up',
+            body:`${isBike?'Faster':'Faster'} ${isBike?'':'pace'} and/or lower heart rate at the same distance — the clearest sign of aerobic gains. Keep doing what you\'re doing.` },
+    flat: { cls:'pa-verdict-flat', icon:'➡️', head:'Holding steady — plateau', headCls:'pa-neutral',
+            body:`${perfName} and HR are essentially flat (within noise). Maintaining, not gaining — the body has adapted to the same stimulus.` },
+    down: { cls:'pa-verdict-down', icon:'📉', head:'Slower / higher effort', headCls:'pa-down',
+            body:`Same distance, but ${isBike?'lower speed':'slower pace'} and/or higher HR — efficiency trending down.` }
+  };
+  const v = verdictMap[state];
+
+  const tipsFlat = `
+    <div class="pa-tips">
+      <div class="pa-tips-title">💡 How to break the plateau</div>
+      <ul>
+        <li><b>Add intervals</b> 1×/week (e.g. ${isBike?'5×3 min hard':'6×800 m hard'}).</li>
+        <li><b>Add volume</b> gradually (+10% ${isBike?'km':'weekly km'} or +1 easy session).</li>
+        <li><b>Recover harder</b> — check Form (TSB); take a down week.</li>
+        <li><b>Vary the route</b> — add hills or a tempo segment.</li>
+      </ul>
+    </div>`;
+  const tipsDown = `
+    <div class="pa-tips">
+      <div class="pa-tips-title">💡 Check first</div>
+      <ul>
+        <li><b>Conditions</b> — heat/humidity add 5–15 bpm; hills slow you down.</li>
+        <li><b>Fatigue</b> — check Form (TSB) &amp; ACWR; a dip mid-block is expected.</li>
+        <li><b>Sleep / stress / illness</b> raise HR at any effort.</li>
+      </ul>
+      <div class="pa-tips-title" style="margin-top:10px">💡 If it persists</div>
+      <ul>
+        <li><b>Deload</b> ~40% for a week, then rebuild.</li>
+        <li><b>Rebuild base</b> — more Z2 easy, less grey-zone.</li>
+        <li><b>Consistency</b> beats heroic weeks.</li>
+      </ul>
+    </div>`;
+  const tips = state === 'flat' ? tipsFlat : state === 'down' ? tipsDown : '';
+
+  // ── build DOM ──
+  const distChart = isBike ? 'paSpeedDistCanvas_' : 'paDistCanvas_';
+  body.innerHTML = `
+    <!-- ① same distance -->
+    <div class="pa-block">
+      <div>
+        <div class="pa-label">① Same distance (~${((band[0]+Math.min(band[1],band[0]+3))/2).toFixed(0)} km) →</div>
+        <div class="pa-metric"><div class="pa-metric-name">Heart rate</div><div class="pa-metric-big">${hrBig}</div><div class="pa-metric-sub">${hrSub}</div></div>
+        <div class="pa-metric"><div class="pa-metric-name">${perfName}</div><div class="pa-metric-big">${perfBig}</div><div class="pa-metric-sub">${perfSub}</div></div>
+      </div>
+      <div class="pa-chart"><canvas id="paDist_${sport}"></canvas></div>
+    </div>
+    <!-- ② same effort -->
+    <div class="pa-block">
+      <div>
+        <div class="pa-label">② Same effort (~${Math.round((hrT.first+hrT.last)/2)} bpm) →</div>
+        <div class="pa-metric"><div class="pa-metric-name">${perfName}</div><div class="pa-metric-big">${perfBig}</div><div class="pa-metric-sub">${isBike?'faster':'faster'} at the same heart rate</div></div>
+      </div>
+      <div class="pa-chart"><canvas id="paSpeed_${sport}"></canvas></div>
+    </div>
+    <!-- ③ same pace -->
+    <div class="pa-block">
+      <div>
+        <div class="pa-label">③ Same ${isBike?'speed':'pace'} →</div>
+        <div class="pa-metric"><div class="pa-metric-name">Heart rate</div><div class="pa-metric-big">${hrBig}</div><div class="pa-metric-sub">easier to hold the same ${isBike?'speed':'pace'}</div></div>
+      </div>
+      <div class="pa-chart"><canvas id="paHr_${sport}"></canvas></div>
+    </div>
+    <p class="pa-cap">Solid = your ${isBike?'rides':'runs'} · dashed = least-squares trend across all of them. Deltas are trend-start → trend-end. ⚠ A trend, not a single-run verdict — heat, hills &amp; fatigue also move HR.</p>
+    <details class="pa-verdict ${v.cls}"${state==='up'?' open':''}>
+      <summary><span class="pa-vicon">${v.icon}</span><span class="pa-vhead ${v.headCls}">${v.head}</span></summary>
+      <div class="pa-vbody">${v.body}</div>
+      ${tips}
+    </details>`;
+
+  // ── charts ──
+  const GREEN='#00e676', RED='#ff3d57';
+  const GRID='rgba(255,255,255,0.04)';
+  const TT = { backgroundColor:'rgba(14,19,24,0.96)', borderColor:'#1e2a34', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:11}, bodyFont:{family:'DM Mono',size:12}, usePointStyle:true };
+  const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
+  const perfLabel = isBike ? 'Speed' : 'Pace';
+  const perfFmt = c => isBike ? `Speed: ${c.parsed.y.toFixed(1)} km/h` : `Pace: ${fmtPaceMin(c.parsed.y)} /km`;
+  const yPerf = isBike
+    ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:true,text:'Speed (higher=fitter)',color:GREEN,font:{family:'DM Mono',size:9}} }
+    : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:true,text:'Pace /km (higher=faster)',color:GREEN,font:{family:'DM Mono',size:9}} };
+
+  const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(0,230,118,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
+  const hrDs   = { label:'BPM', data:hrVals, borderColor:RED, backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:RED, borderWidth:2.5, yAxisID:'yHr' };
+
+  destroyChart('paDist_'+sport); destroyChart('paSpeed_'+sport); destroyChart('paHr_'+sport);
+
+  // ① same distance: perf + HR together
+  charts['paDist_'+sport] = new Chart(document.getElementById('paDist_'+sport), {
+    type:'line',
+    data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf'), hrDs, dashed(hrT.fitted, RED, 'yHr') ] },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:(c.dataset.yAxisID==='yPerf'?perfFmt(c):`BPM: ${Math.round(c.parsed.y)} bpm`) }} },
+      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'BPM',color:RED,font:{family:'DM Mono',size:9}}} } }
+  });
+  // ② same effort: perf only
+  charts['paSpeed_'+sport] = new Chart(document.getElementById('paSpeed_'+sport), {
+    type:'line',
+    data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf') ] },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:perfFmt(c) }} },
+      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf } }
+  });
+  // ③ same pace: HR only
+  charts['paHr_'+sport] = new Chart(document.getElementById('paHr_'+sport), {
+    type:'line',
+    data:{ labels, datasets:[ { ...hrDs, backgroundColor:'rgba(255,61,87,0.06)', fill:true }, dashed(hrT.fitted, RED, 'yHr') ] },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:`BPM: ${Math.round(c.parsed.y)} bpm` }} },
+      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yHr:{position:'left',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{color:GRID},title:{display:true,text:'BPM (lower=fitter)',color:RED,font:{family:'DM Mono',size:9}}} } }
   });
 }
 
