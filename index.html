@@ -3345,12 +3345,16 @@ function applyProgressCustom(sport){
   setProgressBand(sport, min, max);
 }
 
+const PA_PANEL_OPEN = { running:false, cycling:false };  // keep the exclude list open across re-renders
 function renderProgress(data, sport){
   const isBike = sport === 'cycling';
   buildProgressBand(sport);
   const bodyId = isBike ? 'bikeProgressBody' : 'runProgressBody';
   const noteId = isBike ? 'progressNoteBike' : 'progressNoteRun';
   const body = document.getElementById(bodyId);
+  // remember whether the exclude panel was open, so toggling an item doesn't collapse it
+  const existingPanel = body ? body.querySelector('.pa-manage') : null;
+  if(existingPanel) PA_PANEL_OPEN[sport] = existingPanel.open;
   if(!body) return;
   const band = paBand(sport);
 
@@ -3380,7 +3384,7 @@ function renderProgress(data, sport){
     </div>`;
   }).join('');
   const panelHtml = inBand.length ? `
-    <details class="pa-manage">
+    <details class="pa-manage"${PA_PANEL_OPEN[sport]?' open':''}>
       <summary>✕ Exclude activities <span class="pa-mhint">(${inBand.length} in band${nEx?`, ${nEx} excluded`:''})</span></summary>
       <div class="pa-mlist">
         ${rowsHtml}
