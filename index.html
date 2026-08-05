@@ -3370,7 +3370,7 @@ function renderProgress(data, sport){
 
   if(comp.length < PA_MIN_ACTS){
     body.innerHTML = panelHtml + `<p class="pa-empty">🔍 Need at least <b style="color:var(--purple)">${PA_MIN_ACTS}</b> included activities with HR in the ${paBandLabel(band)} band — found ${comp.length}${nEx?` (${nEx} excluded)`:''}. Try a wider band, restore some, or log more comparable ${isBike?'rides':'runs'}.</p>`;
-    ['paDist_'+sport,'paSpeed_'+sport,'paHr_'+sport].forEach(destroyChart);
+    destroyChart('paDist_'+sport);
     return;
   }
 
@@ -3460,30 +3460,14 @@ function renderProgress(data, sport){
 
   // ── build DOM ──
   body.innerHTML = panelHtml + `
-    <!-- ① same distance -->
+    <!-- same distance -->
     <div class="pa-block">
       <div>
-        <div class="pa-label">① Same distance (~${((band[0]+Math.min(band[1],band[0]+3))/2).toFixed(0)} km) →</div>
+        <div class="pa-label">Same distance (~${((band[0]+Math.min(band[1],band[0]+3))/2).toFixed(0)} km) →</div>
         <div class="pa-metric"><div class="pa-metric-name">Heart rate</div><div class="pa-metric-big">${hrBig}</div><div class="pa-metric-sub">${hrSub}</div></div>
         <div class="pa-metric"><div class="pa-metric-name">${perfName}</div><div class="pa-metric-big">${perfBig}</div><div class="pa-metric-sub">${perfSub}</div></div>
       </div>
       <div class="pa-chart"><canvas id="paDist_${sport}"></canvas></div>
-    </div>
-    <!-- ② same effort -->
-    <div class="pa-block">
-      <div>
-        <div class="pa-label">② Same effort (~${Math.round((hrT.first+hrT.last)/2)} bpm) →</div>
-        <div class="pa-metric"><div class="pa-metric-name">${perfName}</div><div class="pa-metric-big">${perfBig}</div><div class="pa-metric-sub">${isBike?'faster':'faster'} at the same heart rate</div></div>
-      </div>
-      <div class="pa-chart"><canvas id="paSpeed_${sport}"></canvas></div>
-    </div>
-    <!-- ③ same pace -->
-    <div class="pa-block">
-      <div>
-        <div class="pa-label">③ Same ${isBike?'speed':'pace'} →</div>
-        <div class="pa-metric"><div class="pa-metric-name">Heart rate</div><div class="pa-metric-big">${hrBig}</div><div class="pa-metric-sub">easier to hold the same ${isBike?'speed':'pace'}</div></div>
-      </div>
-      <div class="pa-chart"><canvas id="paHr_${sport}"></canvas></div>
     </div>
     <p class="pa-cap">Solid = your ${isBike?'rides':'runs'} · dashed = least-squares trend across all of them. Deltas are trend-start → trend-end. ⚠ A trend, not a single-run verdict — heat, hills &amp; fatigue also move HR.</p>
     <details class="pa-verdict ${v.cls}"${state==='up'?' open':''}>
@@ -3506,31 +3490,15 @@ function renderProgress(data, sport){
   const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(0,230,118,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
   const hrDs   = { label:'BPM', data:hrVals, borderColor:RED, backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:RED, borderWidth:2.5, yAxisID:'yHr' };
 
-  destroyChart('paDist_'+sport); destroyChart('paSpeed_'+sport); destroyChart('paHr_'+sport);
+  destroyChart('paDist_'+sport);
 
-  // ① same distance: perf + HR together
+  // same distance: perf + HR together
   charts['paDist_'+sport] = new Chart(document.getElementById('paDist_'+sport), {
     type:'line',
     data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf'), hrDs, dashed(hrT.fitted, RED, 'yHr') ] },
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:(c.dataset.yAxisID==='yPerf'?perfFmt(c):`BPM: ${Math.round(c.parsed.y)} bpm`) }} },
       scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'BPM',color:RED,font:{family:'DM Mono',size:9}}} } }
-  });
-  // ② same effort: perf only
-  charts['paSpeed_'+sport] = new Chart(document.getElementById('paSpeed_'+sport), {
-    type:'line',
-    data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf') ] },
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:perfFmt(c) }} },
-      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf } }
-  });
-  // ③ same pace: HR only
-  charts['paHr_'+sport] = new Chart(document.getElementById('paHr_'+sport), {
-    type:'line',
-    data:{ labels, datasets:[ { ...hrDs, backgroundColor:'rgba(255,61,87,0.06)', fill:true }, dashed(hrT.fitted, RED, 'yHr') ] },
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:`BPM: ${Math.round(c.parsed.y)} bpm` }} },
-      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yHr:{position:'left',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{color:GRID},title:{display:true,text:'BPM (lower=fitter)',color:RED,font:{family:'DM Mono',size:9}}} } }
   });
 }
 
