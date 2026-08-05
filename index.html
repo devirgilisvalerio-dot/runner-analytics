@@ -3280,18 +3280,6 @@ function paBand(sport){ return sport === 'cycling' ? PA_BAND_BIKE : PA_BAND_RUN;
 function paBandLabel(b){ return b[1] >= 99 ? `${b[0]}+ km` : `${b[0]}–${b[1]} km`; }
 // DD/MM/YYYY from an ISO date string (yyyy-mm-dd)
 function paFmtDate(iso){ const p = (iso||'').split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; }
-// Flag activities whose pace or HR sit >1.5 std-devs from the trend line (possible outliers).
-function paFlagOutliers(list, isBike){
-  if(list.length < PA_MIN_ACTS) return list.map(()=>false);
-  const perf = list.map(r => isBike ? r.distance/(r.durationSec/3600) : (r.paceSecPerKm ? r.paceSecPerKm/60 : (r.durationSec/60)/r.distance));
-  const hr   = list.map(r => r.hr);
-  const pT = paTrend(perf), hT = paTrend(hr);
-  const rP = perf.map((v,i)=>v - pT.fitted[i]);
-  const rH = hr.map((v,i)=>v - hT.fitted[i]);
-  const sd = a => { const m=a.reduce((x,y)=>x+y,0)/a.length; return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length) || 1; };
-  const sP = sd(rP), sH = sd(rH);
-  return list.map((_,i) => Math.abs(rP[i]/sP) > 1.5 || Math.abs(rH[i]/sH) > 1.5);
-}
 // exclude toggles (called from generated markup)
 function paToggleExclude(sport, date){
   const set = PA_EXCLUDED[sport];
@@ -3302,16 +3290,6 @@ function paToggleExclude(sport, date){
 function paRestoreAll(sport){
   PA_EXCLUDED[sport].clear(); paSaveExcluded(sport);
   renderProgress(sport === 'cycling' ? lastBikeRenderedData : lastRenderedData, sport);
-}
-function paExcludeFlagged(sport){
-  const isBike = sport === 'cycling';
-  const band = paBand(sport);
-  const inBand = (sport==='cycling'?lastBikeRenderedData:lastRenderedData || [])
-    .filter(r => r.distance >= band[0] && r.distance < band[1] && r.hr && r.durationSec > 0)
-    .sort((a,b)=> new Date(a.date)-new Date(b.date));
-  paFlagOutliers(inBand, isBike).forEach((f,i)=>{ if(f) PA_EXCLUDED[sport].add(inBand[i].date); });
-  paSaveExcluded(sport);
-  renderProgress(sport==='cycling'?lastBikeRenderedData:lastRenderedData, sport);
 }
 
 function buildProgressBand(sport){
@@ -3359,22 +3337,19 @@ function renderProgress(data, sport){
     .sort((a,b) => new Date(a.date) - new Date(b.date));
 
   const excludedSet = PA_EXCLUDED[sport];
-  const flags = paFlagOutliers(inBand, isBike);
   const comp = inBand.filter(r => !excludedSet.has(r.date));   // kept for the trend
   const nEx = inBand.length - comp.length;
 
   const note = document.getElementById(noteId);
   if(note) note.innerHTML = `<b style="color:var(--purple);font-weight:600">${comp.length} activit${comp.length===1?'y':'ies'}</b> · with HR · oldest → newest`;
 
-  // ── exclude / outlier panel (always shown when there's data in the band) ──
-  const flaggedCount = inBand.filter((r,i)=>flags[i] && !excludedSet.has(r.date)).length;
-  const rowsHtml = inBand.map((r,i)=>{
+  // ── exclude panel (always shown when there's data in the band) ──
+  const rowsHtml = inBand.map(r=>{
     const ex = excludedSet.has(r.date);
-    const flagged = flags[i] && !ex;
     const pace = isBike ? (r.distance/(r.durationSec/3600)).toFixed(1)+' km/h'
                         : (r.paceSecPerKm ? paceStr(r.paceSecPerKm) : '—');
     return `<div class="pa-actrow ${ex?'excluded':''}">
-      <span class="pa-actdate">${paFmtDate(r.date)}${flagged?'<span class="pa-flag" title="far from your trend — possible outlier">⚠</span>':''}</span>
+      <span class="pa-actdate">${paFmtDate(r.date)}</span>
       <span class="pa-actval pa-col-dist"><span class="pa-collabel">dist</span> <b>${r.distance} km</b></span>
       <span class="pa-actval"><span class="pa-collabel">${isBike?'spd':'pace'}</span> <b>${pace}</b></span>
       <span class="pa-actval"><span class="pa-collabel">hr</span> <b>${r.hr}</b></span>
@@ -3389,7 +3364,6 @@ function renderProgress(data, sport){
         <div class="pa-mfoot">
           <span>${nEx?`${nEx} excluded — trend uses ${comp.length}`:'All included'}</span>
           ${nEx?`<a onclick="paRestoreAll('${sport}')">↺ Restore all</a>`:''}
-          ${flaggedCount?`<a onclick="paExcludeFlagged('${sport}')">⚠ Exclude all flagged</a>`:''}
         </div>
       </div>
     </details>` : '';
