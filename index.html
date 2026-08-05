@@ -178,7 +178,34 @@ body::before{
 .pa-tips li{ font-family:var(--font-mono); font-size:13px; line-height:1.6; color:var(--muted2); margin-bottom:5px; }
 .pa-tips li b{ color:var(--text); }
 .pa-empty{ font-family:var(--font-mono); font-size:13px; color:var(--muted); padding:10px 0; }
-@media(max-width:760px){ .pa-block{ grid-template-columns:1fr; gap:14px; } .pa-chart{ height:200px; } }
+/* exclude activities panel */
+.pa-manage{ margin:4px 0 16px; }
+.pa-manage > summary{ list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:12px; color:var(--muted2); background:var(--card2);
+  border:1px solid var(--border); border-radius:6px; padding:7px 14px; user-select:none; transition:all .15s; }
+.pa-manage > summary:hover{ border-color:var(--purple); color:var(--purple); }
+.pa-manage > summary::-webkit-details-marker{ display:none; }
+.pa-manage > summary::after{ content:'▾'; color:var(--muted); font-size:11px; transition:transform .2s; }
+.pa-manage[open] > summary::after{ transform:rotate(180deg); }
+.pa-manage[open] > summary{ border-color:var(--purple); color:var(--purple); margin-bottom:-1px; border-bottom-left-radius:0; border-bottom-right-radius:0; }
+.pa-mlist{ border:1px solid var(--border); border-radius:0 8px 8px 8px; overflow:hidden; background:var(--card2); }
+.pa-mhint{ color:var(--purple); }
+.pa-actrow{ display:grid; grid-template-columns:110px 1fr 1fr 1fr auto; gap:10px; align-items:center;
+  padding:4px 14px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:13px; line-height:1.3; }
+.pa-actrow:first-child{ border-top:none; }
+.pa-collabel{ color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+.pa-actdate{ color:var(--muted2); }
+.pa-actrow.excluded{ opacity:.4; }
+.pa-actrow.excluded .pa-actval{ text-decoration:line-through; }
+.pa-actval b{ color:var(--text); }
+.pa-flag{ color:var(--orange); font-size:11px; margin-left:5px; }
+.pa-btnx{ cursor:pointer; font-family:var(--font-mono); font-size:11px; border:1px solid var(--border); background:var(--card); color:var(--muted2);
+  border-radius:6px; padding:3px 10px; transition:all .15s; white-space:nowrap; }
+.pa-btnx:hover{ border-color:var(--red); color:var(--red); }
+.pa-actrow.excluded .pa-btnx:hover{ border-color:var(--green); color:var(--green); }
+.pa-mfoot{ padding:9px 14px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12px; color:var(--muted); display:flex; gap:14px; flex-wrap:wrap; }
+.pa-mfoot a{ color:var(--accent); cursor:pointer; text-decoration:none; }
+@media(max-width:760px){ .pa-block{ grid-template-columns:1fr; gap:14px; } .pa-chart{ height:200px; } .pa-actrow{ grid-template-columns:1fr 1fr auto; } .pa-actrow .pa-col-dist{ display:none; } }
 
 .filter-badge{
   display:inline-flex; align-items:center;
@@ -1306,10 +1333,21 @@ const FITNESS_PRESETS = [30, 60, 90, 180];
 
 // Progress Analyzer: distance bands (km) shared by running & cycling. Each tab
 // keeps its own selected band since typical run vs ride distances differ.
-const PA_BANDS_RUN  = [[5,7],[7,9],[9,12],[12,15],[15,99]];
+const PA_BANDS_RUN  = [[7,9],[9,12],[12,15],[15,99]];
 const PA_BANDS_BIKE = [[10,25],[25,40],[40,60],[60,90],[90,999]];
 let PA_BAND_RUN  = [9,12];    // default running band
 let PA_BAND_BIKE = [40,60];   // default cycling band
+// Activities the user excludes from the Progress Analyzer (outliers: hot/hilly/sick
+// days). Keyed by activity date string; persisted in localStorage per sport.
+const PA_EXCLUDED = { running: paLoadExcluded('running'), cycling: paLoadExcluded('cycling') };
+function paLoadExcluded(sport){
+  try { return new Set(JSON.parse(localStorage.getItem('crono:paExcluded:'+sport) || '[]')); }
+  catch(e){ return new Set(); }
+}
+function paSaveExcluded(sport){
+  try { localStorage.setItem('crono:paExcluded:'+sport, JSON.stringify([...PA_EXCLUDED[sport]])); }
+  catch(e){}
+}
 
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
@@ -1905,6 +1943,9 @@ const TREND_TOOLTIP_STYLE = {
   titleFont: { family: 'DM Mono', size: 12 }, bodyFont: { family: 'DM Mono', size: 13 },
   bodySpacing: 5, caretSize: 6, displayColors: true, usePointStyle: true
 };
+// For scatter/doughnut where there are no day-columns: still drop the "must be
+// exactly on the point" requirement so a nearby hover/tap surfaces the tooltip.
+const NEAR_INTERACTION = { mode: 'nearest', intersect: false };
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
@@ -2073,7 +2114,8 @@ function renderPaceDistChart(data) {
     },
     options: {
       ...CHART_OPTS,
-      plugins: { legend: { display: false } },
+      interaction: TREND_INTERACTION,
+      plugins: { legend: { display: false }, tooltip: { ...TREND_TOOLTIP_STYLE } },
       scales: {
         x: { ...CHART_OPTS.scales.x, title: { display:true, text:'Passo /km', color:'#5a6a7a', font:{family:'DM Mono',size:10} } },
         y: { ticks: { color:'#5a6a7a', font:{family:'DM Mono',size:10}, callback: v => v+'%' }, grid: { color:'rgba(255,255,255,0.04)' } }
@@ -2103,6 +2145,8 @@ function renderEfficiencyChart(data) {
     },
     options: {
       ...CHART_OPTS,
+      interaction: NEAR_INTERACTION,
+      plugins: { ...(CHART_OPTS.plugins||{}), tooltip: { ...TREND_TOOLTIP_STYLE } },
       scales: {
         x: { ...CHART_OPTS.scales.x, title:{display:true,text:'Potenza (W)',color:'#5a6a7a',font:{family:'DM Mono',size:10}} },
         y: { reverse:true, ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10},callback:v=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return `${m}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Passo /km',color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
@@ -2306,9 +2350,12 @@ function renderAcwr(data) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      interaction: TREND_INTERACTION,
       plugins: {
         legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 }, filter: item => item.datasetIndex >= 2 } },
         tooltip: {
+          ...TREND_TOOLTIP_STYLE,
+          filter: c => c.datasetIndex >= 2,
           callbacks: {
             label: c => {
               if(c.datasetIndex === 0 || c.datasetIndex === 1) return null;
@@ -2664,7 +2711,8 @@ function renderBikeSpeedDist(data) {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins: { legend: { display: false } },
+      interaction: TREND_INTERACTION,
+      plugins: { legend: { display: false }, tooltip: { ...TREND_TOOLTIP_STYLE } },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Avg Speed',color:'#5a6a7a',font:{family:'DM Mono',size:10}} },
         y: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:10},callback:v=>v+'%'}, grid:{color:'rgba(255,255,255,0.04)'} }
@@ -2756,9 +2804,10 @@ function renderBikeAcwr(data) {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
+      interaction: TREND_INTERACTION,
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, filter: item => item.datasetIndex >= 2 },
-        tooltip: { callbacks: { label: c => {
+        tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { label: c => {
           if(c.datasetIndex < 2) return null;
           if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
           return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
@@ -3079,7 +3128,8 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
+      interaction: TREND_INTERACTION,
+      plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
@@ -3190,9 +3240,10 @@ function renderFitnessChart(data, sport) {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
+      interaction: TREND_INTERACTION,
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
-        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
@@ -3227,6 +3278,41 @@ function paTrend(ys){
 function paBands(sport){ return sport === 'cycling' ? PA_BANDS_BIKE : PA_BANDS_RUN; }
 function paBand(sport){ return sport === 'cycling' ? PA_BAND_BIKE : PA_BAND_RUN; }
 function paBandLabel(b){ return b[1] >= 99 ? `${b[0]}+ km` : `${b[0]}–${b[1]} km`; }
+// DD/MM/YYYY from an ISO date string (yyyy-mm-dd)
+function paFmtDate(iso){ const p = (iso||'').split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; }
+// Flag activities whose pace or HR sit >1.5 std-devs from the trend line (possible outliers).
+function paFlagOutliers(list, isBike){
+  if(list.length < PA_MIN_ACTS) return list.map(()=>false);
+  const perf = list.map(r => isBike ? r.distance/(r.durationSec/3600) : (r.paceSecPerKm ? r.paceSecPerKm/60 : (r.durationSec/60)/r.distance));
+  const hr   = list.map(r => r.hr);
+  const pT = paTrend(perf), hT = paTrend(hr);
+  const rP = perf.map((v,i)=>v - pT.fitted[i]);
+  const rH = hr.map((v,i)=>v - hT.fitted[i]);
+  const sd = a => { const m=a.reduce((x,y)=>x+y,0)/a.length; return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length) || 1; };
+  const sP = sd(rP), sH = sd(rH);
+  return list.map((_,i) => Math.abs(rP[i]/sP) > 1.5 || Math.abs(rH[i]/sH) > 1.5);
+}
+// exclude toggles (called from generated markup)
+function paToggleExclude(sport, date){
+  const set = PA_EXCLUDED[sport];
+  set.has(date) ? set.delete(date) : set.add(date);
+  paSaveExcluded(sport);
+  renderProgress(sport === 'cycling' ? lastBikeRenderedData : lastRenderedData, sport);
+}
+function paRestoreAll(sport){
+  PA_EXCLUDED[sport].clear(); paSaveExcluded(sport);
+  renderProgress(sport === 'cycling' ? lastBikeRenderedData : lastRenderedData, sport);
+}
+function paExcludeFlagged(sport){
+  const isBike = sport === 'cycling';
+  const band = paBand(sport);
+  const inBand = (sport==='cycling'?lastBikeRenderedData:lastRenderedData || [])
+    .filter(r => r.distance >= band[0] && r.distance < band[1] && r.hr && r.durationSec > 0)
+    .sort((a,b)=> new Date(a.date)-new Date(b.date));
+  paFlagOutliers(inBand, isBike).forEach((f,i)=>{ if(f) PA_EXCLUDED[sport].add(inBand[i].date); });
+  paSaveExcluded(sport);
+  renderProgress(sport==='cycling'?lastBikeRenderedData:lastRenderedData, sport);
+}
 
 function buildProgressBand(sport){
   const containerId = sport === 'cycling' ? 'progressBandBike' : 'progressBandRun';
@@ -3267,22 +3353,55 @@ function renderProgress(data, sport){
   if(!body) return;
   const band = paBand(sport);
 
-  // comparable activities: in band, with HR and a valid speed/pace, oldest→newest
-  const comp = (data || [])
+  // all activities in band (with HR + valid speed/pace), oldest→newest
+  const inBand = (data || [])
     .filter(r => r.distance >= band[0] && r.distance < band[1] && r.hr && r.durationSec > 0)
     .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  const excludedSet = PA_EXCLUDED[sport];
+  const flags = paFlagOutliers(inBand, isBike);
+  const comp = inBand.filter(r => !excludedSet.has(r.date));   // kept for the trend
+  const nEx = inBand.length - comp.length;
 
   const note = document.getElementById(noteId);
   if(note) note.innerHTML = `<b style="color:var(--purple);font-weight:600">${comp.length} activit${comp.length===1?'y':'ies'}</b> · with HR · oldest → newest`;
 
+  // ── exclude / outlier panel (always shown when there's data in the band) ──
+  const flaggedCount = inBand.filter((r,i)=>flags[i] && !excludedSet.has(r.date)).length;
+  const rowsHtml = inBand.map((r,i)=>{
+    const ex = excludedSet.has(r.date);
+    const flagged = flags[i] && !ex;
+    const pace = isBike ? (r.distance/(r.durationSec/3600)).toFixed(1)+' km/h'
+                        : (r.paceSecPerKm ? paceStr(r.paceSecPerKm) : '—');
+    return `<div class="pa-actrow ${ex?'excluded':''}">
+      <span class="pa-actdate">${paFmtDate(r.date)}${flagged?'<span class="pa-flag" title="far from your trend — possible outlier">⚠</span>':''}</span>
+      <span class="pa-actval pa-col-dist"><span class="pa-collabel">dist</span> <b>${r.distance} km</b></span>
+      <span class="pa-actval"><span class="pa-collabel">${isBike?'spd':'pace'}</span> <b>${pace}</b></span>
+      <span class="pa-actval"><span class="pa-collabel">hr</span> <b>${r.hr}</b></span>
+      <span class="pa-btnx" onclick="paToggleExclude('${sport}','${r.date}')">${ex?'↺ include':'✕ exclude'}</span>
+    </div>`;
+  }).join('');
+  const panelHtml = inBand.length ? `
+    <details class="pa-manage">
+      <summary>✕ Exclude activities <span class="pa-mhint">(${inBand.length} in band${nEx?`, ${nEx} excluded`:''})</span></summary>
+      <div class="pa-mlist">
+        ${rowsHtml}
+        <div class="pa-mfoot">
+          <span>${nEx?`${nEx} excluded — trend uses ${comp.length}`:'All included'}</span>
+          ${nEx?`<a onclick="paRestoreAll('${sport}')">↺ Restore all</a>`:''}
+          ${flaggedCount?`<a onclick="paExcludeFlagged('${sport}')">⚠ Exclude all flagged</a>`:''}
+        </div>
+      </div>
+    </details>` : '';
+
   if(comp.length < PA_MIN_ACTS){
-    body.innerHTML = `<p class="pa-empty">🔍 Need at least <b style="color:var(--purple)">${PA_MIN_ACTS}</b> activities with HR in the ${paBandLabel(band)} band to spot a trend — found ${comp.length}. Try a wider band or log more comparable ${isBike?'rides':'runs'}.</p>`;
+    body.innerHTML = panelHtml + `<p class="pa-empty">🔍 Need at least <b style="color:var(--purple)">${PA_MIN_ACTS}</b> included activities with HR in the ${paBandLabel(band)} band — found ${comp.length}${nEx?` (${nEx} excluded)`:''}. Try a wider band, restore some, or log more comparable ${isBike?'rides':'runs'}.</p>`;
     ['paDist_'+sport,'paSpeed_'+sport,'paHr_'+sport].forEach(destroyChart);
     return;
   }
 
   // series
-  const labels  = comp.map(r => r.date);
+  const labels  = comp.map(r => paFmtDate(r.date));
   const hrVals  = comp.map(r => r.hr);
   // "speed metric": running uses pace (sec/km, lower=better); cycling uses km/h (higher=better)
   const paceVals = comp.map(r => r.paceSecPerKm ? r.paceSecPerKm/60 : (r.durationSec/60)/r.distance); // min/km
@@ -3366,8 +3485,7 @@ function renderProgress(data, sport){
   const tips = state === 'flat' ? tipsFlat : state === 'down' ? tipsDown : '';
 
   // ── build DOM ──
-  const distChart = isBike ? 'paSpeedDistCanvas_' : 'paDistCanvas_';
-  body.innerHTML = `
+  body.innerHTML = panelHtml + `
     <!-- ① same distance -->
     <div class="pa-block">
       <div>
@@ -3520,9 +3638,10 @@ function renderPolarizedChart(data, sport) {
     options: {
       responsive: true, maintainAspectRatio: true,
       cutout: '60%',
+      interaction: NEAR_INTERACTION,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: c => `${c.label}: ${c.raw} sessions (${(c.raw/total*100).toFixed(0)}%)` } }
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { label: c => `${c.label}: ${c.raw} sessions (${(c.raw/total*100).toFixed(0)}%)` } }
       }
     }
   });
