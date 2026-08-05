@@ -1352,18 +1352,41 @@ function paSaveExcluded(sport){
 function gapiLoaded(){ gapi.load('client', async () => {
   await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
 }); }
+// Pre-selected Google account — skips the "Choose an account" screen (image 2).
+const LOGIN_HINT = 'devirgilis.valerio@gmail.com';
+
 function gisLoaded(){
-  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPES, callback: '', login_hint: LOGIN_HINT
+  });
+  // Reuse a still-valid token from a previous session → skips the popup entirely.
+  try {
+    const cached = JSON.parse(localStorage.getItem('crono:gtoken') || 'null');
+    if(cached && cached.access_token && cached.expiry > Date.now() + 60000){
+      gapi.client.setToken({ access_token: cached.access_token });
+      document.getElementById('auth-btn').style.display = 'none';
+      document.getElementById('sync-btn').style.display = 'inline-block';
+      setStatus('Connesso', 'connected');
+    }
+  } catch(e){}
+}
+function onAuth(resp){
+  if(resp.error) throw resp;
+  // Persist token so the next visit (within its ~1h life) needs no popup at all.
+  try {
+    const expiry = Date.now() + (parseInt(resp.expires_in,10) || 3600) * 1000;
+    localStorage.setItem('crono:gtoken', JSON.stringify({ access_token: resp.access_token, expiry }));
+  } catch(e){}
+  document.getElementById('auth-btn').style.display = 'none';
+  document.getElementById('sync-btn').style.display = 'inline-block';
+  setStatus('Connesso', 'connected');
+  listFiles();
 }
 function handleAuthClick(){
-  tokenClient.callback = async (resp) => {
-    if(resp.error) throw resp;
-    document.getElementById('auth-btn').style.display = 'none';
-    document.getElementById('sync-btn').style.display = 'inline-block';
-    setStatus('Connesso', 'connected');
-    await listFiles();
-  };
-  tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
+  tokenClient.callback = onAuth;
+  // '' = no forced prompt: Google shows the lightest flow it can (often silent
+  // once you've consented). login_hint pins the account so no chooser appears.
+  tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '', login_hint: LOGIN_HINT });
 }
 
 function setStatus(text, cls) {
