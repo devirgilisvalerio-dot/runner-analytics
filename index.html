@@ -3492,7 +3492,6 @@ function renderProgress(data, sport){
       </div>
       <div class="pa-chart"><canvas id="paDist_${sport}"></canvas></div>
     </div>
-    <p class="pa-cap">Solid = your ${isBike?'rides':'runs'} · dashed = least-squares trend across all of them. Deltas are trend-start → trend-end. ⚠ A trend, not a single-run verdict — heat, hills &amp; fatigue also move HR.</p>
     <details class="pa-verdict ${v.cls}"${state==='up'?' open':''}>
       <summary><span class="pa-vicon">${v.icon}</span><span class="pa-vhead ${v.headCls}">${v.head}</span></summary>
       <div class="pa-vbody">${v.body}</div>
