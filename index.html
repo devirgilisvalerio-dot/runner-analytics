@@ -658,7 +658,7 @@ td b{ font-family:var(--font-mono); }
 
   <!-- PROGRESS ANALYZER -->
   <div class="card" id="runProgressSection" style="margin-bottom:20px;">
-    <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— are you improving on comparable runs?</span></div>
+    <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— improving on comparable runs?</span></div>
     <div class="mini-filter" id="progressBandRun"></div>
     <div id="runProgressBody"></div>
   </div>
@@ -902,7 +902,7 @@ td b{ font-family:var(--font-mono); }
 
     <!-- PROGRESS ANALYZER -->
     <div class="card" id="bikeProgressSection" style="margin-bottom:20px;">
-      <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— are you improving on comparable rides?</span></div>
+      <div class="card-title"><span>Progress Analyzer</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— improving on comparable rides?</span></div>
       <div class="mini-filter" id="progressBandBike"></div>
       <div id="bikeProgressBody"></div>
     </div>
@@ -3364,7 +3364,7 @@ function renderProgress(data, sport){
   const nEx = inBand.length - comp.length;
 
   const note = document.getElementById(noteId);
-  if(note) note.innerHTML = `<b style="color:var(--purple);font-weight:600">${comp.length} activit${comp.length===1?'y':'ies'}</b> · with HR · oldest → newest`;
+  if(note) note.innerHTML = `<b style="color:var(--purple);font-weight:600">${comp.length} activit${comp.length===1?'y':'ies'}</b>`;
 
   // ── exclude panel (always shown when there's data in the band) ──
   const rowsHtml = inBand.map(r=>{
@@ -3431,8 +3431,8 @@ function renderProgress(data, sport){
     perfBig = `<span class="${cls(-dSec)}">${sign(dSec)} s/km</span>`;
     perfSub = `${fmtPaceMin(perfT.first)} → ${fmtPaceMin(perfT.last)} /km`;
   }
-  const hrBig = `<span class="${cls(-hrDelta)}">${sign(Math.round(hrDelta))} bpm</span>`;
-  const hrSub = `${Math.round(hrT.first)} → ${Math.round(hrT.last)} avg`;
+  const hrBig = `<span class="${cls(-hrDelta)}">${hrDelta>0?'+':''}${hrDelta.toFixed(1)} bpm</span>`;
+  const hrSub = `${hrT.first.toFixed(1)} → ${hrT.last.toFixed(1)} avg`;
 
   // ── verdict ──
   const perfImproved = perfPct >  PA_SIGNIFICANCE;
