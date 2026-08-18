@@ -12,7 +12,7 @@
   --bg:#1e2a38; --card:#212e3c; --card2:#263546;
   --text:#eaf0f6; --muted:#8b9bad; --muted2:#aebccb;
   --accent:#ff6b4a; --green:#00e676; --orange:#ff9100;
-  --red:#ff3d57; --purple:#ff6b4a; --pink:#c264ff; --border:#33475a;
+  --red:#ff3d57; --purple:#ff6b4a; --pink:#c264ff; --yellow:#ffd43b; --border:#33475a;
   --pace-good:#00e676; --pace-mid:#ffea00; --pace-bad:#ff3d57;
   --font-display:'Barlow Condensed',sans-serif;
   --font-body:'Barlow',sans-serif;
@@ -64,7 +64,7 @@ body::before{
 }
 .btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
 .primary{ background:var(--accent); color:#000; }
-.success{ background:var(--green); color:#000; }
+.success{ background:var(--accent); color:#000; }
 
 /* ── STATS GRID ── */
 .stats-grid{
@@ -83,7 +83,7 @@ body::before{
 }
 .stat-card.c-pace::after{ background:var(--green); }
 .stat-card.c-km::after{ background:var(--accent); }
-.stat-card.c-hr::after{ background:var(--muted2); }
+.stat-card.c-hr::after{ background:var(--yellow); }
 .stat-card.c-cad::after{ background:var(--pink); }
 .stat-card.c-pow::after{ background:var(--orange); }
 .stat-card.c-dur::after{ background:var(--red); }
@@ -100,6 +100,7 @@ body::before{
 .stat-value.red{ color:var(--red); }
 .stat-value.purple{ color:var(--pink); }
 .stat-value.orange{ color:var(--orange); }
+.stat-value.yellow{ color:var(--yellow); }
 .stat-sub{ margin-top:8px; font-size:14px; color:var(--muted2); font-family:var(--font-mono); }
 
 /* ── FILTERS ── */
@@ -457,7 +458,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-pace"><div class="stat-title">Avg Pace</div><div class="stat-value green" id="homeRunPace">—</div><div class="stat-sub" id="homeRunPaceSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeRunCal">—</div><div class="stat-sub" id="homeRunAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
     </div>
@@ -471,7 +472,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
@@ -564,7 +565,7 @@ td b{ font-family:var(--font-mono); }
     </div>
     <div class="stat-card c-hr">
       <div class="stat-title">Avg BPM</div>
-      <div class="stat-value" id="avgHr">—</div>
+      <div class="stat-value yellow" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
     <div class="stat-card c-pow">
@@ -848,7 +849,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="bikeAvgSpeed">—</div><div class="stat-sub" id="bikeMaxSpeed">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="bikeTotalKm">—</div><div class="stat-sub" id="bikeCountSub">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
@@ -2097,7 +2098,7 @@ function renderTrendChart(data) {
       labels,
       datasets: [
         { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',  data:hrVals,  borderColor:'#eaf0f6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#eaf0f6', borderWidth:2.7 },
+        { label:'BPM',  data:hrVals,  borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ffd43b', borderWidth:2.7 },
         { label:'Km',   data:kmVals,  borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 }
       ]
     },
@@ -2122,7 +2123,7 @@ function renderTrendChart(data) {
       scales: {
         x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
         yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr:   { type:'linear', position:'right', ticks:{color:'#eaf0f6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#eaf0f6',font:{family:'DM Mono',size:10}} },
+        yHr:   { type:'linear', position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ffd43b',font:{family:'DM Mono',size:10}} },
         yKm:   { type:'linear', position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff6b4a',font:{family:'DM Mono',size:10}} }
       }
     }
@@ -2682,7 +2683,7 @@ function renderBikeTrendChart(data) {
       labels,
       datasets: [
         { label:'Speed', data:speedVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',   data:hrVals,   borderColor:'#eaf0f6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#eaf0f6', borderWidth:2.7 },
+        { label:'BPM',   data:hrVals,   borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ffd43b', borderWidth:2.7 },
         { label:'Km',    data:kmVals,   borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 }
       ]
     },
@@ -2702,7 +2703,7 @@ function renderBikeTrendChart(data) {
       scales: {
         x: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
         ySpeed: { type:'linear', position:'left', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr: { type:'linear', position:'right', ticks:{color:'#eaf0f6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#eaf0f6',font:{family:'DM Mono',size:10}} },
+        yHr: { type:'linear', position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ffd43b',font:{family:'DM Mono',size:10}} },
         yKm: { type:'linear', position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff6b4a',font:{family:'DM Mono',size:10}} }
       }
     }
@@ -3071,7 +3072,7 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       labels,
       datasets: [
         { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label: 'BPM', data: hrVals, borderColor:'#eaf0f6', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#eaf0f6', borderWidth:2.7, yAxisID:'yHr' },
+        { label: 'BPM', data: hrVals, borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ffd43b', borderWidth:2.7, yAxisID:'yHr' },
         { label: 'Km', data: kmVals, borderColor:'#ff6b4a', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#ff6b4a', borderWidth:2.7, yAxisID:'yKm' }
       ]
     },
@@ -3091,7 +3092,7 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
-        yHr:{ position:'right', ticks:{color:'#eaf0f6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
+        yHr:{ position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
         yKm:{ position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
       }
     }
@@ -3548,7 +3549,7 @@ function renderProgress(data, sport){
     </details>`;
 
   // ── charts ──
-  const GREEN='#00e676', RED='#eaf0f6';
+  const GREEN='#00e676', RED='#ffd43b';
   const GRID='rgba(255,255,255,0.04)';
   const TT = { backgroundColor:'rgba(33,46,60,0.97)', borderColor:'#33475a', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
   const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
