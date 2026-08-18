@@ -647,6 +647,21 @@ td b{ font-family:var(--font-mono); }
         <div id="predMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
       </div>
     </div>
+    <!-- HOW PREDICTIONS WORK (collapsible info bar) -->
+    <div id="predInfoBar" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+      <div onclick="togglePredInfo()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--muted2);font-size:12px;">i</span>
+        How these predictions work
+        <span id="predInfoChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+      </div>
+      <div id="predInfoBody" style="display:none;padding:2px 18px 18px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
+        <p style="margin:10px 0;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
+        <p style="margin:10px 0;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
+        <p style="margin:10px 0;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
+        <p style="margin:10px 0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7%).</p>
+        <p style="margin:12px 0 2px;color:var(--muted);font-size:12px;font-style:italic;">These are training estimates, not guarantees — weather, course, fueling and race-day effort all matter.</p>
+      </div>
+    </div>
     <!-- SHOE ROTATION (moved under the trend predictions) -->
     <div id="shoeSection" style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
       <div class="card-title"><span>Shoe Rotation</span></div>
@@ -1863,8 +1878,8 @@ function renderAvgKmSplits(data) {
     });
   }
 
-  // Fixed pace-based color coding: < 5:25 green, 5:25–5:35 amber, > 5:35 red.
-  const paceClass = sec => sec <= 325 ? 'pace-fast' : sec <= 335 ? 'pace-mid' : 'pace-slow';
+  // Fixed pace-based color coding: ≤ 5:20 green, 5:21–5:30 amber, > 5:30 red.
+  const paceClass = sec => sec <= 320 ? 'pace-fast' : sec <= 330 ? 'pace-mid' : 'pace-slow';
 
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
@@ -2180,52 +2195,78 @@ function renderEfficiencyChart(data) {
 
 /* ACWR */
 function renderPredictions(data) {
-  const strip = document.getElementById('predictionStrip');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  const strip    = document.getElementById('predictionStrip');
+  const infoBar  = document.getElementById('predInfoBar');
+  const homeStrip = document.getElementById('homePredStrip');
+  // Usable runs: must have a pace and be >= 4 km (shorter runs don't predict race pace)
+  const sorted = [...data].filter(r => r.paceSecPerKm && r.distance >= 4).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 3) {
+    strip.style.display = 'none';
+    if(infoBar) infoBar.style.display = 'none';
+    if(homeStrip) homeStrip.style.display = 'none';
+    return;
+  }
   strip.style.display = 'grid';
+  if(infoBar) infoBar.style.display = '';
+  if(homeStrip) homeStrip.style.display = 'grid';
 
-  const recent = sorted.slice(-10);
+  // Last 15 runs, linear-weighted so recent form dominates (oldest w=1 … newest w=15)
+  const recent  = sorted.slice(-15);
   const weights = recent.map((_, i) => i + 1);
-  const totalW = weights.reduce((a, b) => a + b, 0);
-  let basePaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
+  const totalW  = weights.reduce((a, b) => a + b, 0);
 
-  // Inactivity penalty: +0.75% per day beyond 7 days since last run
+  const now = new Date();
+
+  // Inactivity ("rust"): +0.5% per day beyond 7 days off, capped at +20%
   const lastRunDate = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
-  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.0075 : 1;
-  basePaceSec *= inactivityPenalty;
+  const daysSinceLastRun = Math.floor((now - lastRunDate) / 86400000);
+  const rustMult = daysSinceLastRun > 7 ? 1 + Math.min(0.20, (daysSinceLastRun - 7) * 0.005) : 1;
+  const rustPct  = Math.round((rustMult - 1) * 100);
+  const rustTag  = rustPct > 0
+    ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + rustPct + '% rust</span>'
+    : '';
 
-  // 10K (10 km) — 2% degradation (half of Half Marathon)
-  const tenDist = 10;
-  const tenPaceSec = basePaceSec * 1.02;
-  const tenFinishSec = tenPaceSec * tenDist;
-  const rustTag = daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '';
+  // Longest run in the last 365 rolling days — "proof of distance" for the wall penalty
+  const yearAgo = new Date(now.getTime() - 365 * 86400000);
+  const longestRun = Math.max(0, ...data.filter(r => r.distance > 0 && new Date(r.date) >= yearAgo).map(r => r.distance));
+
+  const RIEGEL_EXP = 0.05;   // pace shifts ~3.5% per doubling/halving of distance
+  const WALL_K     = 0.07;   // untrained-distance penalty per +100% beyond longest run
+
+  // Per-race predicted pace (sec/km):
+  //   1. normalize each run's pace to the race distance (Riegel), weight-average
+  //   2. apply rust, then the wall penalty for distance beyond your longest run
+  function racePace(raceDist) {
+    const base = recent.reduce((s, r, i) =>
+      s + r.paceSecPerKm * Math.pow(raceDist / r.distance, RIEGEL_EXP) * weights[i], 0) / totalW;
+    const overshoot = longestRun > 0 ? Math.max(0, (raceDist - longestRun) / longestRun) : 0;
+    const wallMult  = 1 + WALL_K * overshoot;
+    return base * rustMult * wallMult;
+  }
+
   const predHTML = (finSec, paceSec) =>
     '<span style="color:var(--text)">' + secondsToTime(Math.round(finSec)) + '</span>' +
     '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(paceSec)) + ' /km</span>' + rustTag;
-  document.getElementById('predTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
 
-  // Half Marathon (21.0975 km) — 4.25% degradation
-  const hmDist = 21.0975;
-  const hmPaceSec = basePaceSec * 1.0425;
-  const hmFinishSec = hmPaceSec * hmDist;
-  document.getElementById('predHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
+  const races = [
+    { dist: 10,      el: 'predTen',      home: 'homePredTen' },
+    { dist: 21.0975, el: 'predHalf',     home: 'homePredHalf' },
+    { dist: 42.195,  el: 'predMarathon', home: 'homePredMarathon' },
+  ];
+  races.forEach(rc => {
+    const paceSec = racePace(rc.dist);
+    const html = predHTML(paceSec * rc.dist, paceSec);
+    document.getElementById(rc.el).innerHTML = html;
+    if(homeStrip) document.getElementById(rc.home).innerHTML = html;
+  });
+}
 
-  // Marathon (42.195 km) — 8.5% degradation
-  const mDist = 42.195;
-  const mPaceSec = basePaceSec * 1.085;
-  const mFinishSec = mPaceSec * mDist;
-  document.getElementById('predMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
-
-  // Mirror to overview tab if elements exist
-  const homeStrip = document.getElementById('homePredStrip');
-  if(homeStrip) {
-    homeStrip.style.display = 'grid';
-    document.getElementById('homePredTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
-    document.getElementById('homePredHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
-    document.getElementById('homePredMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
-  }
+function togglePredInfo() {
+  const body = document.getElementById('predInfoBody');
+  const chev = document.getElementById('predInfoChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
 function renderBikePredictions(data) {
@@ -2323,21 +2364,21 @@ function renderAcwr(data) {
   else                         { riskLabel = 'High Risk';     riskColor = 'var(--red)'; }
 
   document.getElementById('acwrBadges').innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Status</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${riskLabel}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:15px;font-weight:400">km/day</span></div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:15px;font-weight:400">km/day</span></div>
     </div>`;
 
   document.getElementById('acwrSection').style.display = 'block';
@@ -2367,7 +2408,7 @@ function renderAcwr(data) {
           },
           spanGaps: false, borderWidth: 2.7
         },
-        { label: 'Acute 7d (km/day)',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
+        { label: 'Acute 7d',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
         { label: 'Chronic 28d (km/day)', data: chronicPoints, borderColor: '#bf40ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
       ]
     },
@@ -2790,21 +2831,21 @@ function renderBikeAcwr(data) {
   else                            { riskLabel = 'High Risk';    riskColor = 'var(--red)'; }
 
   document.getElementById('bikeAcwrBadgesTab').innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Status</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${riskLabel}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:15px;font-weight:400">km/day</span></div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:15px;font-weight:400">km/day</span></div>
     </div>`;
 
   document.getElementById('bikeAcwrSection').style.display = 'block';
@@ -2821,7 +2862,7 @@ function renderBikeAcwr(data) {
           label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         },
-        { label:'Acute 7d (km/day)', data:acutePoints, borderColor:'#00e5ff', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
+        { label:'Acute 7d', data:acutePoints, borderColor:'#00e5ff', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
         { label:'Chronic 28d (km/day)', data:chronicPoints, borderColor:'#bf40ff', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
       ]
     },
@@ -3126,13 +3167,13 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
   const badge = (label, val) => `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">${label}${val}</div>`;
   document.getElementById(badgesId).innerHTML =
     badge('<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Status</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${riskLabel}</div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:${riskColor}">${riskLabel}</div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Acute load (7d avg)</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:13px;font-weight:400">km/day</span></div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Chronic load (28d avg)</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`);
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:13px;font-weight:400">km/day</span></div>`);
 
   document.getElementById(sectionId).style.display = 'block';
 
@@ -3704,7 +3745,7 @@ function renderPersonalRecords(data, sport) {
         html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
           <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
           <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${timeStr}</div>
-          <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${paceDisplay} /km · ${pr.date}</div>
+          <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${paceDisplay} /km · ${paFmtDate(pr.date)}</div>
         </div>`;
       }
     });
@@ -3756,13 +3797,13 @@ function renderPersonalRecords(data, sport) {
           html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${pr.distance.toFixed(1)} km</div>
-            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${secondsToTime(Math.round(pr.time))} · ${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${secondsToTime(Math.round(pr.time))} · ${pr.speed.toFixed(1)} km/h · ${paFmtDate(pr.date)}</div>
           </div>`;
         } else {
           html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(pr.time))}</div>
-            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${pr.speed.toFixed(1)} km/h · ${paFmtDate(pr.date)}</div>
           </div>`;
         }
       }
