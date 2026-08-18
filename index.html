@@ -12,7 +12,7 @@
   --bg:#1e2a38; --card:#212e3c; --card2:#263546;
   --text:#eaf0f6; --muted:#8b9bad; --muted2:#aebccb;
   --accent:#ff6b4a; --green:#00e676; --orange:#ff9100;
-  --red:#ff3d57; --purple:#ff6b4a; --pink:#c264ff; --yellow:#ffd43b; --border:#33475a;
+  --red:#ff3d57; --purple:#ff6b4a; --pink:#c264ff; --yellow:#d7dee6; --lightgray:#d7dee6; --border:#33475a;
   --pace-good:#00e676; --pace-mid:#ffea00; --pace-bad:#ff3d57;
   --font-display:'Barlow Condensed',sans-serif;
   --font-body:'Barlow',sans-serif;
@@ -63,7 +63,7 @@ body::before{
   transition:all 0.15s; text-transform:uppercase;
 }
 .btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
-.primary{ background:var(--accent); color:#000; }
+.primary{ background:#f2f5f8; color:#111; }
 .success{ background:var(--accent); color:#000; }
 
 /* ── STATS GRID ── */
@@ -83,7 +83,7 @@ body::before{
 }
 .stat-card.c-pace::after{ background:var(--green); }
 .stat-card.c-km::after{ background:var(--accent); }
-.stat-card.c-hr::after{ background:var(--yellow); }
+.stat-card.c-hr::after{ background:var(--lightgray); }
 .stat-card.c-cad::after{ background:var(--pink); }
 .stat-card.c-pow::after{ background:var(--orange); }
 .stat-card.c-dur::after{ background:var(--red); }
@@ -100,7 +100,7 @@ body::before{
 .stat-value.red{ color:var(--red); }
 .stat-value.purple{ color:var(--pink); }
 .stat-value.orange{ color:var(--orange); }
-.stat-value.yellow{ color:var(--yellow); }
+.stat-value.lightgray{ color:var(--lightgray); }
 .stat-sub{ margin-top:8px; font-size:14px; color:var(--muted2); font-family:var(--font-mono); }
 
 /* ── FILTERS ── */
@@ -416,6 +416,14 @@ td b{ font-family:var(--font-mono); }
 .nav-btn.active{ border-color:var(--accent); background:rgba(255,107,74,0.08); color:var(--accent); }
 .sport-icon{ font-size:20px; margin-right:6px; display:inline-flex; align-items:center; }
 .sport-icon svg{ width:19px; height:19px; display:block; }
+/* prediction cards — Option 2 gradient wash */
+.pred-card{ border:1px solid rgba(255,107,74,0.35); border-radius:12px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,107,74,0.22) 0%, rgba(255,107,74,0.05) 34%, var(--card2) 34%, var(--card2) 100%); }
+.pred-head{ padding:11px 16px 9px; display:flex; align-items:center; gap:7px;
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; font-weight:500; color:var(--accent); }
+.pred-head svg{ width:14px; height:14px; }
+.pred-body{ padding:6px 16px 18px; }
+.pred-val{ font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--text); }
 </style>
 </head>
 <body>
@@ -451,28 +459,28 @@ td b{ font-family:var(--font-mono); }
   <div id="page-home">
     <!-- RUN STATS -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="font-size:20px">🏃</span>
+      <span style="display:inline-flex;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg></span>
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Running</span>
     </div>
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Pace</div><div class="stat-value green" id="homeRunPace">—</div><div class="stat-sub" id="homeRunPaceSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeRunCal">—</div><div class="stat-sub" id="homeRunAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
     </div>
 
     <!-- BIKE STATS -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:8px;">
-      <span style="font-size:20px">🚴</span>
+      <span style="display:inline-flex;color:var(--text)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg></span>
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
     </div>
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
@@ -483,17 +491,17 @@ td b{ font-family:var(--font-mono); }
         <div class="card-title"><span>Trend Performance</span> <span id="homeTrendRunTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendRun"></canvas></div>
         <div id="homePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg></span>10K TOMORROW</div>
-            <div id="homePredTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>10K TOMORROW</div>
+            <div class="pred-body"><div id="homePredTen" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg></span>HALF MARATHON TOMORROW</div>
-            <div id="homePredHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>HALF MARATHON TOMORROW</div>
+            <div class="pred-body"><div id="homePredHalf" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg></span>MARATHON TOMORROW</div>
-            <div id="homePredMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>MARATHON TOMORROW</div>
+            <div class="pred-body"><div id="homePredMarathon" class="pred-val">—</div></div>
           </div>
         </div>
       </div>
@@ -501,17 +509,17 @@ td b{ font-family:var(--font-mono); }
         <div class="card-title"><span>Trend Performance</span> <span id="homeTrendBikeTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendBike"></canvas></div>
         <div id="homeBikePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg></span>45 KM TOMORROW</div>
-            <div id="homeBikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>45 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred45" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg></span>90 KM TOMORROW</div>
-            <div id="homeBikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg>90 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred90" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg></span>140 KM TOMORROW</div>
-            <div id="homeBikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>140 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred140" class="pred-val">—</div></div>
           </div>
         </div>
       </div>
@@ -565,7 +573,7 @@ td b{ font-family:var(--font-mono); }
     </div>
     <div class="stat-card c-hr">
       <div class="stat-title">Avg BPM</div>
-      <div class="stat-value yellow" id="avgHr">—</div>
+      <div class="stat-value lightgray" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
     <div class="stat-card c-pow">
@@ -638,20 +646,17 @@ td b{ font-family:var(--font-mono); }
     <div class="mini-filter" id="trendControlsRun"></div>
     <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
     <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg></span>10K TOMORROW</div>
-        <div id="predTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
-        <div style="height:3px;border-radius:2px;margin-top:12px;background:linear-gradient(90deg,var(--accent),rgba(255,107,74,0));"></div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>10K TOMORROW</div>
+        <div class="pred-body"><div id="predTen" class="pred-val">—</div></div>
       </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg></span>HALF MARATHON TOMORROW</div>
-        <div id="predHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
-        <div style="height:3px;border-radius:2px;margin-top:12px;background:linear-gradient(90deg,var(--accent),rgba(255,107,74,0));"></div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>HALF MARATHON TOMORROW</div>
+        <div class="pred-body"><div id="predHalf" class="pred-val">—</div></div>
       </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg></span>MARATHON TOMORROW</div>
-        <div id="predMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
-        <div style="height:3px;border-radius:2px;margin-top:12px;background:linear-gradient(90deg,var(--accent),rgba(255,107,74,0));"></div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>MARATHON TOMORROW</div>
+        <div class="pred-body"><div id="predMarathon" class="pred-val">—</div></div>
       </div>
     </div>
     <!-- HOW PREDICTIONS WORK (collapsible info bar) -->
@@ -849,7 +854,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="bikeAvgSpeed">—</div><div class="stat-sub" id="bikeMaxSpeed">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="bikeTotalKm">—</div><div class="stat-sub" id="bikeCountSub">—</div></div>
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value yellow" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
@@ -905,17 +910,17 @@ td b{ font-family:var(--font-mono); }
       <div class="mini-filter" id="trendControlsBike"></div>
       <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
       <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg></span>45 KM TOMORROW</div>
-          <div id="bikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>45 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred45" class="pred-val">—</div></div>
         </div>
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg></span>90 KM TOMORROW</div>
-          <div id="bikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg>90 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred90" class="pred-val">—</div></div>
         </div>
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:5px;display:inline-flex;vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg></span>140 KM TOMORROW</div>
-          <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>140 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred140" class="pred-val">—</div></div>
         </div>
       </div>
     </div>
@@ -2098,7 +2103,7 @@ function renderTrendChart(data) {
       labels,
       datasets: [
         { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',  data:hrVals,  borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ffd43b', borderWidth:2.7 },
+        { label:'BPM',  data:hrVals,  borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#d7dee6', borderWidth:2.7 },
         { label:'Km',   data:kmVals,  borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 }
       ]
     },
@@ -2123,7 +2128,7 @@ function renderTrendChart(data) {
       scales: {
         x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
         yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr:   { type:'linear', position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ffd43b',font:{family:'DM Mono',size:10}} },
+        yHr:   { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#d7dee6',font:{family:'DM Mono',size:10}} },
         yKm:   { type:'linear', position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff6b4a',font:{family:'DM Mono',size:10}} }
       }
     }
@@ -2683,7 +2688,7 @@ function renderBikeTrendChart(data) {
       labels,
       datasets: [
         { label:'Speed', data:speedVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',   data:hrVals,   borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ffd43b', borderWidth:2.7 },
+        { label:'BPM',   data:hrVals,   borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#d7dee6', borderWidth:2.7 },
         { label:'Km',    data:kmVals,   borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 }
       ]
     },
@@ -2703,7 +2708,7 @@ function renderBikeTrendChart(data) {
       scales: {
         x: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
         ySpeed: { type:'linear', position:'left', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr: { type:'linear', position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ffd43b',font:{family:'DM Mono',size:10}} },
+        yHr: { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#d7dee6',font:{family:'DM Mono',size:10}} },
         yKm: { type:'linear', position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff6b4a',font:{family:'DM Mono',size:10}} }
       }
     }
@@ -3072,7 +3077,7 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       labels,
       datasets: [
         { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label: 'BPM', data: hrVals, borderColor:'#ffd43b', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ffd43b', borderWidth:2.7, yAxisID:'yHr' },
+        { label: 'BPM', data: hrVals, borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#d7dee6', borderWidth:2.7, yAxisID:'yHr' },
         { label: 'Km', data: kmVals, borderColor:'#ff6b4a', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#ff6b4a', borderWidth:2.7, yAxisID:'yKm' }
       ]
     },
@@ -3092,7 +3097,7 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
-        yHr:{ position:'right', ticks:{color:'#ffd43b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
+        yHr:{ position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
         yKm:{ position:'right', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
       }
     }
@@ -3549,7 +3554,7 @@ function renderProgress(data, sport){
     </details>`;
 
   // ── charts ──
-  const GREEN='#00e676', RED='#ffd43b';
+  const GREEN='#00e676', RED='#d7dee6';
   const GRID='rgba(255,255,255,0.04)';
   const TT = { backgroundColor:'rgba(33,46,60,0.97)', borderColor:'#33475a', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
   const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
