@@ -2421,7 +2421,7 @@ function renderAcwr(data) {
           callbacks: {
             label: c => {
               if(c.datasetIndex === 0 || c.datasetIndex === 1) return null;
-              if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
+              if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
               return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
             }
           }
@@ -2430,7 +2430,7 @@ function renderAcwr(data) {
       scales: {
         x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.04)' } },
         y: { position: 'left', min: 0, ticks: { color: '#ff9100', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'ACWR', color: '#ff9100', font: { family: 'DM Mono', size: 10 } } },
-        yKm: { position: 'right', min: 0, ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/day', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } } }
+        yKm: { position: 'right', min: 0, ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/d', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } } }
       }
     }
   });
@@ -2871,14 +2871,14 @@ function renderBikeAcwr(data) {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, filter: item => item.datasetIndex >= 2 },
         tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { label: c => {
           if(c.datasetIndex < 2) return null;
-          if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
+          if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
           return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
         }}}
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:12}, grid:{color:'rgba(255,255,255,0.04)'} },
         y: { position:'left', min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'ACWR',color:'#ff9100',font:{family:'DM Mono',size:10}} },
-        yKm: { position:'right', min:0, ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/day',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        yKm: { position:'right', min:0, ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/d',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
       }
     }
   });
