@@ -4,18 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CRONO Elite</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
-  --bg:#080c10; --card:#0e1318; --card2:#131a22;
-  --text:#e8edf2; --muted:#5a6a7a; --muted2:#8a9aaa;
-  --accent:#00e5ff; --green:#00e676; --orange:#ff9100;
-  --red:#ff3d57; --purple:#bf40ff; --border:#1e2a34;
-  --pace-good:#00e676; --pace-mid:#ffea00; --pace-bad:#ff3d57;
-  --font-display:'Barlow Condensed',sans-serif;
-  --font-body:'Barlow',sans-serif;
-  --font-mono:'DM Mono',monospace;
+  /* ── Graphite theme ── refined dark, one warm accent, calm technical type */
+  --bg:#0a0c10; --card:#101418; --card2:#161c22;
+  --text:#e7ecf2; --muted:#6b7784; --muted2:#9aa7b4;
+  --accent:#ff7a55; --green:#3fbf8f; --orange:#e0954a;
+  --red:#ff6b6b; --purple:#a56bd0; --border:#1e262e;
+  --pace-good:#3fbf8f; --pace-mid:#e8c766; --pace-bad:#ff6b6b;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
 }
 *{ margin:0; padding:0; box-sizing:border-box; }
 body{
@@ -28,9 +29,9 @@ body{
 body::before{
   content:''; position:fixed; inset:0; pointer-events:none;
   background-image:
-    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
-  background-size:40px 40px;
+    linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px);
+  background-size:56px 56px;
   z-index:0;
 }
 .container{ max-width:1480px; margin:auto; position:relative; z-index:1; }
@@ -42,27 +43,27 @@ body::before{
 }
 .logo{ display:flex; align-items:baseline; gap:10px; }
 .logo h1{
-  font-family:var(--font-display); font-size:42px; font-weight:800;
+  font-family:var(--font-display); font-size:38px; font-weight:600;
   letter-spacing:-1px; color:var(--text);
-  text-transform:uppercase;
+  text-transform:none;
 }
 .logo-badge{
-  font-family:var(--font-mono); font-size:13px;
-  color:var(--accent); border:1px solid var(--accent);
-  padding:3px 8px; border-radius:4px; letter-spacing:1px;
+  font-family:var(--font-mono); font-size:12px;
+  color:var(--muted2); border:1px solid var(--border); background:var(--card2);
+  padding:3px 9px; border-radius:5px; letter-spacing:1px;
   position:relative; top:-2px;
 }
 .header-sub{ color:var(--muted); font-size:14px; margin-top:4px; font-family:var(--font-mono); }
 .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .btn{
-  border:none; padding:13px 20px; border-radius:6px;
-  cursor:pointer; font-weight:700; color:white;
-  font-family:var(--font-display); font-size:16px; letter-spacing:.5px;
-  transition:all 0.15s; text-transform:uppercase;
+  border:none; padding:12px 20px; border-radius:8px;
+  cursor:pointer; font-weight:600; color:white;
+  font-family:var(--font-body); font-size:14px; letter-spacing:.2px;
+  transition:all 0.15s; text-transform:none;
 }
-.btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
-.primary{ background:var(--accent); color:#000; }
-.success{ background:var(--green); color:#000; }
+.btn:hover{ transform:translateY(-2px); filter:brightness(1.06); }
+.primary{ background:var(--accent); color:#160b07; }
+.success{ background:var(--green); color:#06201a; }
 
 /* ── STATS GRID ── */
 .stats-grid{
@@ -73,7 +74,7 @@ body::before{
 .stat-card{
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:10px; padding:20px 22px;
+  border-radius:14px; padding:20px 22px;
   position:relative; overflow:hidden;
 }
 .stat-card::after{
@@ -86,19 +87,20 @@ body::before{
 .stat-card.c-pow::after{ background:var(--orange); }
 .stat-card.c-dur::after{ background:var(--muted2); }
 .stat-title{
-  color:var(--muted); font-size:13px; letter-spacing:1.5px;
-  text-transform:uppercase; margin-bottom:10px; font-family:var(--font-mono);
+  color:var(--muted); font-size:11px; letter-spacing:1.4px;
+  text-transform:uppercase; margin-bottom:12px; font-family:var(--font-mono);
 }
 .stat-value{
-  font-family:var(--font-display); font-size:36px; font-weight:700;
-  line-height:1; letter-spacing:-1px;
+  font-family:var(--font-display); font-size:34px; font-weight:600;
+  line-height:1; letter-spacing:-1.5px; color:#f2f6fa;
 }
-.stat-value.green{ color:var(--green); }
-.stat-value.cyan{ color:var(--accent); }
-.stat-value.red{ color:var(--red); }
-.stat-value.purple{ color:var(--purple); }
-.stat-value.orange{ color:var(--orange); }
-.stat-sub{ margin-top:8px; font-size:14px; color:var(--muted2); font-family:var(--font-mono); }
+/* Graphite: numbers stay neutral — the top accent bar carries the metric color */
+.stat-value.green,
+.stat-value.cyan,
+.stat-value.red,
+.stat-value.purple,
+.stat-value.orange{ color:#f2f6fa; }
+.stat-sub{ margin-top:9px; font-size:13px; color:var(--muted2); font-family:var(--font-mono); }
 
 /* ── FILTERS ── */
 .filter-panel{
@@ -161,9 +163,9 @@ body::before{
 .pa-up{ color:var(--green); } .pa-down{ color:var(--red); } .pa-neutral{ color:var(--accent); }
 .pa-cap{ font-family:var(--font-mono); font-size:12px; color:var(--muted); margin:6px 0 14px; line-height:1.5; }
 .pa-verdict{ border-radius:10px; margin:14px 0 0; border:1px solid; overflow:hidden; }
-.pa-verdict-up{ background:rgba(0,230,118,0.07); border-color:var(--green); }
-.pa-verdict-flat{ background:rgba(0,229,255,0.06); border-color:var(--accent); }
-.pa-verdict-down{ background:rgba(255,145,0,0.07); border-color:var(--orange); }
+.pa-verdict-up{ background:rgba(63,191,143,0.07); border-color:var(--green); }
+.pa-verdict-flat{ background:rgba(255,122,85,0.06); border-color:var(--accent); }
+.pa-verdict-down{ background:rgba(224,149,74,0.07); border-color:var(--orange); }
 .pa-verdict > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:14px; padding:16px 20px; user-select:none; }
 .pa-verdict > summary::-webkit-details-marker{ display:none; }
 .pa-verdict > summary::after{ content:'▾'; margin-left:auto; color:var(--muted); font-size:16px; transition:transform .2s; }
@@ -209,12 +211,12 @@ body::before{
 
 .filter-badge{
   display:inline-flex; align-items:center;
-  background:rgba(0,229,255,0.08); border:1px solid var(--accent);
+  background:rgba(255,122,85,0.08); border:1px solid var(--accent);
   color:var(--accent); font-family:var(--font-mono); font-size:13px;
   padding:3px 10px; border-radius:20px; letter-spacing:.5px;
 }
 .filter-badge.dimmed{
-  background:rgba(255,61,87,0.08); border-color:var(--red); color:var(--red);
+  background:rgba(255,107,107,0.08); border-color:var(--red); color:var(--red);
 }
 .btn-reset{
   background:transparent; border:1px solid var(--border);
@@ -229,12 +231,12 @@ body::before{
 .main-grid{ display:grid; grid-template-columns:340px 1fr; gap:20px; margin-bottom:20px; }
 .card{
   background:var(--card); border:1px solid var(--border);
-  border-radius:10px; padding:22px; margin-bottom:16px;
+  border-radius:16px; padding:24px; margin-bottom:16px;
 }
 .card:last-child{ margin-bottom:0; }
 .card-title{
-  font-family:var(--font-display); font-size:18px; font-weight:700;
-  letter-spacing:.5px; text-transform:uppercase; margin-bottom:18px;
+  font-family:var(--font-display); font-size:17px; font-weight:600;
+  letter-spacing:-.2px; text-transform:none; margin-bottom:18px;
   color:var(--muted2);
 }
 .card-title span{ color:var(--text); }
@@ -295,13 +297,13 @@ body::before{
 }
 .split-hr{ font-size:13px; font-family:var(--font-mono); margin-top:3px; }
 .pace-fast{ color:var(--green); }
-.pace-mid{ color:#ffe566; }
+.pace-mid{ color:#e8c766; }
 .pace-slow{ color:var(--red); }
 .split-tag{ font-size:10px; font-family:var(--font-mono); letter-spacing:.5px; margin-top:4px; }
-.split-highlight{ border-width:2px; }
-.split-highlight.highlight-pace-fast{ border-color:var(--green); box-shadow:0 0 0 1px var(--green), 0 0 12px rgba(0,230,118,0.25); }
-.split-highlight.highlight-pace-mid{ border-color:#ffe566; box-shadow:0 0 0 1px #ffe566, 0 0 12px rgba(255,229,102,0.25); }
-.split-highlight.highlight-pace-slow{ border-color:var(--red); box-shadow:0 0 0 1px var(--red), 0 0 12px rgba(255,61,87,0.25); }
+.split-highlight{ border-width:1px; }
+.split-highlight.highlight-pace-fast{ border-color:var(--green); box-shadow:inset 0 0 0 1px var(--green); }
+.split-highlight.highlight-pace-mid{ border-color:#e8c766; box-shadow:inset 0 0 0 1px #e8c766; }
+.split-highlight.highlight-pace-slow{ border-color:var(--red); box-shadow:inset 0 0 0 1px var(--red); }
 
 /* ── CHARTS ── */
 .chart-box{ height:280px; }
@@ -321,9 +323,9 @@ td b{ font-family:var(--font-mono); }
   padding:3px 9px; border-radius:4px; font-size:13px;
   font-weight:700; font-family:var(--font-mono); letter-spacing:.5px;
 }
-.badge-fit{ background:#00e67620; color:#00e676; border:1px solid #00e67640; }
-.badge-gpx{ background:#00e5ff20; color:#00e5ff; border:1px solid #00e5ff40; }
-.badge-shoe{ background:#bf40ff20; color:#bf40ff; border:1px solid #bf40ff40; }
+.badge-fit{ background:#3fbf8f22; color:#3fbf8f; border:1px solid #3fbf8f44; }
+.badge-gpx{ background:#ff7a5522; color:#ff9a7d; border:1px solid #ff7a5544; }
+.badge-shoe{ background:#a56bd022; color:#bd90e0; border:1px solid #a56bd044; }
 
 /* ── LOG ── */
 .parse-log{
@@ -403,14 +405,14 @@ td b{ font-family:var(--font-mono); }
   display:flex; gap:12px; margin-bottom:24px; align-items:center;
 }
 .nav-btn{
-  border:none; padding:12px 24px; border-radius:8px;
-  cursor:pointer; font-weight:700; color:var(--text);
-  font-family:var(--font-display); font-size:18px; letter-spacing:.5px;
-  transition:all 0.15s; text-transform:uppercase;
+  border:none; padding:11px 22px; border-radius:9px;
+  cursor:pointer; font-weight:600; color:var(--muted2);
+  font-family:var(--font-body); font-size:15px; letter-spacing:.1px;
+  transition:all 0.15s; text-transform:none;
   background:var(--card); border:1px solid var(--border);
 }
-.nav-btn:hover{ border-color:var(--accent); transform:translateY(-1px); }
-.nav-btn.active{ border-color:var(--accent); background:rgba(0,229,255,0.08); color:var(--accent); }
+.nav-btn:hover{ border-color:var(--accent); color:var(--text); transform:translateY(-1px); }
+.nav-btn.active{ border-color:var(--accent); background:rgba(255,122,85,0.10); color:var(--accent); }
 .sport-icon{ font-size:20px; margin-right:6px; }
 </style>
 </head>
@@ -1762,9 +1764,9 @@ function renderDashboard(data){
 /* PACE ZONES */
 function renderPaceZones(data) {
   const zones = [
-    { label: 'Fast',      min: 0,   max: 295,  color: '#ff9100', desc: '< 4:55 · high intensity' },
-    { label: 'Threshold', min: 295, max: 325,  color: '#ffea00', desc: '4:55–5:25 · Half-marathon target pace' },
-    { label: 'Aerobic',   min: 325, max: 360,  color: '#00e676', desc: '5:25–6:00 · Long run, marathon pace, fat-burning zone' },
+    { label: 'Fast',      min: 0,   max: 295,  color: '#e0954a', desc: '< 4:55 · high intensity' },
+    { label: 'Threshold', min: 295, max: 325,  color: '#e8c766', desc: '4:55–5:25 · Half-marathon target pace' },
+    { label: 'Aerobic',   min: 325, max: 360,  color: '#3fbf8f', desc: '5:25–6:00 · Long run, marathon pace, fat-burning zone' },
     { label: 'Easy',      min: 360, max: 9999, color: '#5a6a7a', desc: '> 6:00 · Recovery runs' },
   ];
   const allSplits = data.flatMap(r => r.kmSplits || []);
@@ -1799,10 +1801,10 @@ function renderHrZones(data) {
   const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
   const zones = [
     { label: 'Z1 Recovery',  min: 0,    max: 0.60, color: '#5a6a7a', desc: '< 60% · Active recovery, very easy effort' },
-    { label: 'Z2 Aerobic',   min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, fat burning, long runs' },
-    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Comfortable hard, improves efficiency' },
-    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · Lactate threshold, race pace work' },
-    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · Short bursts' },
+    { label: 'Z2 Aerobic',   min: 0.60, max: 0.70, color: '#3fbf8f', desc: '60–70% · Base building, fat burning, long runs' },
+    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#e8c766', desc: '70–80% · Comfortable hard, improves efficiency' },
+    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#e0954a', desc: '80–90% · Lactate threshold, race pace work' },
+    { label: 'Z5 Max',       min: 0.90, max: 1.00, color: '#ff6b6b', desc: '90–100% · Short bursts' },
   ];
 
   const runsWithHr = data.filter(r => r.hr && r.hr > 0);
@@ -1974,7 +1976,7 @@ const CHART_OPTS = {
 const TREND_INTERACTION = { mode: 'index', intersect: false, axis: 'x' };
 // Roomy, readable tooltip that also works on small/phone screens.
 const TREND_TOOLTIP_STYLE = {
-  backgroundColor: 'rgba(14,19,24,0.96)', borderColor: '#1e2a34', borderWidth: 1,
+  backgroundColor: 'rgba(16,20,24,0.97)', borderColor: '#1e262e', borderWidth: 1,
   titleColor: '#e8edf2', bodyColor: '#e8edf2', padding: 10, cornerRadius: 8,
   titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'DM Mono', size: 12 },
   bodySpacing: 5, caretSize: 6, displayColors: true, usePointStyle: true
@@ -2090,9 +2092,9 @@ function renderTrendChart(data) {
     data: {
       labels,
       datasets: [
-        { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',  data:hrVals,  borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
-        { label:'Km',   data:kmVals,  borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
+        { label:'Pace', data:paceVals, borderColor:'#3fbf8f', backgroundColor:'rgba(63,191,143,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#3fbf8f', borderWidth:2.7 },
+        { label:'BPM',  data:hrVals,  borderColor:'#ff6b6b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff6b6b', borderWidth:2.7 },
+        { label:'Km',   data:kmVals,  borderColor:'#ff7a55', backgroundColor:'rgba(255,122,85,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#ff7a55', borderWidth:2.7 }
       ]
     },
     options: {
@@ -2115,9 +2117,9 @@ function renderTrendChart(data) {
       },
       scales: {
         x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr:   { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
-        yKm:   { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#3fbf8f', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#3fbf8f',font:{family:'DM Mono',size:10}} },
+        yHr:   { type:'linear', position:'right', ticks:{color:'#ff6b6b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff6b6b',font:{family:'DM Mono',size:10}} },
+        yKm:   { type:'linear', position:'right', ticks:{color:'#ff7a55',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff7a55',font:{family:'DM Mono',size:10}} }
       }
     }
   });
@@ -2143,8 +2145,8 @@ function renderPaceDistChart(data) {
       labels,
       datasets: [{
         label: '% tempo', data: pcts,
-        backgroundColor: keys.map(k => k < 255 ? '#00e67680' : k < 300 ? '#ffe56680' : '#ff3d5750'),
-        borderColor:     keys.map(k => k < 255 ? '#00e676'   : k < 300 ? '#ffe566'   : '#ff3d57'),
+        backgroundColor: keys.map(k => k < 255 ? '#3fbf8f80' : k < 300 ? '#e8c76680' : '#ff6b6b50'),
+        borderColor:     keys.map(k => k < 255 ? '#3fbf8f'   : k < 300 ? '#e8c766'   : '#ff6b6b'),
         borderWidth: 1
       }]
     },
@@ -2176,7 +2178,7 @@ function renderEfficiencyChart(data) {
       datasets: [{
         label: 'W vs Passo',
         data: sorted.map(r => ({ x: r.power, y: r.paceSecPerKm / 60 })),
-        backgroundColor: '#bf40ff80', borderColor: '#bf40ff', pointRadius: 6
+        backgroundColor: '#a56bd080', borderColor: '#a56bd0', pointRadius: 6
       }]
     },
     options: {
@@ -2390,24 +2392,24 @@ function renderAcwr(data) {
     data: {
       labels: chartDates,
       datasets: [
-        { label: 'Sweet zone top (1.3)',    data: sweetHi, borderColor: 'transparent', backgroundColor: 'rgba(0,230,118,0.07)', fill: '+1', pointRadius: 0, tension: 0 },
+        { label: 'Sweet zone top (1.3)',    data: sweetHi, borderColor: 'transparent', backgroundColor: 'rgba(63,191,143,0.07)', fill: '+1', pointRadius: 0, tension: 0 },
         { label: 'Sweet zone bottom (0.8)', data: sweetLo, borderColor: 'transparent', backgroundColor: 'transparent',          fill: false, pointRadius: 0, tension: 0 },
         {
           label: 'ACWR', data: acwrPoints,
-          borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.10)', fill: false, tension: 0.3,
+          borderColor: '#e0954a', backgroundColor: 'rgba(224,149,74,0.10)', fill: false, tension: 0.3,
           pointRadius: c => { const v = c.raw; return v !== null && v > 1.3 ? 5 : 2; },
           pointBackgroundColor: c => {
             const v = c.raw;
             if(v === null) return 'transparent';
-            if(v > 1.5) return '#ff3d57';
-            if(v > 1.3) return '#ff9100';
+            if(v > 1.5) return '#ff6b6b';
+            if(v > 1.3) return '#e0954a';
             if(v < 0.8) return '#8a9aaa';
-            return '#00e676';
+            return '#3fbf8f';
           },
           spanGaps: false, borderWidth: 2.7
         },
-        { label: 'Acute 7d',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
-        { label: 'Chronic 28d', data: chronicPoints, borderColor: '#bf40ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
+        { label: 'Acute 7d',   data: acutePoints,   borderColor: '#ff7a55', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
+        { label: 'Chronic 28d', data: chronicPoints, borderColor: '#a56bd0', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
       ]
     },
     options: {
@@ -2429,8 +2431,8 @@ function renderAcwr(data) {
       },
       scales: {
         x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { position: 'left', min: 0, ticks: { color: '#ff9100', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'ACWR', color: '#ff9100', font: { family: 'DM Mono', size: 10 } } },
-        yKm: { position: 'right', min: 0, ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/d', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } } }
+        y: { position: 'left', min: 0, ticks: { color: '#e0954a', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'ACWR', color: '#e0954a', font: { family: 'DM Mono', size: 10 } } },
+        yKm: { position: 'right', min: 0, ticks: { color: '#ff7a55', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/d', color: '#ff7a55', font: { family: 'DM Mono', size: 10 } } }
       }
     }
   });
@@ -2578,9 +2580,9 @@ function renderBikeDashboard(data) {
 /* BIKE: SPEED ZONES */
 function renderBikeSpeedZones(data) {
   const zones = [
-    { label: 'Fast',      min: 30,  max: 9999, color: '#ff9100', desc: '> 30 km/h · Race pace, high intensity sprints' },
-    { label: 'Threshold', min: 28,  max: 30,   color: '#ffea00', desc: '28–30 km/h · Sustained power, FTP zone' },
-    { label: 'Aerobic',   min: 24,  max: 28,   color: '#00e676', desc: '24–28 km/h · Endurance base, long rides' },
+    { label: 'Fast',      min: 30,  max: 9999, color: '#e0954a', desc: '> 30 km/h · Race pace, high intensity sprints' },
+    { label: 'Threshold', min: 28,  max: 30,   color: '#e8c766', desc: '28–30 km/h · Sustained power, FTP zone' },
+    { label: 'Aerobic',   min: 24,  max: 28,   color: '#3fbf8f', desc: '24–28 km/h · Endurance base, long rides' },
     { label: 'Easy',      min: 0,   max: 24,   color: '#5a6a7a', desc: '< 24 km/h · Recovery, warm-up, cool-down' },
   ];
   const ridesWithSpeed = data.filter(r => r.durationSec > 0 && r.distance > 0);
@@ -2619,10 +2621,10 @@ function renderBikeHrZones(data) {
   const maxHr = parseInt(document.getElementById('bikeMaxHrInput').value, 10) || 190;
   const zones = [
     { label: 'Z1 Recovery',  min: 0,    max: 0.60, color: '#5a6a7a', desc: '< 60% · Active recovery, very easy spin' },
-    { label: 'Z2 Endurance', min: 0.60, max: 0.70, color: '#00e676', desc: '60–70% · Base building, long rides, fat burning' },
-    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#ffea00', desc: '70–80% · Sustained effort, sweetspot training' },
-    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#ff9100', desc: '80–90% · FTP intervals, time trial pace' },
-    { label: 'Z5 VO2max',    min: 0.90, max: 1.00, color: '#ff3d57', desc: '90–100% · Short high-intensity intervals' },
+    { label: 'Z2 Endurance', min: 0.60, max: 0.70, color: '#3fbf8f', desc: '60–70% · Base building, long rides, fat burning' },
+    { label: 'Z3 Tempo',     min: 0.70, max: 0.80, color: '#e8c766', desc: '70–80% · Sustained effort, sweetspot training' },
+    { label: 'Z4 Threshold', min: 0.80, max: 0.90, color: '#e0954a', desc: '80–90% · FTP intervals, time trial pace' },
+    { label: 'Z5 VO2max',    min: 0.90, max: 1.00, color: '#ff6b6b', desc: '90–100% · Short high-intensity intervals' },
   ];
   const runsWithHr = data.filter(r => r.hr && r.hr > 0);
   if(!runsWithHr.length) {
@@ -2675,9 +2677,9 @@ function renderBikeTrendChart(data) {
     data: {
       labels,
       datasets: [
-        { label:'Speed', data:speedVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',   data:hrVals,   borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
-        { label:'Km',    data:kmVals,   borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
+        { label:'Speed', data:speedVals, borderColor:'#3fbf8f', backgroundColor:'rgba(63,191,143,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#3fbf8f', borderWidth:2.7 },
+        { label:'BPM',   data:hrVals,   borderColor:'#ff6b6b', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff6b6b', borderWidth:2.7 },
+        { label:'Km',    data:kmVals,   borderColor:'#ff7a55', backgroundColor:'rgba(255,122,85,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#ff7a55', borderWidth:2.7 }
       ]
     },
     options: {
@@ -2695,9 +2697,9 @@ function renderBikeTrendChart(data) {
       },
       scales: {
         x: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
-        ySpeed: { type:'linear', position:'left', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr: { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
-        yKm: { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        ySpeed: { type:'linear', position:'left', ticks:{color:'#3fbf8f',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#3fbf8f',font:{family:'DM Mono',size:10}} },
+        yHr: { type:'linear', position:'right', ticks:{color:'#ff6b6b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff6b6b',font:{family:'DM Mono',size:10}} },
+        yKm: { type:'linear', position:'right', ticks:{color:'#ff7a55',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#ff7a55',font:{family:'DM Mono',size:10}} }
       }
     }
   });
@@ -2766,8 +2768,8 @@ function renderBikeSpeedDist(data) {
       labels,
       datasets: [{
         label: '% rides', data: pcts,
-        backgroundColor: keys.map(k => k >= 30 ? '#00e67680' : k >= 25 ? '#ffe56680' : '#ff3d5750'),
-        borderColor:     keys.map(k => k >= 30 ? '#00e676'   : k >= 25 ? '#ffe566'   : '#ff3d57'),
+        backgroundColor: keys.map(k => k >= 30 ? '#3fbf8f80' : k >= 25 ? '#e8c76680' : '#ff6b6b50'),
+        borderColor:     keys.map(k => k >= 30 ? '#3fbf8f'   : k >= 25 ? '#e8c766'   : '#ff6b6b'),
         borderWidth: 1
       }]
     },
@@ -2854,14 +2856,14 @@ function renderBikeAcwr(data) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
+        { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(63,191,143,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet zone bottom', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
         {
-          label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
-          pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
+          label:'ACWR', data:acwrPoints, borderColor:'#e0954a', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff6b6b'; if(v>SAFE_HI) return '#e0954a'; if(v<0.8) return '#8a9aaa'; return '#3fbf8f'; }
         },
-        { label:'Acute 7d', data:acutePoints, borderColor:'#00e5ff', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
-        { label:'Chronic 28d', data:chronicPoints, borderColor:'#bf40ff', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
+        { label:'Acute 7d', data:acutePoints, borderColor:'#ff7a55', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
+        { label:'Chronic 28d', data:chronicPoints, borderColor:'#a56bd0', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
       ]
     },
     options: {
@@ -2877,8 +2879,8 @@ function renderBikeAcwr(data) {
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:12}, grid:{color:'rgba(255,255,255,0.04)'} },
-        y: { position:'left', min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'ACWR',color:'#ff9100',font:{family:'DM Mono',size:10}} },
-        yKm: { position:'right', min:0, ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/d',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        y: { position:'left', min:0, ticks:{color:'#e0954a',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'ACWR',color:'#e0954a',font:{family:'DM Mono',size:10}} },
+        yKm: { position:'right', min:0, ticks:{color:'#ff7a55',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/d',color:'#ff7a55',font:{family:'DM Mono',size:10}} }
       }
     }
   });
@@ -3064,9 +3066,9 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
     data: {
       labels,
       datasets: [
-        { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label: 'BPM', data: hrVals, borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ff3d57', borderWidth:2.7, yAxisID:'yHr' },
-        { label: 'Km', data: kmVals, borderColor:'#00e5ff', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#00e5ff', borderWidth:2.7, yAxisID:'yKm' }
+        { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#3fbf8f', backgroundColor:'rgba(63,191,143,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#3fbf8f', borderWidth:2.7 },
+        { label: 'BPM', data: hrVals, borderColor:'#ff6b6b', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ff6b6b', borderWidth:2.7, yAxisID:'yHr' },
+        { label: 'Km', data: kmVals, borderColor:'#ff7a55', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#ff7a55', borderWidth:2.7, yAxisID:'yKm' }
       ]
     },
     options: {
@@ -3084,9 +3086,9 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
-        y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
-        yHr:{ position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
-        yKm:{ position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
+        y:{ reverse: !isBike, ticks:{color:'#3fbf8f',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
+        yHr:{ position:'right', ticks:{color:'#ff6b6b',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
+        yKm:{ position:'right', ticks:{color:'#ff7a55',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
       }
     }
   });
@@ -3181,10 +3183,10 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
+        { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(63,191,143,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet (lo)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
-        { label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
-          pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
+        { label:'ACWR', data:acwrPoints, borderColor:'#e0954a', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff6b6b'; if(v>SAFE_HI) return '#e0954a'; if(v<0.8) return '#8a9aaa'; return '#3fbf8f'; }
         }
       ]
     },
@@ -3194,7 +3196,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
       plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
-        y:{ min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
+        y:{ min:0, ticks:{color:'#e0954a',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
       }
     }
   });
@@ -3295,9 +3297,9 @@ function renderFitnessChart(data, sport) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
-        { label:'ATL (Fatigue)', data:atlArr, borderColor:'#ff3d57', backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:0, borderWidth:2.7 },
-        { label:'TSB (Form)', data:tsbArr, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7, borderDash:[4,3] }
+        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#ff7a55', backgroundColor:'rgba(255,122,85,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'ATL (Fatigue)', data:atlArr, borderColor:'#ff6b6b', backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'TSB (Form)', data:tsbArr, borderColor:'#3fbf8f', backgroundColor:'rgba(63,191,143,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7, borderDash:[4,3] }
       ]
     },
     options: {
@@ -3542,9 +3544,9 @@ function renderProgress(data, sport){
     </details>`;
 
   // ── charts ──
-  const GREEN='#00e676', RED='#ff3d57';
+  const GREEN='#3fbf8f', RED='#ff6b6b';
   const GRID='rgba(255,255,255,0.04)';
-  const TT = { backgroundColor:'rgba(14,19,24,0.96)', borderColor:'#1e2a34', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
+  const TT = { backgroundColor:'rgba(16,20,24,0.97)', borderColor:'#1e262e', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
   const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
   const perfLabel = isBike ? 'Speed' : 'Pace';
   const perfFmt = c => isBike ? `Speed: ${c.parsed.y.toFixed(1)} km/h` : `Pace: ${fmtPaceMin(c.parsed.y)} /km`;
@@ -3552,7 +3554,7 @@ function renderProgress(data, sport){
     ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:true,text:'Speed (higher=fitter)',color:GREEN,font:{family:'DM Mono',size:9}} }
     : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:true,text:'Pace /km (higher=faster)',color:GREEN,font:{family:'DM Mono',size:9}} };
 
-  const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(0,230,118,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
+  const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(63,191,143,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
   const hrDs   = { label:'BPM', data:hrVals, borderColor:RED, backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:RED, borderWidth:2.5, yAxisID:'yHr' };
 
   destroyChart('paDist_'+sport);
@@ -3637,8 +3639,8 @@ function renderPolarizedChart(data, sport) {
       labels: ['Easy (Z1-Z2)', 'Grey Zone (Z3)', 'Hard (Z4-Z5)'],
       datasets: [{
         data: [easy, grey, hard],
-        backgroundColor: ['#00e67680', '#ff910080', '#ff3d5780'],
-        borderColor: ['#00e676', '#ff9100', '#ff3d57'],
+        backgroundColor: ['#3fbf8f80', '#e0954a80', '#ff6b6b80'],
+        borderColor: ['#3fbf8f', '#e0954a', '#ff6b6b'],
         borderWidth: 2
       }]
     },
