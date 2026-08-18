@@ -8,11 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
-  /* ── Graphite theme ── refined dark, one warm accent, calm technical type */
-  --bg:#0a0c10; --card:#101418; --card2:#161c22;
-  --text:#e7ecf2; --muted:#6b7784; --muted2:#9aa7b4;
+  /* ── Navy Flat theme ── navy gradient base, solid lifted cards, one warm accent */
+  --bg:#1e2a38; --card:#212e3c; --card2:#263546;
+  --text:#eaf0f6; --muted:#8b9bad; --muted2:#aebccb;
   --accent:#ff7a55; --green:#3fbf8f; --orange:#e0954a;
-  --red:#ff6b6b; --purple:#a56bd0; --border:#1e262e;
+  --red:#ff6b6b; --purple:#a56bd0; --border:#33475a;
   --pace-good:#3fbf8f; --pace-mid:#e8c766; --pace-bad:#ff6b6b;
   --font-display:'Space Grotesk',sans-serif;
   --font-body:'Inter',sans-serif;
@@ -20,7 +20,12 @@
 }
 *{ margin:0; padding:0; box-sizing:border-box; }
 body{
-  background:var(--bg);
+  background:
+    radial-gradient(680px 420px at 12% -8%, rgba(255,122,85,0.13), transparent 60%),
+    radial-gradient(760px 520px at 92% 4%, rgba(70,120,190,0.16), transparent 62%),
+    radial-gradient(900px 700px at 60% 108%, rgba(255,122,85,0.06), transparent 60%),
+    linear-gradient(160deg, #263748 0%, #1e2a38 45%, #17212c 100%);
+  background-attachment:fixed;
   color:var(--text);
   font-family:var(--font-body);
   min-height:100vh;
@@ -28,10 +33,6 @@ body{
 }
 body::before{
   content:''; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px);
-  background-size:56px 56px;
   z-index:0;
 }
 .container{ max-width:1480px; margin:auto; position:relative; z-index:1; }
@@ -246,7 +247,7 @@ body::before{
 .pz-row{ display:flex; align-items:center; gap:10px; }
 .pz-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 .pz-label{ font-size:13px; color:var(--muted2); width:90px; font-family:var(--font-mono); }
-.pz-bar-wrap{ flex:1; height:6px; background:#1a2430; border-radius:3px; overflow:hidden; }
+.pz-bar-wrap{ flex:1; height:6px; background:#33475a; border-radius:3px; overflow:hidden; }
 .pz-bar{ height:100%; border-radius:3px; transition:width .6s; }
 .pz-val{ font-family:var(--font-mono); font-size:13px; color:var(--text); width:60px; text-align:right; }
 
@@ -275,7 +276,7 @@ body::before{
 }
 .shoe-header{ display:flex; justify-content:space-between; margin-bottom:4px; font-size:14px; }
 .shoe-km{ font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
-.bar{ height:5px; background:#1a2430; border-radius:999px; overflow:hidden; margin-top:10px; }
+.bar{ height:5px; background:#33475a; border-radius:999px; overflow:hidden; margin-top:10px; }
 .fill{ height:100%; border-radius:999px; }
 
 /* ── KM SPLITS TABLE ── */
@@ -1976,7 +1977,7 @@ const CHART_OPTS = {
 const TREND_INTERACTION = { mode: 'index', intersect: false, axis: 'x' };
 // Roomy, readable tooltip that also works on small/phone screens.
 const TREND_TOOLTIP_STYLE = {
-  backgroundColor: 'rgba(16,20,24,0.97)', borderColor: '#1e262e', borderWidth: 1,
+  backgroundColor: 'rgba(33,46,60,0.97)', borderColor: '#33475a', borderWidth: 1,
   titleColor: '#e8edf2', bodyColor: '#e8edf2', padding: 10, cornerRadius: 8,
   titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'DM Mono', size: 12 },
   bodySpacing: 5, caretSize: 6, displayColors: true, usePointStyle: true
@@ -3546,7 +3547,7 @@ function renderProgress(data, sport){
   // ── charts ──
   const GREEN='#3fbf8f', RED='#ff6b6b';
   const GRID='rgba(255,255,255,0.04)';
-  const TT = { backgroundColor:'rgba(16,20,24,0.97)', borderColor:'#1e262e', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
+  const TT = { backgroundColor:'rgba(33,46,60,0.97)', borderColor:'#33475a', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
   const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
   const perfLabel = isBike ? 'Speed' : 'Pace';
   const perfFmt = c => isBike ? `Speed: ${c.parsed.y.toFixed(1)} km/h` : `Pace: ${fmtPaceMin(c.parsed.y)} /km`;
