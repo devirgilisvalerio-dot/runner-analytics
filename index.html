@@ -34,8 +34,11 @@ body::before{
 
 /* ── HEADER ── */
 .header{
-  display:flex; justify-content:space-between; align-items:flex-start;
-  margin-bottom:32px; flex-wrap:wrap; gap:16px;
+  display:flex; flex-direction:column;
+  margin-bottom:32px; gap:14px;
+}
+.header-top{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
 }
 .logo{ display:flex; align-items:baseline; gap:10px; }
 .logo h1{
@@ -72,9 +75,11 @@ body::before{
   border:1px solid var(--border);
   border-radius:10px; padding:20px 22px;
   position:relative; overflow:hidden;
+  transform:translateZ(0);   /* own compositing layer — avoids iOS reveal-clip of the top edge */
 }
 .stat-card::after{
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  z-index:1;
 }
 .stat-card.c-pace::after{ background:var(--accent); }
 .stat-card.c-km::after{ background:var(--green); }
@@ -345,9 +350,10 @@ td b{ font-family:var(--font-mono); }
 @media(max-width:480px){
   body{ padding:14px 10px 30px; }
   .container{ overflow-x:hidden; }
-  .header{ flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:20px; }
+  .header{ gap:10px; margin-bottom:20px; }
+  .header-top{ align-items:center; gap:10px; }
   .logo h1{ font-size:32px; }
-  .actions{ width:100%; flex-wrap:wrap; }
+  .actions{ flex-wrap:wrap; justify-content:flex-end; flex-shrink:0; }
   .status-pill{ max-width:100%; font-size:11px; }
   .btn{ padding:10px 14px; font-size:14px; }
   .nav-bar{ gap:6px; margin-bottom:16px; padding-bottom:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
@@ -426,20 +432,22 @@ td b{ font-family:var(--font-mono); }
 
   <!-- HEADER -->
   <div class="header">
-    <div>
-      <div class="logo">
-        <h1>CRONO</h1>
-        <span class="logo-badge">ELITE</span>
+    <div class="header-top">
+      <div>
+        <div class="logo">
+          <h1>CRONO</h1>
+          <span class="logo-badge">ELITE</span>
+        </div>
+        <p class="header-sub">TRACK. PUSH. EVOLVE.</p>
       </div>
-      <p class="header-sub">TRACK. PUSH. EVOLVE.</p>
+      <div class="actions">
+        <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
+        <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+      </div>
     </div>
-    <div class="actions">
-      <div id="status-pill" class="status-pill disconnected" title="Reads .fit and .gpx files from your Drive folder">
-        <span class="dot"></span>
-        <span id="status-text">Not connected</span>
-      </div>
-      <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
-      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+    <div id="status-pill" class="status-pill disconnected" title="Reads .fit and .gpx files from your Drive folder">
+      <span class="dot"></span>
+      <span id="status-text">Not connected</span>
     </div>
   </div>
 
@@ -660,11 +668,11 @@ td b{ font-family:var(--font-mono); }
         How these predictions work
         <span id="predInfoChev" style="margin-left:auto;transition:transform .2s;">▸</span>
       </div>
-      <div id="predInfoBody" style="display:none;padding:2px 18px 18px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
-        <p style="margin:10px 0;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
-        <p style="margin:10px 0;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
-        <p style="margin:10px 0;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
-        <p style="margin:10px 0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7%).</p>
+      <div id="predInfoBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
+        <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
+        <p style="margin:0 0 10px;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
+        <p style="margin:0 0 10px;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
+        <p style="margin:0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7%).</p>
       </div>
     </div>
     <!-- SHOE ROTATION (moved under the trend predictions) -->
@@ -1546,7 +1554,7 @@ async function listFiles(){
     const bc = allBikes.length;
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} loaded ✓  (${rc} runs · ${bc} rides · ${fc} FIT · ${gc} GPX · ${cacheHits} cached)`, 'connected');
+    setStatus(`${runs.length} loaded · ${rc} runs · ${bc} rides`, 'connected');
   } catch(err){
     console.error(err);
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
@@ -2446,7 +2454,11 @@ function renderAcwr(data) {
 /* ── SPA NAVIGATION ── */
 function showPage(name) {
   document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('page-' + name).classList.remove('hidden');
+  const pageEl = document.getElementById('page-' + name);
+  pageEl.classList.remove('hidden');
+  // iOS Safari sometimes fails to paint the top border of the first card row when a
+  // display:none page is revealed — force a reflow so it draws immediately.
+  void pageEl.offsetHeight;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('nav-' + name).classList.add('active');
   // Re-render charts on page show (Chart.js needs visible canvas)
