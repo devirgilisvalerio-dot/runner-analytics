@@ -594,12 +594,12 @@ td b{ font-family:var(--font-mono); }
 
   <!-- FILTERS -->
   <div class="filter-panel" id="filterPanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:nowrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap;">
         <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
-        <span id="filterBadge" class="filter-badge" style="display:none;">0 of 0</span>
+        <span id="filterBadge" class="filter-badge" style="display:none;">0 / 0</span>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="btn-reset" onclick="clearAllFilters()">Clear All</button>
         <button class="btn-reset" onclick="resetFilters()">Select All</button>
       </div>
@@ -865,12 +865,12 @@ td b{ font-family:var(--font-mono); }
 
     <!-- BIKE FILTERS -->
     <div class="filter-panel" id="bikeFilterPanel" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:nowrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap;">
           <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
-          <span id="bikeFilterBadge" class="filter-badge" style="display:none;">0 of 0</span>
+          <span id="bikeFilterBadge" class="filter-badge" style="display:none;">0 / 0</span>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;flex-shrink:0;">
           <button class="btn-reset" onclick="clearAllBikeFilters()">Clear All</button>
           <button class="btn-reset" onclick="resetBikeFilters()">Select All</button>
         </div>
@@ -1687,7 +1687,7 @@ function applyFilters() {
 function updateFilterBadge(count) {
   const badge = document.getElementById('filterBadge');
   badge.style.display = 'inline-flex';
-  badge.textContent = `${count} of ${allRuns.length} activities`;
+  badge.textContent = `${count} / ${allRuns.length} runs`;
   badge.className = 'filter-badge' + (count < allRuns.length ? ' dimmed' : '');
 }
 
@@ -2551,7 +2551,7 @@ function applyBikeFilters() {
   const filtered = getFilteredBikes();
   const badge = document.getElementById('bikeFilterBadge');
   badge.style.display = 'inline-flex';
-  badge.textContent = `${filtered.length} of ${allBikes.length} rides`;
+  badge.textContent = `${filtered.length} / ${allBikes.length} rides`;
   badge.className = 'filter-badge' + (filtered.length < allBikes.length ? ' dimmed' : '');
 
   if(!filtered.length) return;
