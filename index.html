@@ -926,6 +926,19 @@ td b{ font-family:var(--font-mono); }
           <div class="pred-body"><div id="bikePred140" class="pred-val">—</div></div>
         </div>
       </div>
+      <!-- HOW PREDICTIONS WORK (collapsible info bar) -->
+      <div id="bikePredInfoBar" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+        <div onclick="toggleBikePredInfo()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+          How these predictions work
+          <span id="bikePredInfoChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+        </div>
+        <div id="bikePredInfoBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
+          <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 rides</b>. Recent rides count more than older ones.</p>
+          <p style="margin:0 0 10px;">Each ride is scaled to the target distance: your speed changes by about <b style="color:var(--text)">2% for every doubling (or halving) of distance</b>. So a target longer than your typical ride predicts a slower speed; a shorter one predicts faster; same distance leaves the speed unchanged.</p>
+          <p style="margin:0 0 10px;">If you haven't ridden for more than <b style="color:var(--text)">10 days</b>, the estimate slows by <b style="color:var(--text)">0.0875% for each additional day off</b>, down to a maximum of <b style="color:var(--text)">−8.75%</b>.</p>
+          <p style="margin:0;">If the target is longer than your <b style="color:var(--text)">longest ride in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">3% slower for every time the target exceeds your longest ride</b> (for example, 140 km off a 70 km longest ride is twice the distance, so it's penalized ~3%).</p>
+        </div>
+      </div>
     </div>
 
     <!-- PROGRESS ANALYZER -->
@@ -2282,6 +2295,14 @@ function togglePredInfo() {
   chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
+function toggleBikePredInfo() {
+  const body = document.getElementById('bikePredInfoBody');
+  const chev = document.getElementById('bikePredInfoChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
+}
+
 function renderBikePredictions(data) {
   const strip = document.getElementById('homeBikePredStrip');
   if(!strip) return;
@@ -2291,42 +2312,8 @@ function renderBikePredictions(data) {
   if(sorted.length < 3) { strip.style.display = 'none'; return; }
   strip.style.display = 'grid';
 
-  // Weighted average speed from recent rides (most recent = highest weight)
-  const recent  = sorted.slice(-10);
-  const weights = recent.map((_, i) => i + 1);
-  const totalW  = weights.reduce((a, b) => a + b, 0);
-  let baseSpeed = recent.reduce((s, r, i) => {
-    const spd = r.distance / (r.durationSec / 3600);
-    return s + spd * weights[i];
-  }, 0) / totalW;
-
-  // Inactivity penalty: -0.15% per day beyond 7 days since last ride
-  const lastRideDate   = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLast  = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
-  baseSpeed *= inactivityMult;
-
-  // Degradation: 45 km → -0.1%, 90 km → -1.6%, 140 km → -3.5%
-  const targets = [
-    { dist: 45,  deg: 0.001, id: 'homeBikePred45'  },
-    { dist: 90,  deg: 0.016, id: 'homeBikePred90'  },
-    { dist: 140, deg: 0.035, id: 'homeBikePred140' },
-  ];
-
-  const rustTag = daysSinceLast > 7
-    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 7}d rust</span>`
-    : '';
-
-  targets.forEach(({ dist, deg, id }) => {
-    const speed   = baseSpeed * (1 - deg);
-    const timeSec = (dist / speed) * 3600;
-    const el      = document.getElementById(id);
-    if(!el) return;
-    el.innerHTML =
-      `<span style="color:var(--text)">${secondsToTime(Math.round(timeSec))}</span>` +
-      `<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">${speed.toFixed(1)} km/h</span>` +
-      rustTag;
-  });
+  // Same model as the bike tab (Riegel + rust + wall) — see bikePredict()
+  bikePredict(sorted, id => document.getElementById(id), 'homeBikePred');
 }
 
 function renderAcwr(data) {
@@ -2724,33 +2711,68 @@ function renderBikeTrendChart(data) {
 
 /* BIKE: PREDICTIONS */
 function renderBikeTabPredictions(data) {
-  const strip = document.getElementById('bikePredictionStrip');
+  const strip   = document.getElementById('bikePredictionStrip');
+  const infoBar = document.getElementById('bikePredInfoBar');
   const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  if(sorted.length < 3) {
+    strip.style.display = 'none';
+    if(infoBar) infoBar.style.display = 'none';
+    return;
+  }
   strip.style.display = 'grid';
+  if(infoBar) infoBar.style.display = '';
 
-  const recent  = sorted.slice(-10);
+  bikePredict(sorted, id => document.getElementById(id), 'bikePred');
+}
+
+/* Shared cycling race-time model (used by the home strip and the bike tab).
+   Mirrors the running model: weighted recent base + Riegel distance scaling +
+   inactivity "rust" + a proof-of-distance "wall" beyond your longest ride.
+   `elFor(id)` resolves the target element; `prefix` is the id stem (45/90/140). */
+function bikePredict(sorted, elFor, prefix) {
+  // Base speed: last 15 rides, linear-weighted so recent form dominates (oldest w=1 … newest w=15)
+  const recent  = sorted.slice(-15);
   const weights = recent.map((_, i) => i + 1);
   const totalW  = weights.reduce((a, b) => a + b, 0);
-  let baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
+  const baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
+  // Weighted reference distance (Riegel anchor): the distance your base speed "belongs to"
+  const refDist = recent.reduce((s, r, i) => s + r.distance * weights[i], 0) / totalW;
 
+  const now = new Date();
+
+  // Inactivity ("rust"): -0.0875% speed per day beyond 10 days off, floored at -8.75%
   const lastRideDate  = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLast = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
-  baseSpeed *= inactivityMult;
+  const daysSinceLast = Math.floor((now - lastRideDate) / 86400000);
+  const rustMult = daysSinceLast > 10 ? Math.max(0.9125, 1 - (daysSinceLast - 10) * 0.000875) : 1;
+  const rustTag  = daysSinceLast > 10
+    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 10}d rust</span>` : '';
 
-  const rustTag = daysSinceLast > 7
-    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 7}d rust</span>` : '';
+  // Longest ride in the last 365 rolling days — "proof of distance" for the wall penalty
+  const yearAgo = new Date(now.getTime() - 365 * 86400000);
+  const longestRide = Math.max(0, ...sorted.filter(r => r.distance > 0 && new Date(r.date) >= yearAgo).map(r => r.distance));
+
+  const RIEGEL_EXP = 0.03;   // speed shifts ~2% per doubling/halving of distance
+  const WALL_K     = 0.03;   // untrained-distance penalty per +100% beyond longest ride
+
+  // Predicted speed (km/h) at a target distance:
+  //   1. scale the weighted base speed to the target via Riegel (longer = slower)
+  //   2. apply rust, then the wall penalty for distance beyond your longest ride
+  function raceSpeed(raceDist) {
+    const base = baseSpeed * Math.pow(refDist / raceDist, RIEGEL_EXP);
+    const overshoot = longestRide > 0 ? Math.max(0, (raceDist - longestRide) / longestRide) : 0;
+    const wallMult  = 1 - WALL_K * overshoot;
+    return base * rustMult * wallMult;
+  }
 
   const targets = [
-    { dist: 45,  deg: 0.001, id: 'bikePred45'  },
-    { dist: 90,  deg: 0.016, id: 'bikePred90'  },
-    { dist: 140, deg: 0.035, id: 'bikePred140' },
+    { dist: 45,  id: prefix + '45'  },
+    { dist: 90,  id: prefix + '90'  },
+    { dist: 140, id: prefix + '140' },
   ];
-  targets.forEach(({ dist, deg, id }) => {
-    const speed   = baseSpeed * (1 - deg);
+  targets.forEach(({ dist, id }) => {
+    const speed   = raceSpeed(dist);
     const timeSec = (dist / speed) * 3600;
-    const el      = document.getElementById(id);
+    const el      = elFor(id);
     if(!el) return;
     el.innerHTML =
       `<span style="color:var(--text)">${secondsToTime(Math.round(timeSec))}</span>` +
