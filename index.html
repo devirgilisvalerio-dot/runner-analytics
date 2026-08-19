@@ -2433,7 +2433,7 @@ function renderAcwr(data) {
         {
           label: 'ACWR', data: acwrPoints,
           borderColor: '#d7dee6', backgroundColor: 'rgba(215,222,230,0.10)', fill: false, tension: 0.3,
-          pointRadius: 3,
+          pointRadius: 4, pointBorderWidth: 0, pointHoverBorderWidth: 0,
           pointBackgroundColor: c => {
             const v = c.raw;
             if(v === null) return 'transparent';
