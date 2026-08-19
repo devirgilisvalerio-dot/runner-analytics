@@ -1960,7 +1960,7 @@ function renderShoes(data) {
     const avgPace = s.paceCount ? paceStr(s.paceSum / s.paceCount) : null;
     const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
     html += `
-    <div class="shoe-card" style="flex:1 1 100%;width:100%;">
+    <div class="shoe-card" style="flex:1 1 0;min-width:220px;">
       <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
