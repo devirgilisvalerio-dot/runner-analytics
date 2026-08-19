@@ -117,14 +117,14 @@ body::before{
   display:flex; flex-direction:column; gap:6px;
 }
 .filter-label{
-  color:var(--muted); font-size:13px; letter-spacing:1.5px;
+  color:var(--muted); font-size:12px; letter-spacing:1.5px;
   text-transform:uppercase; font-family:var(--font-mono);
 }
 .filter-input{
   background:var(--card2); border:1px solid var(--border);
   border-radius:6px; color:var(--text);
-  font-family:var(--font-mono); font-size:13px;
-  padding:8px 14px; outline:none; transition:border-color 0.15s;
+  font-family:var(--font-mono); font-size:12px;
+  padding:4px 8px; outline:none; transition:border-color 0.15s;
   color-scheme:dark;
 }
 .filter-input:focus{ border-color:var(--accent); }
@@ -132,10 +132,10 @@ body::before{
 .shoe-filters{ display:flex; gap:8px; flex-wrap:wrap; }
 .shoe-chip{
   display:flex; align-items:center; gap:6px;
-  cursor:pointer; font-size:14px; font-family:var(--font-mono);
+  cursor:pointer; font-size:12px; font-family:var(--font-mono);
   color:var(--muted2); background:var(--card2);
   border:1px solid var(--border); border-radius:6px;
-  padding:6px 14px; transition:all 0.15s; user-select:none;
+  padding:4px 11px; transition:all 0.15s; user-select:none;
 }
 .shoe-chip.active{
   border-color:var(--purple); color:var(--purple);
@@ -213,8 +213,8 @@ body::before{
 .filter-badge{
   display:inline-flex; align-items:center;
   background:rgba(255,107,74,0.08); border:1px solid var(--accent);
-  color:var(--accent); font-family:var(--font-mono); font-size:13px;
-  padding:3px 10px; border-radius:20px; letter-spacing:.5px;
+  color:var(--accent); font-family:var(--font-mono); font-size:11px;
+  padding:2px 8px; border-radius:20px; letter-spacing:.5px;
 }
 .filter-badge.dimmed{
   background:rgba(255,61,87,0.08); border-color:var(--red); color:var(--red);
@@ -373,8 +373,9 @@ td b{ font-family:var(--font-mono); }
   .splits-grid{ grid-template-columns:repeat(3, 1fr); gap:6px; }
   .split-cell{ padding:8px 10px; }
   .split-pace{ font-size:18px; }
-  .shoe-card{ min-width:unset!important; max-width:unset!important; }
-  #shoeContainer{ flex-direction:column; }
+  .shoe-card{ min-width:unset!important; max-width:unset!important; padding:10px 13px; margin-bottom:0; }
+  .shoe-header{ font-size:13px; }
+  #shoeContainer{ flex-direction:column; gap:8px!important; }
   .table-wrapper{ font-size:12px; overflow-x:auto; }
   table th, table td{ padding:10px 6px 10px 0; }
   .filter-panel{ padding:14px; }
