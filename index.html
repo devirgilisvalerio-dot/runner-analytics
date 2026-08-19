@@ -3631,8 +3631,8 @@ function renderProgress(data, sport){
   const perfLabel = isBike ? 'Speed' : 'Pace';
   const perfFmt = c => isBike ? `Speed: ${c.parsed.y.toFixed(1)} km/h` : `Pace: ${fmtPaceMin(c.parsed.y)} /km`;
   const yPerf = isBike
-    ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:true,text:'Speed (higher=fitter)',color:GREEN,font:{family:'DM Mono',size:9}} }
-    : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:true,text:'Pace /km (higher=faster)',color:GREEN,font:{family:'DM Mono',size:9}} };
+    ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:false} }
+    : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:false} };
 
   const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(255,107,74,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
   const hrDs   = { label:'BPM', data:hrVals, borderColor:RED, backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:RED, borderWidth:2.5, yAxisID:'yHr' };
@@ -3645,7 +3645,7 @@ function renderProgress(data, sport){
     data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf'), hrDs, dashed(hrT.fitted, RED, 'yHr') ] },
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:(c.dataset.yAxisID==='yPerf'?perfFmt(c):`BPM: ${Math.round(c.parsed.y)} bpm`) }} },
-      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'BPM',color:RED,font:{family:'DM Mono',size:9}}} } }
+      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:false}} } }
   });
 }
 
