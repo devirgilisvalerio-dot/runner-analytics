@@ -221,8 +221,8 @@ body::before{
 }
 .btn-reset{
   background:transparent; border:1px solid var(--border);
-  color:var(--muted2); padding:8px 16px; border-radius:6px;
-  cursor:pointer; font-family:var(--font-mono); font-size:14px;
+  color:var(--muted2); padding:6.8px 13.6px; border-radius:6px;
+  cursor:pointer; font-family:var(--font-mono); font-size:11.9px;
   transition:all 0.15s; text-transform:uppercase; letter-spacing:.5px;
   white-space:nowrap; align-self:flex-end;
 }
@@ -716,7 +716,7 @@ td b{ font-family:var(--font-mono); }
     <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
+      <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
       <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
       <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
       <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
@@ -973,7 +973,7 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
+        <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
         <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
         <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
         <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
@@ -1936,6 +1936,15 @@ function renderAvgKmSplits(data) {
 }
 
 /* SHOES */
+// Per-shoe wear limit in km (matched by shoe name); DEFAULT_SHOE_LIMIT for anything else.
+const DEFAULT_SHOE_LIMIT = 500;
+const SHOE_LIMITS = {
+  'Kiprun Carbon': 500,
+  'Vomero Plus':   750,
+  'Sconosciuta':   500,
+};
+function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
+
 function renderShoes(data) {
   const shoes = {};
   data.forEach(r => {
@@ -1946,19 +1955,20 @@ function renderShoes(data) {
   });
   let html = '';
   for(const [name, s] of Object.entries(shoes)){
-    const wear = Math.min(100, (s.km/500)*100);
+    const limit = shoeLimit(name);
+    const wear = Math.min(100, (s.km/limit)*100);
     const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
     const avgPace = s.paceCount ? paceStr(s.paceSum / s.paceCount) : null;
     const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
     html += `
-    <div class="shoe-card" style="flex:1;min-width:200px;max-width:340px;">
+    <div class="shoe-card" style="flex:1 1 100%;width:100%;">
       <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
       </div>
       <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
-      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of 500 km</div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of ${limit} km</div>
     </div>`;
   }
   document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
@@ -2010,6 +2020,33 @@ const TREND_TOOLTIP_STYLE = {
 // For scatter/doughnut where there are no day-columns: still drop the "must be
 // exactly on the point" requirement so a nearby hover/tap surfaces the tooltip.
 const NEAR_INTERACTION = { mode: 'nearest', intersect: false };
+
+// Mobile: a tap shows the tooltip but on touch nothing dismisses it (there's no
+// mouse-leave). This makes the NEXT tap clear the tooltip and return to the plain
+// chart. Desktop hover is unaffected (hover never fires onClick). Call it once per
+// chart so each keeps its own open/closed state.
+function tapToDismiss() {
+  let open = false;
+  return (evt, els, chart) => {
+    if (open) {
+      chart.setActiveElements([]);
+      if (chart.tooltip) chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+      open = false;
+      chart.update();
+    } else if (chart.getActiveElements().length) {
+      open = true;   // a tap landed on data → next tap closes it
+    }
+  };
+}
+// Tooltip legend swatch as a SOLID filled circle (no contrasting edge/ring).
+function solidSwatch(col) { return { borderColor: col, backgroundColor: col, borderWidth: 0 }; }
+// ACWR row → risk color from the point; other rows → the line's own color.
+function acwrLabelColor(c) {
+  const f = c.dataset.pointBackgroundColor;
+  let col = (typeof f === 'function') ? f(c) : null;
+  if (!col || col === 'transparent') col = c.dataset.borderColor;
+  return solidSwatch(col);
+}
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
@@ -2143,9 +2180,9 @@ function renderTrendChart(data) {
       },
       scales: {
         x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#ff6b4a', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#ff6b4a',font:{family:'DM Mono',size:10}} },
-        yHr:   { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#d7dee6',font:{family:'DM Mono',size:10}} },
-        yKm:   { type:'linear', position:'right', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e676',font:{family:'DM Mono',size:10}} }
+        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#ff6b4a', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:false} },
+        yHr:   { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:false} },
+        yKm:   { type:'linear', position:'right', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:false} }
       }
     }
   });
@@ -2396,7 +2433,7 @@ function renderAcwr(data) {
         { label: 'Sweet zone bottom (0.8)', data: sweetLo, borderColor: 'transparent', backgroundColor: 'transparent',          fill: false, pointRadius: 0, tension: 0 },
         {
           label: 'ACWR', data: acwrPoints,
-          borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.10)', fill: false, tension: 0.3,
+          borderColor: '#d7dee6', backgroundColor: 'rgba(215,222,230,0.10)', fill: false, tension: 0.3,
           pointRadius: c => { const v = c.raw; return v !== null && v > 1.3 ? 5 : 2; },
           pointBackgroundColor: c => {
             const v = c.raw;
@@ -2415,12 +2452,14 @@ function renderAcwr(data) {
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 }, filter: item => item.datasetIndex >= 2 } },
         tooltip: {
           ...TREND_TOOLTIP_STYLE,
           filter: c => c.datasetIndex >= 2,
           callbacks: {
+            labelColor: acwrLabelColor,
             label: c => {
               if(c.datasetIndex === 0 || c.datasetIndex === 1) return null;
               if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
@@ -2898,7 +2937,7 @@ function renderBikeAcwr(data) {
         { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet zone bottom', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
         {
-          label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         },
         { label:'Acute 7d', data:acutePoints, borderColor:'#ff6b4a', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
@@ -2908,9 +2947,10 @@ function renderBikeAcwr(data) {
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, filter: item => item.datasetIndex >= 2 },
-        tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { label: c => {
+        tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { labelColor: acwrLabelColor, label: c => {
           if(c.datasetIndex < 2) return null;
           if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
           return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
@@ -3224,7 +3264,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
       datasets: [
         { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet (lo)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
-        { label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+        { label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         }
       ]
@@ -3232,7 +3272,8 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
-      plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
+      onClick: tapToDismiss(),
+      plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ labelColor: acwrLabelColor, label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
@@ -3315,7 +3356,7 @@ function renderFitnessChart(data, sport) {
   document.getElementById(prefix + 'FitnessBadges').innerHTML = `
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Fitness (CTL)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentCTL.toFixed(0)}</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#d7dee6">${currentCTL.toFixed(0)}</div>
     </div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Fatigue (ATL)</div>
@@ -3336,7 +3377,7 @@ function renderFitnessChart(data, sport) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#d7dee6', backgroundColor:'rgba(215,222,230,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
         { label:'ATL (Fatigue)', data:atlArr, borderColor:'#ff3d57', backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:0, borderWidth:2.7 },
         { label:'TSB (Form)', data:tsbArr, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7, borderDash:[4,3] }
       ]
@@ -3344,9 +3385,10 @@ function renderFitnessChart(data, sport) {
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
-        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { labelColor: c => solidSwatch(c.dataset.borderColor), label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
