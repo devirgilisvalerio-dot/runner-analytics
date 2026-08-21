@@ -701,11 +701,11 @@ td b{ font-family:var(--font-mono); }
     <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-      ACWR compares last 7 days of load against 28-day average.
-      <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
-      <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
-      <span style="color:var(--red)">&gt; 1.5</span> = high injury risk.
-      <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+      ACWR compares last 7 days of load against 28-day average<br>
+      <span style="color:var(--green)">0.8–1.3</span> safe training zone<br>
+      <span style="color:var(--orange)">&gt; 1.3</span> overreaching, elevated injury risk<br>
+      <span style="color:var(--red)">&gt; 1.5</span> = high injury risk<br>
+      <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week
     </p>
   </div>
 
@@ -716,13 +716,13 @@ td b{ font-family:var(--font-mono); }
     <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling avg of training load. Rises with consistent training.<br>
-      <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling avg of training load. Spikes after hard weeks, drops during rest.<br>
-      <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Readiness to perform.<br><br>
-      <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.<br>
-      <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.<br>
-      <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.<br>
-      <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+      <b style="color:#d7dee6">CTL (Fitness)</b> 42-day rolling avg of training load. Rises with consistent training<br>
+      <b style="color:var(--red)">ATL (Fatigue)</b> 7-day rolling avg of training load. Spikes after hard weeks, drops during rest<br>
+      <b style="color:var(--green)">TSB (Form)</b> CTL−ATL. Readiness to perform<br><br>
+      <span style="color:var(--green)">TSB +10 to +25</span> peak, ready to race<br>
+      <span style="color:var(--muted2)">TSB 0 to +10</span> fresh, good for quality sessions<br>
+      <span style="color:var(--orange)">TSB −10 to −30</span> building fitness, manageable fatigue<br>
+      <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed
     </p>
   </div>
 
@@ -734,10 +734,10 @@ td b{ font-family:var(--font-mono); }
       <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
-      <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
-      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here.<br>
-      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work. This is where speed improves.
+      80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
+      <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery<br>
+      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Threshold work. This is where speed improves
     </p>
   </div>
 
@@ -745,15 +745,17 @@ td b{ font-family:var(--font-mono); }
   <div class="card" id="runPRSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Personal Records</span></div>
     <div id="runPRContainer"></div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Fastest times at key distances (PRs).
-    </p>
   </div>
 
   <!-- KM SPLITS -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
     <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:12.5px;color:var(--muted2);">
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--green)"></span>≤ 5:20 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:#ffe566"></span>5:21 – 5:30 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--red)"></span>&gt; 5:30 /km</span>
+    </div>
   </div>
 
   <!-- TWO COL: Pace Zones + HR Zones -->
@@ -957,11 +959,11 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-        ACWR compares last 7 days of load against 28-day average.
-        <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
-        <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
-        <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
-        <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+        ACWR compares last 7 days of load against 28-day average<br>
+        <span style="color:var(--green)">0.8–2.2</span> safe training zone<br>
+        <span style="color:var(--orange)">&gt; 2.2</span> overreaching, elevated injury risk<br>
+        <span style="color:var(--red)">&gt; 3.5</span> = high injury risk<br>
+        <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week
       </p>
     </div>
 
@@ -972,13 +974,13 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling avg of training load. Rises with consistent training.<br>
-        <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling avg of training load. Spikes after hard weeks, drops during rest.<br>
-        <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Readiness to perform.<br><br>
-        <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.<br>
-        <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.<br>
-        <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.<br>
-        <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+        <b style="color:#d7dee6">CTL (Fitness)</b> 42-day rolling avg of training load. Rises with consistent training<br>
+        <b style="color:var(--red)">ATL (Fatigue)</b> 7-day rolling avg of training load. Spikes after hard weeks, drops during rest<br>
+        <b style="color:var(--green)">TSB (Form)</b> CTL−ATL. Readiness to perform<br><br>
+        <span style="color:var(--green)">TSB +10 to +25</span> peak, ready to race<br>
+        <span style="color:var(--muted2)">TSB 0 to +10</span> fresh, good for quality sessions<br>
+        <span style="color:var(--orange)">TSB −10 to −30</span> building fitness, manageable fatigue<br>
+        <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed
       </p>
     </div>
 
@@ -990,10 +992,10 @@ td b{ font-family:var(--font-mono); }
         <div id="bikePolarizedDetails" style="flex:1;min-width:200px;"></div>
       </div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
-        <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
-        <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed.<br>
-        <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. High-intensity intervals, threshold efforts.
+        80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
+        <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery<br>
+        <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+        <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Threshold work. This is where speed improves
       </p>
     </div>
 
@@ -1001,9 +1003,6 @@ td b{ font-family:var(--font-mono); }
     <div class="card" id="bikePRSection" style="display:none;margin-bottom:20px;">
       <div class="card-title"><span>Personal Records</span></div>
       <div id="bikePRContainer"></div>
-      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Fastest times at key distances (PRs).
-      </p>
     </div>
 
     <!-- TWO COL: Speed Zones + HR Zones -->
@@ -3691,7 +3690,7 @@ function renderPolarizedChart(data, sport) {
   document.getElementById(prefix + 'PolarizedDetails').innerHTML = `
     <div style="margin-bottom:16px;">
       <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${verdictColor};margin-bottom:8px">${verdict}</div>
-      <div style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Based on ${total} sessions with HR data</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Based on ${total} sessions</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;">
