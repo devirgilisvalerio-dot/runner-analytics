@@ -672,7 +672,7 @@ td b{ font-family:var(--font-mono); }
         <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
         <p style="margin:0 0 10px;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
         <p style="margin:0 0 10px;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
-        <p style="margin:0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7%).</p>
+        <p style="margin:0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7.5% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7.5%).</p>
       </div>
     </div>
     <!-- SHOE ROTATION (moved under the trend predictions) -->
@@ -701,7 +701,7 @@ td b{ font-family:var(--font-mono); }
     <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-      ACWR compares your last 7 days of load (km) against your 28-day average.
+      ACWR compares last 7 days of load against 28-day average.
       <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
       <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
       <span style="color:var(--red)">&gt; 1.5</span> = high injury risk.
@@ -716,12 +716,12 @@ td b{ font-family:var(--font-mono); }
     <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
-      <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
-      <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
-      <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
-      <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
-      <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
+      <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling avg of training load. Rises with consistent training.<br>
+      <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling avg of training load. Spikes after hard weeks, drops during rest.<br>
+      <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Readiness to perform.<br><br>
+      <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.<br>
+      <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.<br>
+      <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.<br>
       <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
     </p>
   </div>
@@ -734,7 +734,7 @@ td b{ font-family:var(--font-mono); }
       <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+      80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
       <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
       <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here.<br>
       <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work. This is where speed improves.
@@ -746,7 +746,7 @@ td b{ font-family:var(--font-mono); }
     <div class="card-title"><span>Personal Records</span></div>
     <div id="runPRContainer"></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Your fastest verified times at key distances (PRs). If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
+      Fastest times at key distances (PRs).
     </p>
   </div>
 
@@ -957,7 +957,7 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-        ACWR compares your last 7 days of load (km) against your 28-day average.
+        ACWR compares last 7 days of load against 28-day average.
         <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
         <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
         <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
@@ -972,12 +972,12 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
-        <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
-        <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
-        <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
-        <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
-        <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
+        <b style="color:#d7dee6">CTL (Fitness)</b> = 42-day rolling avg of training load. Rises with consistent training.<br>
+        <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling avg of training load. Spikes after hard weeks, drops during rest.<br>
+        <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Readiness to perform.<br><br>
+        <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.<br>
+        <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.<br>
+        <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.<br>
         <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
       </p>
     </div>
@@ -990,7 +990,7 @@ td b{ font-family:var(--font-mono); }
         <div id="bikePolarizedDetails" style="flex:1;min-width:200px;"></div>
       </div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
+        80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
         <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
         <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed.<br>
         <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. High-intensity intervals, threshold efforts.
@@ -1002,7 +1002,7 @@ td b{ font-family:var(--font-mono); }
       <div class="card-title"><span>Personal Records</span></div>
       <div id="bikePRContainer"></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Your fastest verified times at key distances. PRs are extracted from your actual GPS data. If no new PRs appear for weeks, consider changing your training stimulus — more intervals, longer rides, or structured rest.
+        Fastest times at key distances (PRs).
       </p>
     </div>
 
@@ -1543,8 +1543,8 @@ async function listFiles(){
     }
     pruneRunCache(eligible.map(f => f.id));
 
-    if(warnings.length)
-      document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
+    // Parse warnings are kept for debugging but no longer shown under Training Log (user request)
+    if(warnings.length) console.warn('Parse warnings:', warnings);
 
     if(!runs.length){ setStatus('No valid files found.', 'disconnected'); setEmptyTable(); return; }
 
@@ -2272,9 +2272,10 @@ function renderPredictions(data) {
   if(infoBar) infoBar.style.display = '';
   if(homeStrip) homeStrip.style.display = 'grid';
 
-  // Last 15 runs, linear-weighted so recent form dominates (oldest w=1 … newest w=15)
+  // Last 15 runs, square-root weighted so recent form leans the estimate without
+  // dominating it (oldest w=√1 … newest w=√15 ≈ 3.9; ratio bounded ~3.9:1)
   const recent  = sorted.slice(-15);
-  const weights = recent.map((_, i) => i + 1);
+  const weights = recent.map((_, i) => Math.sqrt(i + 1));
   const totalW  = weights.reduce((a, b) => a + b, 0);
 
   const now = new Date();
@@ -2293,7 +2294,7 @@ function renderPredictions(data) {
   const longestRun = Math.max(0, ...data.filter(r => r.distance > 0 && new Date(r.date) >= yearAgo).map(r => r.distance));
 
   const RIEGEL_EXP = 0.05;   // pace shifts ~3.5% per doubling/halving of distance
-  const WALL_K     = 0.07;   // untrained-distance penalty per +100% beyond longest run
+  const WALL_K     = 0.075;  // untrained-distance penalty per +100% beyond longest run
 
   // Per-race predicted pace (sec/km):
   //   1. normalize each run's pace to the race distance (Riegel), weight-average
@@ -2768,9 +2769,10 @@ function renderBikeTabPredictions(data) {
    inactivity "rust" + a proof-of-distance "wall" beyond your longest ride.
    `elFor(id)` resolves the target element; `prefix` is the id stem (45/90/140). */
 function bikePredict(sorted, elFor, prefix) {
-  // Base speed: last 15 rides, linear-weighted so recent form dominates (oldest w=1 … newest w=15)
+  // Base speed: last 15 rides, square-root weighted so recent form leans the estimate
+  // without dominating it (oldest w=√1 … newest w=√15 ≈ 3.9; ratio bounded ~3.9:1)
   const recent  = sorted.slice(-15);
-  const weights = recent.map((_, i) => i + 1);
+  const weights = recent.map((_, i) => Math.sqrt(i + 1));
   const totalW  = weights.reduce((a, b) => a + b, 0);
   const baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
   // Weighted reference distance (Riegel anchor): the distance your base speed "belongs to"
@@ -2936,7 +2938,7 @@ function renderBikeAcwr(data) {
         { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet zone bottom', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
         {
-          label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:4, pointBorderWidth:0, pointHoverBorderWidth:0, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         },
         { label:'Acute 7d', data:acutePoints, borderColor:'#ff6b4a', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
@@ -3263,7 +3265,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
       datasets: [
         { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet (lo)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
-        { label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+        { label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:4, pointBorderWidth:0, pointHoverBorderWidth:0, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         }
       ]
