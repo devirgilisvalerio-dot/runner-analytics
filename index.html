@@ -2381,6 +2381,12 @@ function distanceWeight(runDist, targetDist) {
 // weighted by proximity to the target distance. We regress the scaled pace on HR and
 // elevation offsets plus a saturating time trend; the fitted trend is directly your
 // projected RACE PACE at the target distance and standard HR/elevation over time.
+// Physiological clamps so a noisy fit can't invent an absurd HR/elevation sensitivity
+// (a free OLS gave 3+ s/km per bpm — 3–6× too high — which shoved the whole normalized
+// cloud slower). Realistic running-economy HR cost ≈ 0.3–1.5 s/km per bpm.
+const EFF_CFC_LO = -1.5, EFF_CFC_HI = -0.3;   // s/km per bpm (negative: higher HR ⇒ faster)
+const EFF_CH_LO  = 0.0,  EFF_CH_HI  = 0.5;    // s/km per metre of D+
+
 function fitRaceEfficiency(obs, std, targetDist) {
   // Riegel-normalize pace to the target distance + proximity weights.
   const rows = obs.map(o => ({
@@ -2388,35 +2394,59 @@ function fitRaceEfficiency(obs, std, targetDist) {
     pace: o.pace * Math.pow(targetDist / o.d, RIEGEL_EXP_EFF),
     w: distanceWeight(o.d, targetDist),
   })).filter(o => o.w > 0.02);   // drop negligible contributors
-  // Need enough EFFECTIVE data: at least 8 runs and ~4 near-distance runs of weight.
   const effN = rows.reduce((s,o) => s + o.w, 0);
   if(rows.length < 8 || effN < 4) return null;
 
   const t0 = Math.min(...rows.map(o => o.t));
-  const y  = rows.map(o => o.pace);
   const w  = rows.map(o => o.w);
-  let best = null;
-  // k grid in 1/days. Bounded to PHYSIOLOGICALLY PLAUSIBLE adaptation half-lives:
-  // fastest ~30 days (logk≈-3.75), slowest ~5 years (logk≈-7.6). Without the fast cap
-  // the fit picks a ~3-day half-life and the curve "jumps" instantly then flatlines.
+
+  // STEP 1 — estimate HR & elevation sensitivity SEPARATELY (controlling for a linear time
+  // trend so the trend doesn't leak into them), then CLAMP to the physiological range. This
+  // is what prevents the runaway coefficient; then we normalize and fit the curve on top.
+  const mo = o => (o.t - t0) / 30;
+  let cFC = -0.8, cH = 0.1;   // sane priors if the linear solve fails
+  const lin = olsSolve(rows.map(o => [1, mo(o), o.fc-std.fc, o.h-std.h]), rows.map(o=>o.pace), w);
+  if(lin) { cFC = lin[2]; cH = lin[3]; }
+  cFC = Math.max(EFF_CFC_LO, Math.min(EFF_CFC_HI, cFC));
+  cH  = Math.max(EFF_CH_LO,  Math.min(EFF_CH_HI,  cH));
+
+  // STEP 2 — normalize every run to standard HR + D+ (this is the pace at 'std' conditions).
+  const yN = rows.map(o => o.pace - cFC*(o.fc - std.fc) - cH*(o.h - std.h));
+
+  // Flat (no-trend) baseline: weighted mean. Used both as a candidate and to guarantee the
+  // curve is NON-WORSENING (ginf ≤ g0) — the "limit" models improvement-toward-plateau, never
+  // decline (decline is what the separate HR-adjusted readout is for).
+  let sw=0, sy=0; for(let i=0;i<yN.length;i++){ sw+=w[i]; sy+=w[i]*yN[i]; }
+  const flatMean = sy/sw;
+  const sseOf = (fn) => { let s=0; for(let i=0;i<yN.length;i++){ const e=yN[i]-fn(i); s+=w[i]*e*e; } return s; };
+  let best = { k: 0, ginf: flatMean, g0: flatMean, sse: sseOf(()=>flatMean) };
+
+  // STEP 3 — grid-search k; per k solve the 2-col saturating model on the NORMALIZED pace.
+  // Keep only IMPROVING fits (ginf ≤ g0); worsening ones fall back to the flat baseline.
+  // k half-life bounded 30 d … 5 y (fast cap stops the instant-jump artefact).
   for(let logk=-7.6; logk<=-3.75; logk+=0.02){
     const k = Math.exp(logk);
-    const X = rows.map(o => { const E = Math.exp(-k*(o.t - t0)); return [o.fc - std.fc, o.h - std.h, 1 - E, E]; });
-    const b = olsSolve(X, y, w);
+    const X = rows.map(o => { const E = Math.exp(-k*(o.t - t0)); return [1 - E, E]; });
+    const b = olsSolve(X, yN, w);
     if(!b) continue;
-    const yhat = X.map(row => row.reduce((s,v,j)=>s+v*b[j], 0));
-    let sse=0; for(let i=0;i<y.length;i++) sse += w[i]*(y[i]-yhat[i])**2;
-    if(!best || sse < best.sse) best = { k, cFC:b[0], cH:b[1], ginf:b[2], g0:b[3], sse, t0, yhat };
+    const [ginf, g0] = b;
+    if(ginf > g0 + 0.01) continue;              // reject worsening curves
+    const sse = sseOf(i => { const E = Math.exp(-k*(rows[i].t - t0)); return ginf*(1-E) + g0*E; });
+    if(sse < best.sse) best = { k, ginf, g0, sse };
   }
-  if(!best) return null;
-  best.r2 = rSquared(y, best.yhat, w);
-  best.n  = rows.length;
-  best.effN = effN;                 // effective (weighted) sample size
-  best.targetDist = targetDist;
-  best.rows = rows;                 // for plotting the weighted scatter
-  // Projected RACE PACE (sec/km) at the target distance, standard HR/elevation, at time t.
-  best.effAt = t => best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
-  best.halfLifeDays = Math.log(2) / best.k;
+
+  best.cFC = cFC; best.cH = cH; best.t0 = t0;
+  best.n = rows.length; best.effN = effN; best.targetDist = targetDist; best.rows = rows;
+  // Fastest normalized run — used to bound the projected "limit" so it can't extrapolate to a
+  // fantasy pace (the raw asymptote ginf is unstable when the curve is near-linear).
+  best.bestNorm = Math.min(...yN);
+  best.limitFloor = best.bestNorm * (1 - 0.08);   // limit ≤ 8% beyond your best normalized run
+  // yhat for R² (on normalized pace).
+  best.effAt = t => best.k === 0 ? best.ginf
+                  : best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
+  const yhat = rows.map((o) => best.effAt(o.t));
+  best.r2 = rSquared(yN, yhat, w);
+  best.halfLifeDays = best.k > 0 ? Math.log(2) / best.k : Infinity;
   return best;
 }
 
@@ -2563,8 +2593,13 @@ function renderEfficiencyModel(data) {
   const confPct   = Math.round(100 * Math.max(0, Math.min(1, m.r2)) * sampleFactor);
   const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
 
-  const plateau = m.ginf;
-  const nowPace = m.effAt(lastT);
+  // "Limit" = projected pace at the 2-yr horizon (what the dashed line reaches), floored so it
+  // can't extrapolate past a physically plausible ~8% beyond your best normalized run. Using
+  // the horizon value (not the infinite asymptote ginf) keeps the number grounded and matches
+  // what the chart actually draws.
+  const effClamped = t => Math.max(m.limitFloor, m.effAt(t));
+  const nowPace = effClamped(lastT);
+  const plateau = effClamped(horizon);
   const toGoT   = (nowPace - plateau) * rc.dist;   // seconds off the finish at the limit
   document.getElementById('effModelStats').innerHTML = `
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
@@ -2606,7 +2641,7 @@ function renderEfficiencyModel(data) {
 
   const curve = [];
   const step = Math.max(1, Math.round((horizon - m.t0)/160));
-  for(let t=m.t0; t<=horizon; t+=step) curve.push({ x:t, y:m.effAt(t)/60 });
+  for(let t=m.t0; t<=horizon; t+=step) curve.push({ x:t, y:effClamped(t)/60 });
   const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
   const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
 
@@ -2673,7 +2708,7 @@ function renderEffRaceScenarios() {
     const m = fits[rc.key];
     const rows = hrs.map(hr => {
       const cells = dates.map(dt => {
-        const pace   = m.effAt(dt.t) + m.cFC*(hr - std.fc);   // race pace at this HR & date
+        const pace   = Math.max(m.limitFloor, m.effAt(dt.t)) + m.cFC*(hr - std.fc);   // race pace at this HR & date (floored)
         const finish = pace * rc.dist;
         return `<td style="text-align:right;font-family:var(--font-mono);color:var(--text);padding:5px 12px">${secondsToTime(Math.round(finish))}<span style="color:var(--muted2);font-size:11px"> · ${paceStr(Math.round(pace))}/km</span></td>`;
       }).join('');
