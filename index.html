@@ -2526,15 +2526,12 @@ function renderEfficiencyModel(data) {
 
   // Standard conditions the projections assume: an average HR and a flat course.
   // Distance is NOT a standard condition here — each race defines its own distance.
-  // Default standard HR = MEDIAN of the runs' HR, so we never extrapolate the pace↔HR
-  // relationship below/above the range you actually train at (a std HR under every run
-  // makes the projection unreliable). The HR box shows this default; editing it overrides.
-  const hrSorted = obs.map(o => o.fc).sort((a,b) => a-b);
-  const medianHr = hrSorted.length ? Math.round(hrSorted[Math.floor(hrSorted.length/2)]) : 160;
+  // Default standard HR = 165 bpm (a typical tempo/race effort). Editing the box overrides.
+  const DEFAULT_STD_HR = 165;
   const hrBox = byId('effStdHr');
-  if(hrBox && (hrBox.value === '' || hrBox.dataset.auto === '1')) { hrBox.value = medianHr; hrBox.dataset.auto = '1'; }
+  if(hrBox && (hrBox.value === '' || hrBox.dataset.auto === '1')) { hrBox.value = DEFAULT_STD_HR; hrBox.dataset.auto = '1'; }
   const std = {
-    fc: clampNum(byId('effStdHr'),   medianHr, 100, 210),
+    fc: clampNum(byId('effStdHr'),   DEFAULT_STD_HR, 100, 210),
     h:  clampNum(byId('effStdElev'), 25,  0,   3000),
   };
 
@@ -2563,7 +2560,7 @@ function renderEfficiencyModel(data) {
   }
 
   const lastT   = obs[obs.length-1].t;
-  const horizon = lastT + 365*2;      // project 2 years past the last run
+  const horizon = lastT + Math.round(365*1.5);      // project 1.5 years past the last run
   lastEffFits = { std, fits, obs, lastT, horizon };
 
   // Race toggle buttons.
@@ -2588,9 +2585,18 @@ function renderEfficiencyModel(data) {
   // apples-to-apples with the chart above.
   renderEffTrendReadout(m.rows, std, rc);
 
-  // Confidence % from weighted R² capped by effective (weighted) sample size.
+  // Confidence % — how much to trust WHERE YOU ARE (not whether a trend exists; a flat but
+  // tight history is high-confidence). Blend of two things:
+  //   • sample: effective near-distance run count, saturating toward 1 around ~20 runs.
+  //   • tightness: how consistent your NORMALIZED runs are (low scatter = trustworthy).
+  //     rmse in s/km → 1 at 0, ~0.5 at 20 s/km, → 0 as scatter grows.
   const sampleFactor = Math.min(1, m.effN / 20);
-  const confPct   = Math.round(100 * Math.max(0, Math.min(1, m.r2)) * sampleFactor);
+  let sw2=0, sm=0; for(const o of m.rows){ const yv=o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h); sw2+=o.w; sm+=o.w*yv; }
+  const meanN = sm/sw2;
+  let sv=0; for(const o of m.rows){ const yv=o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h); sv+=o.w*(yv-meanN)**2; }
+  const rmse = Math.sqrt(sv/sw2);                    // s/km scatter of normalized pace
+  const tightness = 1 / (1 + (rmse/20)**2);          // 1 when perfectly consistent
+  const confPct   = Math.round(100 * Math.pow(sampleFactor * tightness, 0.5));   // geometric-ish blend
   const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
 
   // "Limit" = projected pace at the 2-yr horizon (what the dashed line reaches), floored so it
@@ -2619,7 +2625,7 @@ function renderEfficiencyModel(data) {
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${confColor}">${confPct}%</div>
-      <div style="color:${confColor};font-size:11px;margin-top:2px">R²&nbsp;${m.r2.toFixed(2)} · n=${m.n} (eff ${m.effN.toFixed(0)})</div>
+      <div style="color:${confColor};font-size:11px;margin-top:2px">n=${m.n} (eff ${m.effN.toFixed(0)}) · ±${rmse.toFixed(0)}s scatter</div>
     </div>`;
 
   // Honest caveat.
@@ -2628,7 +2634,7 @@ function renderEfficiencyModel(data) {
   caveat.querySelector('#effCaveatBody').innerHTML =
     `<p style="margin:0 0 10px;">Each race is fit from <b style="color:var(--text)">all ${obs.length} runs</b>, not just ones at that exact distance. A run's pace is Riegel-scaled to the race distance (~3.5% per doubling), then weighted by <b style="color:var(--text)">proof of distance</b>: the race distance = 100%, <b style="color:var(--text)">−2.5% per km shorter, +2.5% per km longer</b> (floored at 10%). A longer run is stronger evidence you can hold pace — so a 15 km run counts <b style="color:var(--text)">more</b> toward your 10K than a 5 km does, and there's no upper cap. <b style="color:var(--text)">Effective sample size (eff)</b> is that weighted count.</p>` +
     `<p style="margin:0 0 10px;">HR and elevation are regressed out; the leftover time trend is the <b style="color:var(--text)">saturating-exponential</b> shown. The <b style="color:var(--text)">plateau (limit) is the least certain number</b> — it's optimistic on sparse data and moves as you add runs. Treat it as a direction.</p>` +
-    `<p style="margin:0;">The dashed line projects <b style="color:var(--text)">2 years</b> past your last run; confidence drops the further out it runs. Confidence <b style="color:var(--text)">(${confPct}%)</b> = weighted fit quality scaled down when few near-distance runs exist.</p>`;
+    `<p style="margin:0;">The dashed line projects <b style="color:var(--text)">1.5 years</b> past your last run; confidence drops the further out it runs. Confidence <b style="color:var(--text)">(${confPct}%)</b> reflects how many runs back the fit and how tightly they cluster — not whether a time-trend exists.</p>`;
 
   // ── Chart: weighted scatter of Riegel-projected race pace + fitted curve + projection ──
   const projPts = m.rows.map(o => {
@@ -2664,7 +2670,7 @@ function renderEfficiencyModel(data) {
     data: {
       datasets: [
         { type:'line', label:`${rc.label} pace (fitted)`, data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
-        { type:'line', label:'Projection (2 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'line', label:'Projection (1.5 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
         { type:'scatter', label:'Runs (→ race pace, sized by weight)', data:projPts, parsing:false,
           backgroundColor: projPts.map((_,i)=>`rgba(0,230,118,${ptAlpha[i]})`), borderColor:'#00e676', pointRadius: ptRadius },
       ]
@@ -2676,8 +2682,13 @@ function renderEfficiencyModel(data) {
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
         tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
+          title: items => {
+            const d = new Date(items[0].parsed.x * 86400000);
+            const p = n => String(n).padStart(2,'0');
+            return `${p(d.getDate())}/${p(d.getMonth()+1)}/${String(d.getFullYear()).slice(2)}`;
+          },
           labelColor: c => solidSwatch(c.dataset.borderColor),
-          label: c => `${c.dataset.label}: ${paceStr(Math.round(c.parsed.y*60))} /km`
+          label: c => `${paceStr(Math.round(c.parsed.y*60))} /km`
         } }
       },
       scales: {
