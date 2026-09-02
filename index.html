@@ -2362,8 +2362,11 @@ function fitEfficiencyModel(obs, std) {
   const t0 = Math.min(...obs.map(o => o.t));
   const y  = obs.map(o => o.pace);
   let best = null;
-  // k grid in 1/days: half-life from ~5 days (logk≈-2) out to ~5 years (logk≈-7.5)
-  for(let logk=-7.5; logk<=-1.5; logk+=0.03){
+  // k grid in 1/days. Bounded to PHYSIOLOGICALLY PLAUSIBLE adaptation half-lives:
+  // fastest ~30 days (logk≈-3.75), slowest ~5 years (logk≈-7.6). Without the fast cap
+  // the fit picks a ~3-day half-life and the curve "jumps" instantly then flatlines,
+  // which is a fitting artefact, not real fitness adaptation.
+  for(let logk=-7.6; logk<=-3.75; logk+=0.02){
     const k = Math.exp(logk);
     const X = obs.map(o => {
       const E = Math.exp(-k*(o.t - t0));
@@ -2497,6 +2500,17 @@ function renderEfficiencyModel(data) {
   const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
   const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
 
+  // Pin the x-axis to the real data range (no Chart.js padding out to spare years) and
+  // place exactly one tick at each calendar-year boundary (Jan 1), so years never repeat.
+  const xMin = t0, xMax = horizon;
+  const yearTicks = [];
+  const firstYear = new Date(xMin*86400000).getFullYear();
+  const lastYear  = new Date(xMax*86400000).getFullYear();
+  for(let yr=firstYear; yr<=lastYear+1; yr++){
+    const dayEpoch = new Date(yr,0,1).getTime()/86400000;
+    if(dayEpoch >= xMin-1 && dayEpoch <= xMax+1) yearTicks.push(dayEpoch);
+  }
+
   const ctx = canvas.getContext('2d');
   charts['effModel'] = new Chart(ctx, {
     type: 'scatter',
@@ -2519,7 +2533,7 @@ function renderEfficiencyModel(data) {
         } }
       },
       scales: {
-        x: { type:'linear', ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10,callback:v=>new Date(v*86400000).getFullYear()}, grid:{color:'rgba(255,255,255,0.04)'} },
+        x: { type:'linear', min:xMin, max:xMax, afterBuildTicks:a=>{a.ticks=yearTicks.map(v=>({value:v}));}, ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},autoSkip:false,callback:v=>new Date(v*86400000).getFullYear()}, grid:{color:'rgba(255,255,255,0.04)'} },
         y: { reverse:true, ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10},callback:v=>{const m2=Math.floor(v);const s=Math.round((v%1)*60);return `${m2}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Equivalent pace /km (standard conditions)',color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
       }
     }
