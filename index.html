@@ -2737,15 +2737,18 @@ function renderEffPredictCard() {
 
   el.innerHTML = `
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">${rc.label} — typical day</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#ff6b4a">${secondsToTime(Math.round(typical*rc.dist))}</div>
-      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(typical)} /km · avg effort</div>
+      <div style="color:var(--muted);margin-bottom:8px">${rc.label} — projected finish</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#ff6b4a">${secondsToTime(Math.round(typical*rc.dist))}</div>
+          <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(typical)} /km · typical day</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(best*rc.dist))}</div>
+          <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(best)} /km · best day</div>
+        </div>
+      </div>
       ${dateInput}
-    </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">${rc.label} — best day</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(best*rc.dist))}</div>
-      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(best)} /km · everything clicks</div>
     </div>`;
 }
 
