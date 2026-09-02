@@ -8,10 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
-  --bg:#080c10; --card:#0e1318; --card2:#131a22;
-  --text:#e8edf2; --muted:#5a6a7a; --muted2:#8a9aaa;
-  --accent:#00e5ff; --green:#00e676; --orange:#ff9100;
-  --red:#ff3d57; --purple:#bf40ff; --border:#1e2a34;
+  /* navy background + coral-orange accent (replaces neon cyan & pink) */
+  --bg:#080c10; --card:#212e3c; --card2:#263546;
+  --text:#eaf0f6; --muted:#8b9bad; --muted2:#aebccb;
+  --accent:#ff6b4a; --green:#00e676; --orange:#ff9100;
+  --red:#ff3d57; --purple:#ff6b4a; --pink:#c264ff; --yellow:#d7dee6; --lightgray:#d7dee6; --border:#33475a;
   --pace-good:#00e676; --pace-mid:#ffea00; --pace-bad:#ff3d57;
   --font-display:'Barlow Condensed',sans-serif;
   --font-body:'Barlow',sans-serif;
@@ -27,18 +28,17 @@ body{
 }
 body::before{
   content:''; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
-  background-size:40px 40px;
   z-index:0;
 }
 .container{ max-width:1480px; margin:auto; position:relative; z-index:1; }
 
 /* ── HEADER ── */
 .header{
-  display:flex; justify-content:space-between; align-items:flex-start;
-  margin-bottom:32px; flex-wrap:wrap; gap:16px;
+  display:flex; flex-direction:column;
+  margin-bottom:32px; gap:14px;
+}
+.header-top{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
 }
 .logo{ display:flex; align-items:baseline; gap:10px; }
 .logo h1{
@@ -61,8 +61,8 @@ body::before{
   transition:all 0.15s; text-transform:uppercase;
 }
 .btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
-.primary{ background:var(--accent); color:#000; }
-.success{ background:var(--green); color:#000; }
+.primary{ background:#f2f5f8; color:#111; }
+.success{ background:var(--accent); color:#000; }
 
 /* ── STATS GRID ── */
 .stats-grid{
@@ -75,16 +75,18 @@ body::before{
   border:1px solid var(--border);
   border-radius:10px; padding:20px 22px;
   position:relative; overflow:hidden;
+  transform:translateZ(0);   /* own compositing layer — avoids iOS reveal-clip of the top edge */
 }
 .stat-card::after{
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  z-index:1;
 }
-.stat-card.c-pace::after{ background:var(--green); }
-.stat-card.c-km::after{ background:var(--accent); }
-.stat-card.c-hr::after{ background:var(--red); }
-.stat-card.c-cad::after{ background:var(--purple); }
+.stat-card.c-pace::after{ background:var(--accent); }
+.stat-card.c-km::after{ background:var(--green); }
+.stat-card.c-hr::after{ background:var(--lightgray); }
+.stat-card.c-cad::after{ background:var(--pink); }
 .stat-card.c-pow::after{ background:var(--orange); }
-.stat-card.c-dur::after{ background:var(--muted2); }
+.stat-card.c-dur::after{ background:var(--red); }
 .stat-title{
   color:var(--muted); font-size:13px; letter-spacing:1.5px;
   text-transform:uppercase; margin-bottom:10px; font-family:var(--font-mono);
@@ -93,11 +95,12 @@ body::before{
   font-family:var(--font-display); font-size:36px; font-weight:700;
   line-height:1; letter-spacing:-1px;
 }
-.stat-value.green{ color:var(--green); }
-.stat-value.cyan{ color:var(--accent); }
+.stat-value.green{ color:var(--accent); }
+.stat-value.cyan{ color:var(--green); }
 .stat-value.red{ color:var(--red); }
-.stat-value.purple{ color:var(--purple); }
+.stat-value.purple{ color:var(--pink); }
 .stat-value.orange{ color:var(--orange); }
+.stat-value.lightgray{ color:var(--lightgray); }
 .stat-sub{ margin-top:8px; font-size:14px; color:var(--muted2); font-family:var(--font-mono); }
 
 /* ── FILTERS ── */
@@ -114,14 +117,14 @@ body::before{
   display:flex; flex-direction:column; gap:6px;
 }
 .filter-label{
-  color:var(--muted); font-size:13px; letter-spacing:1.5px;
+  color:var(--muted); font-size:12px; letter-spacing:1.5px;
   text-transform:uppercase; font-family:var(--font-mono);
 }
 .filter-input{
   background:var(--card2); border:1px solid var(--border);
   border-radius:6px; color:var(--text);
-  font-family:var(--font-mono); font-size:13px;
-  padding:8px 14px; outline:none; transition:border-color 0.15s;
+  font-family:var(--font-mono); font-size:12px;
+  padding:4px 8px; outline:none; transition:border-color 0.15s;
   color-scheme:dark;
 }
 .filter-input:focus{ border-color:var(--accent); }
@@ -129,21 +132,21 @@ body::before{
 .shoe-filters{ display:flex; gap:8px; flex-wrap:wrap; }
 .shoe-chip{
   display:flex; align-items:center; gap:6px;
-  cursor:pointer; font-size:14px; font-family:var(--font-mono);
+  cursor:pointer; font-size:12px; font-family:var(--font-mono);
   color:var(--muted2); background:var(--card2);
   border:1px solid var(--border); border-radius:6px;
-  padding:6px 14px; transition:all 0.15s; user-select:none;
+  padding:4px 11px; transition:all 0.15s; user-select:none;
 }
 .shoe-chip.active{
   border-color:var(--purple); color:var(--purple);
-  background:rgba(191,64,255,0.08);
+  background:rgba(255,107,74,0.08);
 }
 /* compact per-chart window controls (Trend / ACWR) */
 .mini-filter{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:2px 0 16px; font-family:var(--font-mono); }
 .mini-filter-label{ color:var(--muted); font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-right:2px; }
 .mini-chip{ cursor:pointer; font-size:12px; color:var(--muted2); background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:4px 11px; transition:all 0.15s; user-select:none; }
 .mini-chip:hover{ border-color:var(--purple); color:var(--purple); }
-.mini-chip.active{ border-color:var(--purple); color:var(--purple); background:rgba(191,64,255,0.08); }
+.mini-chip.active{ border-color:var(--purple); color:var(--purple); background:rgba(255,107,74,0.08); }
 .mini-input{ width:66px; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--font-mono); font-size:12px; padding:4px 8px; outline:none; color-scheme:dark; }
 .mini-input:focus{ border-color:var(--purple); }
 .mini-note{ color:var(--muted); font-size:12px; margin-left:6px; }
@@ -162,7 +165,7 @@ body::before{
 .pa-cap{ font-family:var(--font-mono); font-size:12px; color:var(--muted); margin:6px 0 14px; line-height:1.5; }
 .pa-verdict{ border-radius:10px; margin:14px 0 0; border:1px solid; overflow:hidden; }
 .pa-verdict-up{ background:rgba(0,230,118,0.07); border-color:var(--green); }
-.pa-verdict-flat{ background:rgba(0,229,255,0.06); border-color:var(--accent); }
+.pa-verdict-flat{ background:rgba(255,107,74,0.06); border-color:var(--accent); }
 .pa-verdict-down{ background:rgba(255,145,0,0.07); border-color:var(--orange); }
 .pa-verdict > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:14px; padding:16px 20px; user-select:none; }
 .pa-verdict > summary::-webkit-details-marker{ display:none; }
@@ -209,17 +212,17 @@ body::before{
 
 .filter-badge{
   display:inline-flex; align-items:center;
-  background:rgba(0,229,255,0.08); border:1px solid var(--accent);
-  color:var(--accent); font-family:var(--font-mono); font-size:13px;
-  padding:3px 10px; border-radius:20px; letter-spacing:.5px;
+  background:rgba(255,107,74,0.08); border:1px solid var(--accent);
+  color:var(--accent); font-family:var(--font-mono); font-size:11px;
+  padding:2px 8px; border-radius:20px; letter-spacing:.5px;
 }
 .filter-badge.dimmed{
   background:rgba(255,61,87,0.08); border-color:var(--red); color:var(--red);
 }
 .btn-reset{
   background:transparent; border:1px solid var(--border);
-  color:var(--muted2); padding:8px 16px; border-radius:6px;
-  cursor:pointer; font-family:var(--font-mono); font-size:14px;
+  color:var(--muted2); padding:6.8px 13.6px; border-radius:6px;
+  cursor:pointer; font-family:var(--font-mono); font-size:11.9px;
   transition:all 0.15s; text-transform:uppercase; letter-spacing:.5px;
   white-space:nowrap; align-self:flex-end;
 }
@@ -244,7 +247,7 @@ body::before{
 .pz-row{ display:flex; align-items:center; gap:10px; }
 .pz-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 .pz-label{ font-size:13px; color:var(--muted2); width:90px; font-family:var(--font-mono); }
-.pz-bar-wrap{ flex:1; height:6px; background:#1a2430; border-radius:3px; overflow:hidden; }
+.pz-bar-wrap{ flex:1; height:6px; background:#33475a; border-radius:3px; overflow:hidden; }
 .pz-bar{ height:100%; border-radius:3px; transition:width .6s; }
 .pz-val{ font-family:var(--font-mono); font-size:13px; color:var(--text); width:60px; text-align:right; }
 
@@ -260,7 +263,7 @@ body::before{
   overflow:hidden; text-overflow:ellipsis;
 }
 .status-pill.disconnected{ border-color:var(--muted); color:var(--muted); }
-.status-pill.connected{ border-color:var(--green); color:var(--green); }
+.status-pill.connected{ border-color:var(--accent); color:var(--accent); }
 .status-pill.loading{ border-color:var(--orange); color:var(--orange); }
 .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
 .dot.pulse{ animation:pulse 1.2s infinite; }
@@ -273,7 +276,7 @@ body::before{
 }
 .shoe-header{ display:flex; justify-content:space-between; margin-bottom:4px; font-size:14px; }
 .shoe-km{ font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
-.bar{ height:5px; background:#1a2430; border-radius:999px; overflow:hidden; margin-top:10px; }
+.bar{ height:5px; background:#33475a; border-radius:999px; overflow:hidden; margin-top:10px; }
 .fill{ height:100%; border-radius:999px; }
 
 /* ── KM SPLITS TABLE ── */
@@ -322,8 +325,8 @@ td b{ font-family:var(--font-mono); }
   font-weight:700; font-family:var(--font-mono); letter-spacing:.5px;
 }
 .badge-fit{ background:#00e67620; color:#00e676; border:1px solid #00e67640; }
-.badge-gpx{ background:#00e5ff20; color:#00e5ff; border:1px solid #00e5ff40; }
-.badge-shoe{ background:#bf40ff20; color:#bf40ff; border:1px solid #bf40ff40; }
+.badge-gpx{ background:#ff6b4a20; color:#ff6b4a; border:1px solid #ff6b4a40; }
+.badge-shoe{ background:#ff6b4a20; color:#ff6b4a; border:1px solid #ff6b4a40; }
 
 /* ── LOG ── */
 .parse-log{
@@ -347,9 +350,10 @@ td b{ font-family:var(--font-mono); }
 @media(max-width:480px){
   body{ padding:14px 10px 30px; }
   .container{ overflow-x:hidden; }
-  .header{ flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:20px; }
+  .header{ gap:10px; margin-bottom:20px; }
+  .header-top{ align-items:center; gap:10px; }
   .logo h1{ font-size:32px; }
-  .actions{ width:100%; flex-wrap:wrap; }
+  .actions{ flex-wrap:wrap; justify-content:flex-end; flex-shrink:0; }
   .status-pill{ max-width:100%; font-size:11px; }
   .btn{ padding:10px 14px; font-size:14px; }
   .nav-bar{ gap:6px; margin-bottom:16px; padding-bottom:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
@@ -369,8 +373,9 @@ td b{ font-family:var(--font-mono); }
   .splits-grid{ grid-template-columns:repeat(3, 1fr); gap:6px; }
   .split-cell{ padding:8px 10px; }
   .split-pace{ font-size:18px; }
-  .shoe-card{ min-width:unset!important; max-width:unset!important; }
-  #shoeContainer{ flex-direction:column; }
+  .shoe-card{ min-width:unset!important; max-width:unset!important; padding:10px 13px; margin-bottom:0; }
+  .shoe-header{ font-size:13px; }
+  #shoeContainer{ flex-direction:column; gap:8px!important; }
   .table-wrapper{ font-size:12px; overflow-x:auto; }
   table th, table td{ padding:10px 6px 10px 0; }
   .filter-panel{ padding:14px; }
@@ -410,8 +415,17 @@ td b{ font-family:var(--font-mono); }
   background:var(--card); border:1px solid var(--border);
 }
 .nav-btn:hover{ border-color:var(--accent); transform:translateY(-1px); }
-.nav-btn.active{ border-color:var(--accent); background:rgba(0,229,255,0.08); color:var(--accent); }
-.sport-icon{ font-size:20px; margin-right:6px; }
+.nav-btn.active{ border-color:var(--accent); background:rgba(255,107,74,0.08); color:var(--accent); }
+.sport-icon{ font-size:20px; margin-right:6px; display:inline-flex; align-items:center; }
+.sport-icon svg{ width:19px; height:19px; display:block; }
+/* prediction cards — Option 2 gradient wash */
+.pred-card{ border:1px solid rgba(255,107,74,0.35); border-radius:12px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,107,74,0.22) 0%, rgba(255,107,74,0.05) 34%, var(--card2) 34%, var(--card2) 100%); }
+.pred-head{ padding:11px 16px 9px; display:flex; align-items:center; gap:7px;
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; font-weight:500; color:var(--accent); }
+.pred-head svg{ width:14px; height:14px; }
+.pred-body{ padding:6px 16px 18px; }
+.pred-val{ font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--text); }
 </style>
 </head>
 <body>
@@ -419,56 +433,58 @@ td b{ font-family:var(--font-mono); }
 
   <!-- HEADER -->
   <div class="header">
-    <div>
-      <div class="logo">
-        <h1>CRONO</h1>
-        <span class="logo-badge">ELITE</span>
+    <div class="header-top">
+      <div>
+        <div class="logo">
+          <h1>CRONO</h1>
+          <span class="logo-badge">ELITE</span>
+        </div>
+        <p class="header-sub">TRACK. PUSH. EVOLVE.</p>
       </div>
-      <p class="header-sub">TRACK. PUSH. EVOLVE.</p>
+      <div class="actions">
+        <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
+        <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+      </div>
     </div>
-    <div class="actions">
-      <div id="status-pill" class="status-pill disconnected" title="Reads .fit and .gpx files from your Drive folder">
-        <span class="dot"></span>
-        <span id="status-text">Not connected</span>
-      </div>
-      <button id="auth-btn"  class="btn primary"  onclick="handleAuthClick()">Sign in with Google</button>
-      <button id="sync-btn"  class="btn success"  style="display:none;" onclick="listFiles()">Sync Drive</button>
+    <div id="status-pill" class="status-pill disconnected" title="Reads .fit and .gpx files from your Drive folder">
+      <span class="dot"></span>
+      <span id="status-text">Not connected</span>
     </div>
   </div>
 
   <!-- NAVIGATION -->
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-home" onclick="showPage('home')"><span class="sport-icon">🏠</span>Overview</button>
-    <button class="nav-btn" id="nav-run" onclick="showPage('run')"><span class="sport-icon">🏃</span>Running</button>
-    <button class="nav-btn" id="nav-bike" onclick="showPage('bike')"><span class="sport-icon">🚴</span>Cycling</button>
+    <button class="nav-btn active" id="nav-home" onclick="showPage('home')"><span class="sport-icon"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>Overview</button>
+    <button class="nav-btn" id="nav-run" onclick="showPage('run')"><span class="sport-icon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg></span>Running</button>
+    <button class="nav-btn" id="nav-bike" onclick="showPage('bike')"><span class="sport-icon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg></span>Cycling</button>
   </div>
 
   <!-- ═══ PAGE: HOME ═══ -->
   <div id="page-home">
     <!-- RUN STATS -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="font-size:20px">🏃</span>
+      <span style="display:inline-flex;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg></span>
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Running</span>
     </div>
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Pace</div><div class="stat-value green" id="homeRunPace">—</div><div class="stat-sub" id="homeRunPaceSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeRunKm">—</div><div class="stat-sub" id="homeRunCount">—</div></div>
-      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeRunTime">—</div><div class="stat-sub" id="homeRunAvgDist">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeRunHr">—</div><div class="stat-sub" id="homeRunHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeRunCal">—</div><div class="stat-sub" id="homeRunAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeRunCad">—</div><div class="stat-sub">spm</div></div>
     </div>
 
     <!-- BIKE STATS -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:8px;">
-      <span style="font-size:20px">🚴</span>
+      <span style="display:inline-flex;color:var(--text)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg></span>
       <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Cycling</span>
     </div>
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="homeBikeSpeed">—</div><div class="stat-sub" id="homeBikeSpeedSub">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="homeBikeKm">—</div><div class="stat-sub" id="homeBikeCount">—</div></div>
-      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
@@ -479,17 +495,17 @@ td b{ font-family:var(--font-mono); }
         <div class="card-title"><span>Trend Performance</span> <span id="homeTrendRunTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendRun"></canvas></div>
         <div id="homePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>10K TOMORROW</div>
-            <div id="homePredTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>10K TOMORROW</div>
+            <div class="pred-body"><div id="homePredTen" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
-            <div id="homePredHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>HALF MARATHON TOMORROW</div>
+            <div class="pred-body"><div id="homePredHalf" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>MARATHON TOMORROW</div>
-            <div id="homePredMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>MARATHON TOMORROW</div>
+            <div class="pred-body"><div id="homePredMarathon" class="pred-val">—</div></div>
           </div>
         </div>
       </div>
@@ -497,17 +513,17 @@ td b{ font-family:var(--font-mono); }
         <div class="card-title"><span>Trend Performance</span> <span id="homeTrendBikeTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling</span></div>
         <div class="chart-box-lg"><canvas id="homeTrendBike"></canvas></div>
         <div id="homeBikePredStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>45 KM TOMORROW</div>
-            <div id="homeBikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>45 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred45" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🚴</span>90 KM TOMORROW</div>
-            <div id="homeBikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg>90 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred90" class="pred-val">—</div></div>
           </div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>140 KM TOMORROW</div>
-            <div id="homeBikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+          <div class="pred-card">
+            <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>140 KM TOMORROW</div>
+            <div class="pred-body"><div id="homeBikePred140" class="pred-val">—</div></div>
           </div>
         </div>
       </div>
@@ -556,12 +572,12 @@ td b{ font-family:var(--font-mono); }
     </div>
     <div class="stat-card c-dur">
       <div class="stat-title">Total Time</div>
-      <div class="stat-value" id="totalTime">—</div>
+      <div class="stat-value red" id="totalTime">—</div>
       <div class="stat-sub" id="avgDistSub">— avg/run</div>
     </div>
     <div class="stat-card c-hr">
       <div class="stat-title">Avg BPM</div>
-      <div class="stat-value red" id="avgHr">—</div>
+      <div class="stat-value lightgray" id="avgHr">—</div>
       <div class="stat-sub" id="hrRangeSub">—</div>
     </div>
     <div class="stat-card c-pow">
@@ -578,13 +594,12 @@ td b{ font-family:var(--font-mono); }
 
   <!-- FILTERS -->
   <div class="filter-panel" id="filterPanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:nowrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap;">
         <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
-        <span id="filterBadge" class="filter-badge" style="display:none;">0 of 0</span>
+        <span id="filterBadge" class="filter-badge" style="display:none;">0 / 0</span>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-reset" onclick="clearAllFilters()">Clear All</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="btn-reset" onclick="resetFilters()">Select All</button>
       </div>
     </div>
@@ -634,17 +649,30 @@ td b{ font-family:var(--font-mono); }
     <div class="mini-filter" id="trendControlsRun"></div>
     <div class="chart-box-lg"><canvas id="performanceChart"></canvas></div>
     <div id="predictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>10K TOMORROW</div>
-        <div id="predTen" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>10K TOMORROW</div>
+        <div class="pred-body"><div id="predTen" class="pred-val">—</div></div>
       </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏃</span>HALF MARATHON TOMORROW</div>
-        <div id="predHalf" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>HALF MARATHON TOMORROW</div>
+        <div class="pred-body"><div id="predHalf" class="pred-val">—</div></div>
       </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>MARATHON TOMORROW</div>
-        <div id="predMarathon" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+      <div class="pred-card">
+        <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>MARATHON TOMORROW</div>
+        <div class="pred-body"><div id="predMarathon" class="pred-val">—</div></div>
+      </div>
+    </div>
+    <!-- HOW PREDICTIONS WORK (collapsible info bar) -->
+    <div id="predInfoBar" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+      <div onclick="togglePredInfo()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+        How these predictions work
+        <span id="predInfoChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+      </div>
+      <div id="predInfoBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
+        <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
+        <p style="margin:0 0 10px;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
+        <p style="margin:0 0 10px;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
+        <p style="margin:0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7.5% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7.5%).</p>
       </div>
     </div>
     <!-- SHOE ROTATION (moved under the trend predictions) -->
@@ -673,12 +701,41 @@ td b{ font-family:var(--font-mono); }
     <div id="acwrBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:260px;"><canvas id="acwrChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-      ACWR compares your last 7 days of load (km) against your 28-day average.
-      <span style="color:var(--green)">0.8–1.3</span> = safe training zone.
-      <span style="color:var(--orange)">&gt; 1.3</span> = overreaching, elevated injury risk.
-      <span style="color:var(--red)">&gt; 1.5</span> = high injury risk.
-      <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+      ACWR compares last 7 days of load against 28-day average<br>
+      <span style="color:var(--green)">0.8–1.3</span> safe training zone<br>
+      <span style="color:var(--orange)">&gt; 1.3</span> overreaching, elevated injury risk<br>
+      <span style="color:var(--red)">&gt; 1.5</span> high injury risk<br>
+      <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week
     </p>
+  </div>
+
+  <!-- EFFICIENCY MODEL — "YOUR LIMIT" -->
+  <div class="card" id="effModelSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+      <span>Efficiency Model — Your Limit</span>
+      <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">where your pace is heading, and where it plateaus</span>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+      <div class="mini-filter" id="effRaceToggle" style="margin:0"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-family:var(--font-mono);font-size:12px;color:var(--muted2);">
+        <span style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Standard conditions</span>
+        <label>HR <input type="number" id="effStdHr" placeholder="auto" min="100" max="210" style="width:64px" class="filter-input" oninput="this.dataset.auto='0';refitEffModel()"> bpm</label>
+        <label>D+ <input type="number" id="effStdElev" value="25" min="0" max="3000" step="5" style="width:64px" class="filter-input" oninput="refitEffModel()"> m</label>
+      </div>
+    </div>
+    <p id="effModelNote" style="margin:0 0 16px;font-size:13.5px;color:var(--muted2);font-family:var(--font-body);line-height:1.6;"></p>
+    <div id="effTrendReadout" style="margin:0 0 18px;"></div>
+    <div id="effModelStats" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+    <div style="height:300px;"><canvas id="effModelChart"></canvas></div>
+    <div id="effRaceStrip" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:18px;overflow-x:auto;"></div>
+    <!-- HONEST CAVEAT (collapsible) -->
+    <div id="effModelCaveat" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+      <div onclick="toggleEffCaveat()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+        How this model works &amp; how much to trust it
+        <span id="effCaveatChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+      </div>
+      <div id="effCaveatBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);"></div>
+    </div>
   </div>
 
   <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
@@ -688,13 +745,13 @@ td b{ font-family:var(--font-mono); }
     <div id="runFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:280px;"><canvas id="runFitnessChart"></canvas></div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
-      <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
-      <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
-      <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
-      <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
-      <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
-      <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+      <b style="color:#d7dee6">CTL (Fitness)</b> 42-day rolling avg of training load. Rises with consistent training<br>
+      <b style="color:var(--red)">ATL (Fatigue)</b> 7-day rolling avg of training load. Spikes after hard weeks, drops during rest<br>
+      <b style="color:var(--green)">TSB (Form)</b> CTL−ATL. Readiness to perform<br><br>
+      <span style="color:var(--green)">TSB +10 to +25</span> peak, ready to race<br>
+      <span style="color:var(--text)">TSB 0 to +10</span> fresh, good for quality sessions<br>
+      <span style="color:var(--orange)">TSB −10 to −30</span> building fitness, manageable fatigue<br>
+      <span style="color:var(--red)">TSB &lt; −30</span> high fatigue, rest needed
     </p>
   </div>
 
@@ -706,10 +763,10 @@ td b{ font-family:var(--font-mono); }
       <div id="runPolarizedDetails" style="flex:1;min-width:200px;"></div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
-      <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
-      <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here.<br>
-      <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. Intervals, threshold work. This is where speed improves.
+      80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
+      <span style="color:var(--green)">Easy (Z1–Z2)</span> below 80% max HR. Builds aerobic base, promotes recovery<br>
+      <span style="color:var(--orange)">Grey zone (Z3)</span> 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+      <span style="color:var(--red)">Hard (Z4–Z5)</span> above 88% max HR. Threshold work. This is where speed improves
     </p>
   </div>
 
@@ -717,15 +774,17 @@ td b{ font-family:var(--font-mono); }
   <div class="card" id="runPRSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Personal Records</span></div>
     <div id="runPRContainer"></div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-      Your fastest verified times at key distances (PRs). If no new PRs appear for weeks, consider changing your training stimulus (more intervals, more volume, or better recovery).
-    </p>
   </div>
 
   <!-- KM SPLITS -->
   <div class="card" id="splitsSection" style="display:none; margin-bottom:20px;">
     <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:12.5px;color:var(--muted2);">
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--green)"></span>≤ 5:20 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:#ffe566"></span>5:21 – 5:30 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--red)"></span>&gt; 5:30 /km</span>
+    </div>
   </div>
 
   <!-- TWO COL: Pace Zones + HR Zones -->
@@ -828,21 +887,20 @@ td b{ font-family:var(--font-mono); }
     <div class="stats-grid">
       <div class="stat-card c-pace"><div class="stat-title">Avg Speed</div><div class="stat-value green" id="bikeAvgSpeed">—</div><div class="stat-sub" id="bikeMaxSpeed">—</div></div>
       <div class="stat-card c-km"><div class="stat-title">Total Distance</div><div class="stat-value cyan" id="bikeTotalKm">—</div><div class="stat-sub" id="bikeCountSub">—</div></div>
-      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
-      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value red" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
+      <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
+      <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
     </div>
 
     <!-- BIKE FILTERS -->
     <div class="filter-panel" id="bikeFilterPanel" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:nowrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap;">
           <span style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Filters</span>
-          <span id="bikeFilterBadge" class="filter-badge" style="display:none;">0 of 0</span>
+          <span id="bikeFilterBadge" class="filter-badge" style="display:none;">0 / 0</span>
         </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-reset" onclick="clearAllBikeFilters()">Clear All</button>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
           <button class="btn-reset" onclick="resetBikeFilters()">Select All</button>
         </div>
       </div>
@@ -885,17 +943,30 @@ td b{ font-family:var(--font-mono); }
       <div class="mini-filter" id="trendControlsBike"></div>
       <div class="chart-box-lg"><canvas id="bikeTrendChart"></canvas></div>
       <div id="bikePredictionStrip" style="display:none;margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">⚡</span>45 KM TOMORROW</div>
-          <div id="bikePred45" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 13.5 h5.5 L8.5 22 L20 9.5 h-5.5 z"/></svg>45 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred45" class="pred-val">—</div></div>
         </div>
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🚴</span>90 KM TOMORROW</div>
-          <div id="bikePred90" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--green)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="var(--card2)"/><circle cx="18.5" cy="17" r="1.4" fill="var(--card2)"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg>90 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred90" class="pred-val">—</div></div>
         </div>
-        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px"><span style="margin-right:4px">🏅</span>140 KM TOMORROW</div>
-          <div id="bikePred140" style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--orange)">—</div>
+        <div class="pred-card">
+          <div class="pred-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 2 L11 9 H8.5 L6 3.5 Z M16 2 L18 3.5 L15.5 9 H13 Z"/><circle cx="12" cy="15.5" r="6"/><circle cx="12" cy="15.5" r="2.6" fill="var(--card2)"/></svg>140 KM TOMORROW</div>
+          <div class="pred-body"><div id="bikePred140" class="pred-val">—</div></div>
+        </div>
+      </div>
+      <!-- HOW PREDICTIONS WORK (collapsible info bar) -->
+      <div id="bikePredInfoBar" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+        <div onclick="toggleBikePredInfo()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+          How these predictions work
+          <span id="bikePredInfoChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+        </div>
+        <div id="bikePredInfoBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
+          <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 rides</b>. Recent rides count more than older ones.</p>
+          <p style="margin:0 0 10px;">Each ride is scaled to the target distance: your speed changes by about <b style="color:var(--text)">2% for every doubling (or halving) of distance</b>. So a target longer than your typical ride predicts a slower speed; a shorter one predicts faster; same distance leaves the speed unchanged.</p>
+          <p style="margin:0 0 10px;">If you haven't ridden for more than <b style="color:var(--text)">10 days</b>, the estimate slows by <b style="color:var(--text)">0.0875% for each additional day off</b>, down to a maximum of <b style="color:var(--text)">−8.75%</b>.</p>
+          <p style="margin:0;">If the target is longer than your <b style="color:var(--text)">longest ride in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">1.5% slower for every time the target exceeds your longest ride</b> (for example, 140 km off a 70 km longest ride is twice the distance, so it's penalized ~1.5%).</p>
         </div>
       </div>
     </div>
@@ -917,11 +988,11 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeAcwrBadgesTab" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:260px;"><canvas id="bikeAcwrTabChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
-        ACWR compares your last 7 days of load (km) against your 28-day average.
-        <span style="color:var(--green)">0.8–2.2</span> = safe training zone.
-        <span style="color:var(--orange)">&gt; 2.2</span> = overreaching, elevated injury risk.
-        <span style="color:var(--red)">&gt; 3.5</span> = high injury risk.
-        <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week.
+        ACWR compares last 7 days of load against 28-day average<br>
+        <span style="color:var(--green)">0.8–2.2</span> safe training zone<br>
+        <span style="color:var(--orange)">&gt; 2.2</span> overreaching, elevated injury risk<br>
+        <span style="color:var(--red)">&gt; 3.5</span> high injury risk<br>
+        <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week
       </p>
     </div>
 
@@ -932,13 +1003,13 @@ td b{ font-family:var(--font-mono); }
       <div id="bikeFitnessBadges" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
       <div style="height:280px;"><canvas id="bikeFitnessChart"></canvas></div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        <b style="color:var(--accent)">CTL (Fitness)</b> = 42-day rolling average of training load (TRIMP). Rises slowly with consistent training.<br>
-        <b style="color:var(--red)">ATL (Fatigue)</b> = 7-day rolling average of TRIMP. Spikes after hard weeks, drops during rest.<br>
-        <b style="color:var(--green)">TSB (Form)</b> = CTL − ATL. Your readiness to perform.<br><br>
-        <span style="color:var(--green)">TSB +10 to +25</span> = peak form, ready to race.&nbsp;
-        <span style="color:var(--muted2)">TSB 0 to +10</span> = fresh, good for quality sessions.&nbsp;
-        <span style="color:var(--orange)">TSB −10 to −30</span> = building fitness, manageable fatigue.&nbsp;
-        <span style="color:var(--red)">TSB &lt; −30</span> = high fatigue, rest needed.
+        <b style="color:#d7dee6">CTL (Fitness)</b> 42-day rolling avg of training load. Rises with consistent training<br>
+        <b style="color:var(--red)">ATL (Fatigue)</b> 7-day rolling avg of training load. Spikes after hard weeks, drops during rest<br>
+        <b style="color:var(--green)">TSB (Form)</b> CTL−ATL. Readiness to perform<br><br>
+        <span style="color:var(--green)">TSB +10 to +25</span> peak, ready to race<br>
+        <span style="color:var(--text)">TSB 0 to +10</span> fresh, good for quality sessions<br>
+        <span style="color:var(--orange)">TSB −10 to −30</span> building fitness, manageable fatigue<br>
+        <span style="color:var(--red)">TSB &lt; −30</span> high fatigue, rest needed
       </p>
     </div>
 
@@ -950,10 +1021,10 @@ td b{ font-family:var(--font-mono); }
         <div id="bikePolarizedDetails" style="flex:1;min-width:200px;"></div>
       </div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Elite endurance athletes follow the 80/20 rule: ~80% of training at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3).<br><br>
-        <span style="color:var(--green)">Easy (Z1–Z2)</span> = below 80% max HR. Builds aerobic base, promotes recovery.<br>
-        <span style="color:var(--orange)">Grey zone (Z3)</span> = 80–88% max HR. Too hard to recover from, too easy to build speed.<br>
-        <span style="color:var(--red)">Hard (Z4–Z5)</span> = above 88% max HR. High-intensity intervals, threshold efforts.
+        80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
+        <span style="color:var(--green)">Easy (Z1–Z2)</span> below 80% max HR. Builds aerobic base, promotes recovery<br>
+        <span style="color:var(--orange)">Grey zone (Z3)</span> 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+        <span style="color:var(--red)">Hard (Z4–Z5)</span> above 88% max HR. Threshold work. This is where speed improves
       </p>
     </div>
 
@@ -961,9 +1032,6 @@ td b{ font-family:var(--font-mono); }
     <div class="card" id="bikePRSection" style="display:none;margin-bottom:20px;">
       <div class="card-title"><span>Personal Records</span></div>
       <div id="bikePRContainer"></div>
-      <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
-        Your fastest verified times at key distances. PRs are extracted from your actual GPS data. If no new PRs appear for weeks, consider changing your training stimulus — more intervals, longer rides, or structured rest.
-      </p>
     </div>
 
     <!-- TWO COL: Speed Zones + HR Zones -->
@@ -1121,6 +1189,8 @@ function parseFIT(buffer) {
             case 7:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.power=v; } break;
             case 39:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertOsc=v/10; } break;
             case 41:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertRatio=v/100; } break;
+            case 2:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.alt=(v/5)-500; } break;    // altitude (m)
+            case 78:  if(fSize===4){ const v=dv.getUint32(pos,true); if(v!==0xFFFFFFFF) rec.ealt=(v/5)-500; } break; // enhanced_altitude (m), preferred
           }
           pos += fSize;
         }
@@ -1159,6 +1229,12 @@ function parseFIT(buffer) {
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
+  // Elevation gain (D+): prefer enhanced_altitude, else altitude. Smoothed to reject
+  // barometric/GPS jitter (raw per-point sums grossly overcount on noisy sensors).
+  const useEAlt = records.some(r => r.ealt != null);
+  const altSeries = records.map(r => useEAlt ? r.ealt : r.alt).filter(v => v != null);
+  const elevGain = altSeries.length >= 5 ? Math.round(elevationGain(altSeries)) : null;
+
   const kmSplits = computeKmSplits(records);
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
@@ -1173,7 +1249,7 @@ function parseFIT(buffer) {
     distance: Number(distKm.toFixed(2)),
     duration: secondsToTime(durationSec),
     durationSec,
-    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
+    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO, elevGain,
     calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
@@ -1251,6 +1327,7 @@ function parseFallbackGPX(xmlText, fileName) {
   let firstTime = null, lastTime = null;
   const MAX_GAP_SEC = 10;
   const points = [];
+  const eleSeries = [];
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
     const lat = parseFloat(pt.getAttribute('lat'));
@@ -1260,6 +1337,8 @@ function parseFallbackGPX(xmlText, fileName) {
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
+    const eleNode = pt.getElementsByTagNameNS('*', 'ele')[0];
+    if(eleNode) { const e = parseFloat(eleNode.textContent); if(!isNaN(e)) eleSeries.push(e); }
     if(i > 0) {
       const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
       if(time && points[i-1].time) {
@@ -1283,10 +1362,28 @@ function parseFallbackGPX(xmlText, fileName) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
+    elevGain: eleSeries.length >= 5 ? Math.round(elevationGain(eleSeries)) : null,
     calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
     hrCount, source: 'GPX', sport: 'running'
   };
+}
+
+// Total ascent from an altitude series (metres). A centered moving-average smooth
+// (window 5) knocks down barometric/GPS jitter before summing positive deltas —
+// raw per-point summing overcounts flat runs by 2–20× on noisy sensors.
+function elevationGain(alts, win = 5) {
+  if(alts.length < 2) return 0;
+  const half = Math.floor(win / 2);
+  const sm = new Array(alts.length);
+  for(let i = 0; i < alts.length; i++) {
+    let s = 0, n = 0;
+    for(let j = Math.max(0, i-half); j <= Math.min(alts.length-1, i+half); j++) { s += alts[j]; n++; }
+    sm[i] = s / n;
+  }
+  let gain = 0;
+  for(let i = 1; i < sm.length; i++) { const d = sm[i] - sm[i-1]; if(d > 0) gain += d; }
+  return gain;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -1404,7 +1501,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 3;
+const RUN_CACHE_VERSION = 4;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1503,8 +1600,8 @@ async function listFiles(){
     }
     pruneRunCache(eligible.map(f => f.id));
 
-    if(warnings.length)
-      document.getElementById('parseLog').innerHTML = warnings.map(w => `<div class="log-entry">${w}</div>`).join('');
+    // Parse warnings are kept for debugging but no longer shown under Training Log (user request)
+    if(warnings.length) console.warn('Parse warnings:', warnings);
 
     if(!runs.length){ setStatus('No valid files found.', 'disconnected'); setEmptyTable(); return; }
 
@@ -1526,7 +1623,7 @@ async function listFiles(){
     const bc = allBikes.length;
     const fc = runs.filter(r=>r.source==='FIT').length;
     const gc = runs.filter(r=>r.source==='GPX').length;
-    setStatus(`${runs.length} loaded ✓  (${rc} runs · ${bc} rides · ${fc} FIT · ${gc} GPX · ${cacheHits} cached)`, 'connected');
+    setStatus(`${runs.length} loaded · ${rc} runs · ${bc} rides`, 'connected');
   } catch(err){
     console.error(err);
     setStatus('Error: ' + (err.message || JSON.stringify(err)), 'disconnected');
@@ -1645,7 +1742,7 @@ function applyFilters() {
 function updateFilterBadge(count) {
   const badge = document.getElementById('filterBadge');
   badge.style.display = 'inline-flex';
-  badge.textContent = `${count} of ${allRuns.length} activities`;
+  badge.textContent = `${count} / ${allRuns.length} runs`;
   badge.className = 'filter-badge' + (count < allRuns.length ? ' dimmed' : '');
 }
 
@@ -1737,6 +1834,7 @@ function renderDashboard(data){
   renderPredictions(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
+  renderEfficiencyModel(data);
   renderAvgKmSplits(data);
   renderAcwr(data);
   renderFitnessChart(data, 'running');
@@ -1863,8 +1961,8 @@ function renderAvgKmSplits(data) {
     });
   }
 
-  // Fixed pace-based color coding: < 5:25 green, 5:25–5:35 amber, > 5:35 red.
-  const paceClass = sec => sec <= 325 ? 'pace-fast' : sec <= 335 ? 'pace-mid' : 'pace-slow';
+  // Fixed pace-based color coding: ≤ 5:20 green, 5:21–5:30 amber, > 5:30 red.
+  const paceClass = sec => sec <= 320 ? 'pace-fast' : sec <= 330 ? 'pace-mid' : 'pace-slow';
 
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
@@ -1895,6 +1993,15 @@ function renderAvgKmSplits(data) {
 }
 
 /* SHOES */
+// Per-shoe wear limit in km (matched by shoe name); DEFAULT_SHOE_LIMIT for anything else.
+const DEFAULT_SHOE_LIMIT = 500;
+const SHOE_LIMITS = {
+  'Kiprun Carbon': 500,
+  'Vomero Plus':   750,
+  'Sconosciuta':   500,
+};
+function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
+
 function renderShoes(data) {
   const shoes = {};
   data.forEach(r => {
@@ -1905,19 +2012,20 @@ function renderShoes(data) {
   });
   let html = '';
   for(const [name, s] of Object.entries(shoes)){
-    const wear = Math.min(100, (s.km/500)*100);
+    const limit = shoeLimit(name);
+    const wear = Math.min(100, (s.km/limit)*100);
     const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
     const avgPace = s.paceCount ? paceStr(s.paceSum / s.paceCount) : null;
     const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
     html += `
-    <div class="shoe-card" style="flex:1;min-width:200px;max-width:340px;">
+    <div class="shoe-card" style="flex:1 1 0;min-width:220px;">
       <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
       </div>
       <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
-      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of 500 km</div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of ${limit} km</div>
     </div>`;
   }
   document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
@@ -1961,14 +2069,41 @@ const CHART_OPTS = {
 const TREND_INTERACTION = { mode: 'index', intersect: false, axis: 'x' };
 // Roomy, readable tooltip that also works on small/phone screens.
 const TREND_TOOLTIP_STYLE = {
-  backgroundColor: 'rgba(14,19,24,0.96)', borderColor: '#1e2a34', borderWidth: 1,
+  backgroundColor: 'rgba(33,46,60,0.97)', borderColor: '#33475a', borderWidth: 1,
   titleColor: '#e8edf2', bodyColor: '#e8edf2', padding: 10, cornerRadius: 8,
-  titleFont: { family: 'DM Mono', size: 12 }, bodyFont: { family: 'DM Mono', size: 13 },
+  titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'DM Mono', size: 12 },
   bodySpacing: 5, caretSize: 6, displayColors: true, usePointStyle: true
 };
 // For scatter/doughnut where there are no day-columns: still drop the "must be
 // exactly on the point" requirement so a nearby hover/tap surfaces the tooltip.
 const NEAR_INTERACTION = { mode: 'nearest', intersect: false };
+
+// Mobile: a tap shows the tooltip but on touch nothing dismisses it (there's no
+// mouse-leave). This makes the NEXT tap clear the tooltip and return to the plain
+// chart. Desktop hover is unaffected (hover never fires onClick). Call it once per
+// chart so each keeps its own open/closed state.
+function tapToDismiss() {
+  let open = false;
+  return (evt, els, chart) => {
+    if (open) {
+      chart.setActiveElements([]);
+      if (chart.tooltip) chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+      open = false;
+      chart.update();
+    } else if (chart.getActiveElements().length) {
+      open = true;   // a tap landed on data → next tap closes it
+    }
+  };
+}
+// Tooltip legend swatch as a SOLID filled circle (no contrasting edge/ring).
+function solidSwatch(col) { return { borderColor: col, backgroundColor: col, borderWidth: 0 }; }
+// ACWR row → risk color from the point; other rows → the line's own color.
+function acwrLabelColor(c) {
+  const f = c.dataset.pointBackgroundColor;
+  let col = (typeof f === 'function') ? f(c) : null;
+  if (!col || col === 'transparent') col = c.dataset.borderColor;
+  return solidSwatch(col);
+}
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
@@ -2077,9 +2212,9 @@ function renderTrendChart(data) {
     data: {
       labels,
       datasets: [
-        { label:'Pace', data:paceVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',  data:hrVals,  borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
-        { label:'Km',   data:kmVals,  borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
+        { label:'Pace', data:paceVals, borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.07)', tension:0.35, yAxisID:'yPace', fill:true, spanGaps:false, pointRadius:4, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 },
+        { label:'BPM',  data:hrVals,  borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#d7dee6', borderWidth:2.7 },
+        { label:'Km',   data:kmVals,  borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', tension:0.35, yAxisID:'yKm', fill:false, spanGaps:false, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 }
       ]
     },
     options: {
@@ -2102,9 +2237,9 @@ function renderTrendChart(data) {
       },
       scales: {
         x: { ticks: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Pace /km',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr:   { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
-        yKm:   { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        yPace: { type:'linear', position:'left', reverse:true, ticks: { color:'#ff6b4a', font:{family:'DM Mono',size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v%1)*60); return `${m}:${String(s).padStart(2,'0')}`; } }, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:false} },
+        yHr:   { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:false} },
+        yKm:   { type:'linear', position:'right', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:false} }
       }
     }
   });
@@ -2163,7 +2298,7 @@ function renderEfficiencyChart(data) {
       datasets: [{
         label: 'W vs Passo',
         data: sorted.map(r => ({ x: r.power, y: r.paceSecPerKm / 60 })),
-        backgroundColor: '#bf40ff80', borderColor: '#bf40ff', pointRadius: 6
+        backgroundColor: '#ff6b4a80', borderColor: '#ff6b4a', pointRadius: 6
       }]
     },
     options: {
@@ -2178,54 +2313,554 @@ function renderEfficiencyChart(data) {
   });
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   EFFICIENCY MODEL — "Your Limit"
+   Two-part statistical model (replicating the raffa_dpfit approach):
+     1. Multiple linear regression of pace on physiological + mechanical inputs
+        AND a saturating time-trend, fit JOINTLY:
+          pace = β₁·(FC−FC*) + β₂·(d−d*) + β₃·(h−h*) + g(t)
+          g(t) = g∞ − (g∞ − g₀)·e^(−k·(t−t₀))
+        Conditions are CENTERED on standard values (FC*, d*, h*) so that g(t) is
+        directly the pace you'd run AT those standard conditions over time —
+        i.e. your normalized physiological efficiency, noise stripped out.
+     2. For a fixed k the model is linear in (β₁,β₂,β₃,g∞,g₀), so we grid-search
+        k and solve one 5-column OLS per candidate, keeping the lowest SSE.
+   The saturating exponential is the honest part: big early gains that taper to a
+   personal plateau g∞ — your estimated limit. Plateau is very sensitive to sparse
+   data, so we show it with explicit low/med/high confidence, never as a hard fact. */
+
+// Weighted least squares: solve (XᵀWX)b = XᵀWy via Gauss-Jordan w/ partial pivoting.
+// `w` is an optional per-row weight vector (defaults to all-ones = plain OLS).
+function olsSolve(X, y, w) {
+  const n = X.length, p = X[0].length;
+  const A = Array.from({length:p}, () => new Array(p).fill(0));
+  const g = new Array(p).fill(0);
+  for(let i=0;i<n;i++){ const wi = w ? w[i] : 1; for(let a=0;a<p;a++){
+    g[a] += wi*X[i][a]*y[i];
+    for(let b=0;b<p;b++) A[a][b] += wi*X[i][a]*X[i][b];
+  }}
+  const M = A.map((row,i) => [...row, g[i]]);
+  for(let col=0; col<p; col++){
+    let piv = col;
+    for(let r=col+1;r<p;r++) if(Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r;
+    if(Math.abs(M[piv][col]) < 1e-12) return null;   // singular / collinear
+    [M[col],M[piv]] = [M[piv],M[col]];
+    const d = M[col][col];
+    for(let c=col;c<=p;c++) M[col][c] /= d;
+    for(let r=0;r<p;r++){ if(r===col) continue; const f=M[r][col]; for(let c=col;c<=p;c++) M[r][c] -= f*M[col][c]; }
+  }
+  return M.map(row => row[p]);
+}
+
+function rSquared(y, yhat, w) {
+  let sw=0, wm=0;
+  for(let i=0;i<y.length;i++){ const wi=w?w[i]:1; sw+=wi; wm+=wi*y[i]; }
+  const mean = wm/sw;
+  let ssRes=0, ssTot=0;
+  for(let i=0;i<y.length;i++){ const wi=w?w[i]:1; ssRes += wi*(y[i]-yhat[i])**2; ssTot += wi*(y[i]-mean)**2; }
+  return ssTot > 0 ? 1 - ssRes/ssTot : 0;
+}
+
+const RIEGEL_EXP_EFF = 0.05;   // Riegel: pace shifts ~3.5% per doubling — matches renderPredictions()
+
+// Distance weight — ASYMMETRIC & LINEAR: a run's evidence for a race scales with
+// "proof of distance". Target distance = 100%; every km SHORTER subtracts 2.5%, every km
+// LONGER adds 2.5% (no upper cap — "longer always counts more": a marathon informs your 10K
+// more than a 5 km does). Floored at 0.10 so short runs still contribute meaningfully.
+//   weight(d) = clamp( 1 + 0.025·(d − target), 0.10, ∞ )
+const DIST_WEIGHT_PER_KM = 0.025;
+function distanceWeight(runDist, targetDist) {
+  if(runDist <= 0) return 0;
+  return Math.max(0.10, 1 + DIST_WEIGHT_PER_KM * (runDist - targetDist));
+}
+
+// Fit the efficiency model FOR ONE RACE DISTANCE using ALL runs.
+//   obs = [{t (days), fc, d, h, pace (sec/km)}], std = {fc,h}, targetDist (km).
+// Each run's pace is Riegel-scaled to the target distance (so DISTANCE is normalized
+// out — no distance covariate, which kills the distance-vs-fitness collinearity), then
+// weighted by proximity to the target distance. We regress the scaled pace on HR and
+// elevation offsets plus a saturating time trend; the fitted trend is directly your
+// projected RACE PACE at the target distance and standard HR/elevation over time.
+function fitRaceEfficiency(obs, std, targetDist) {
+  // Riegel-normalize pace to the target distance + proximity weights.
+  const rows = obs.map(o => ({
+    t: o.t, fc: o.fc, h: o.h,
+    pace: o.pace * Math.pow(targetDist / o.d, RIEGEL_EXP_EFF),
+    w: distanceWeight(o.d, targetDist),
+  })).filter(o => o.w > 0.02);   // drop negligible contributors
+  // Need enough EFFECTIVE data: at least 8 runs and ~4 near-distance runs of weight.
+  const effN = rows.reduce((s,o) => s + o.w, 0);
+  if(rows.length < 8 || effN < 4) return null;
+
+  const t0 = Math.min(...rows.map(o => o.t));
+  const y  = rows.map(o => o.pace);
+  const w  = rows.map(o => o.w);
+  let best = null;
+  // k grid in 1/days. Bounded to PHYSIOLOGICALLY PLAUSIBLE adaptation half-lives:
+  // fastest ~30 days (logk≈-3.75), slowest ~5 years (logk≈-7.6). Without the fast cap
+  // the fit picks a ~3-day half-life and the curve "jumps" instantly then flatlines.
+  for(let logk=-7.6; logk<=-3.75; logk+=0.02){
+    const k = Math.exp(logk);
+    const X = rows.map(o => { const E = Math.exp(-k*(o.t - t0)); return [o.fc - std.fc, o.h - std.h, 1 - E, E]; });
+    const b = olsSolve(X, y, w);
+    if(!b) continue;
+    const yhat = X.map(row => row.reduce((s,v,j)=>s+v*b[j], 0));
+    let sse=0; for(let i=0;i<y.length;i++) sse += w[i]*(y[i]-yhat[i])**2;
+    if(!best || sse < best.sse) best = { k, cFC:b[0], cH:b[1], ginf:b[2], g0:b[3], sse, t0, yhat };
+  }
+  if(!best) return null;
+  best.r2 = rSquared(y, best.yhat, w);
+  best.n  = rows.length;
+  best.effN = effN;                 // effective (weighted) sample size
+  best.targetDist = targetDist;
+  best.rows = rows;                 // for plotting the weighted scatter
+  // Projected RACE PACE (sec/km) at the target distance, standard HR/elevation, at time t.
+  best.effAt = t => best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
+  best.halfLifeDays = Math.log(2) / best.k;
+  return best;
+}
+
+// HR-ADJUSTED TREND DECOMPOSITION — answers "am I actually faster, holding HR equal?"
+// Uses a LINEAR-in-time model (stable under HR↔time collinearity, unlike the saturating
+// exponential): pace* = a + b·(months) + cFC·(fc−stdFC) + cH·(h−stdH), weighted.
+// Splits the observed change over the logged span into three honest pieces:
+//   rawDelta = how much raw pace changed (what a naive eye sees)
+//   hrDelta  = how much avg HR changed (are you running easier/harder?)
+//   adjDelta = pace change AT EQUAL HR — the real fitness signal (negative = faster)
+// cFC is clamped to a physiological negative band (higher HR ⇒ faster ⇒ lower sec/km).
+function hrAdjustedTrend(obs, stdFC, stdH) {
+  if(obs.length < 6) return null;
+  const t0 = Math.min(...obs.map(o => o.t));
+  const y  = obs.map(o => o.pace);
+  const w  = obs.map(o => o.w != null ? o.w : 1);
+  const mo = o => (o.t - t0) / 30;                     // time in months
+  let b = olsSolve(obs.map(o => [1, mo(o), o.fc-stdFC, o.h-stdH]), y, w);
+  if(!b) return null;
+  let cFC = b[2];
+  const LO = -4.0, HI = -0.10;                         // plausible s/km per bpm
+  let clamped = false;
+  if(cFC > HI || cFC < LO) {                           // implausible/positive → clamp & refit
+    clamped = true; cFC = Math.max(LO, Math.min(HI, cFC));
+    const yAdj = y.map((v,i) => v - cFC*(obs[i].fc - stdFC));
+    const b2 = olsSolve(obs.map(o => [1, mo(o), o.h-stdH]), yAdj, w);
+    if(!b2) return null;
+    b = [b2[0], b2[1], cFC, b2[2]];
+  }
+  const spanMo   = mo(obs[obs.length-1]);
+  const rawSlope = olsSolve(obs.map(o => [1, mo(o)]), y, w)[1];
+  const hrSlope  = olsSolve(obs.map(o => [1, mo(o)]), obs.map(o => o.fc), w)[1];
+  // Collinearity between HR and time: |corr| near 1 means the fit can't cleanly separate
+  // "slower over time" from "slower because HR changed" — the adjusted trend is then shaky.
+  let mt=0,mf=0,sw=0;
+  for(let i=0;i<obs.length;i++){ const wi=w[i]; sw+=wi; mt+=wi*mo(obs[i]); mf+=wi*obs[i].fc; }
+  mt/=sw; mf/=sw;
+  let cov=0,vt=0,vf=0;
+  for(let i=0;i<obs.length;i++){ const wi=w[i], dt=mo(obs[i])-mt, df=obs[i].fc-mf; cov+=wi*dt*df; vt+=wi*dt*dt; vf+=wi*df*df; }
+  const hrTimeCorr = (vt>0&&vf>0) ? cov/Math.sqrt(vt*vf) : 0;
+  return {
+    cFC, clamped, spanMo,
+    adjSlopeMo: b[1],                    // s/km per month at equal HR
+    adjDelta:   b[1] * spanMo,           // total s/km change at equal HR over the span
+    rawDelta:   rawSlope * spanMo,
+    hrDelta:    hrSlope * spanMo,
+    hrTimeCorr,                          // −1..1; |·|>~0.8 ⇒ adjusted trend is uncertain
+  };
+}
+
+// Races the model projects. Each is fit independently from ALL runs (Riegel-scaled +
+// distance-weighted toward its own distance), so shorter/longer runs still contribute.
+const EFF_RACES = [
+  { key:'10k',  label:'10K',            dist:10 },
+  { key:'half', label:'Half Marathon',  dist:21.0975 },
+];
+let effRaceKey = '10k';               // which race drives the chart + stat cards
+let lastEffFits = null;               // { std, fits:{10k:model, half:model}, obs, horizon,... }
+
+function setEffRace(key){ effRaceKey = key; if(lastRenderedData) renderEfficiencyModel(lastRenderedData); }
+
+function renderEfficiencyModel(data) {
+  const section = document.getElementById('effModelSection');
+  const note    = document.getElementById('effModelNote');
+  const canvas  = document.getElementById('effModelChart');
+  if(!section) return;
+  destroyChart('effModel');
+  section.style.display = 'block';
+
+  // Usable runs: need pace, HR, an elevation reading, and a real date. ALL distances.
+  const obs = [...data]
+    .filter(r => r.paceSecPerKm && r.hr && r.elevGain != null && r.date && r.distance > 0)
+    .map(r => ({ date:new Date(r.date), t:new Date(r.date).getTime()/86400000,
+                 fc:r.hr, d:r.distance, h:r.elevGain, pace:r.paceSecPerKm }))
+    .filter(o => !isNaN(o.t))
+    .sort((a,b) => a.t - b.t);
+
+  // Standard conditions the projections assume: an average HR and a flat course.
+  // Distance is NOT a standard condition here — each race defines its own distance.
+  // Default standard HR = MEDIAN of the runs' HR, so we never extrapolate the pace↔HR
+  // relationship below/above the range you actually train at (a std HR under every run
+  // makes the projection unreliable). The HR box shows this default; editing it overrides.
+  const hrSorted = obs.map(o => o.fc).sort((a,b) => a-b);
+  const medianHr = hrSorted.length ? Math.round(hrSorted[Math.floor(hrSorted.length/2)]) : 160;
+  const hrBox = byId('effStdHr');
+  if(hrBox && (hrBox.value === '' || hrBox.dataset.auto === '1')) { hrBox.value = medianHr; hrBox.dataset.auto = '1'; }
+  const std = {
+    fc: clampNum(byId('effStdHr'),   medianHr, 100, 210),
+    h:  clampNum(byId('effStdElev'), 25,  0,   3000),
+  };
+
+  const fail = msg => {
+    note.innerHTML = msg;
+    canvas.style.display = 'none';
+    document.getElementById('effModelStats').innerHTML = '';
+    document.getElementById('effRaceStrip').style.display = 'none';
+    document.getElementById('effModelCaveat').style.display = 'none';
+    document.getElementById('effRaceToggle').innerHTML = '';
+    document.getElementById('effTrendReadout').innerHTML = '';
+    lastEffFits = null;
+  };
+
+  if(obs.length < 8)
+    return fail(`Needs at least <b>8 runs with heart-rate + elevation</b> to build the model — have <b>${obs.length}</b>. Older GPX/FIT files without HR or altitude don't count.`);
+
+  // Fit one model per race distance, using every run (weighted by distance proximity).
+  const fits = {};
+  EFF_RACES.forEach(rc => { fits[rc.key] = fitRaceEfficiency(obs, std, rc.dist); });
+  if(!fits[effRaceKey]) {
+    // fall back to whichever race did fit
+    const ok = EFF_RACES.find(rc => fits[rc.key]);
+    if(!ok) return fail(`Couldn't fit the model — your runs may be too uniform to learn a trend.`);
+    effRaceKey = ok.key;
+  }
+
+  const lastT   = obs[obs.length-1].t;
+  const horizon = lastT + 365*2;      // project 2 years past the last run
+  lastEffFits = { std, fits, obs, lastT, horizon };
+
+  // Race toggle buttons.
+  document.getElementById('effRaceToggle').innerHTML = EFF_RACES.map(rc =>
+    `<div class="mini-chip${rc.key===effRaceKey?' active':''}" style="${fits[rc.key]?'':'opacity:.4;pointer-events:none'}" onclick="setEffRace('${rc.key}')">${rc.label}</div>`
+  ).join('');
+
+  const rc = EFF_RACES.find(r => r.key===effRaceKey);
+  const m  = fits[effRaceKey];
+
+  // s/km gained per bpm (negative = higher HR runs faster). Shown so the HR normalization is transparent.
+  const sHR = m.cFC;
+  const sHRabs = Math.abs(sHR).toFixed(2);
+  note.innerHTML = `Every run is <b>projected to the ${rc.label} (${rc.dist>21?'21.1':rc.dist} km)</b> (Riegel, same as the race cards), then weighted by <b>distance proximity</b> — ` +
+    `${rc.label} = 100%, −2.5%/km shorter, +2.5%/km longer (a 15&nbsp;km run counts more toward your 10K than a 5&nbsp;km does). ` +
+    `Then each run's pace is <b>normalized to ${std.fc} bpm · ${std.h} m D+</b>: ` +
+    `<code style="font-family:var(--font-mono);color:var(--text)">pace₍norm₎ = pace − ${sHRabs}·(${std.fc} − HR)</code> — ` +
+    `so a run at the same pace but <b>lower HR normalizes faster</b> (here every −1 bpm ≈ −${sHRabs} s/km). The curve is a <b>saturating-exponential</b> trend.`;
+
+  // ── HR-ADJUSTED TREND READOUT — the honest "am I faster at equal HR?" answer ──
+  // Built on the SAME Riegel-scaled, distance-weighted rows the race model uses, so it's
+  // apples-to-apples with the chart above.
+  renderEffTrendReadout(m.rows, std, rc);
+
+  // Confidence % from weighted R² capped by effective (weighted) sample size.
+  const sampleFactor = Math.min(1, m.effN / 20);
+  const confPct   = Math.round(100 * Math.max(0, Math.min(1, m.r2)) * sampleFactor);
+  const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
+
+  const plateau = m.ginf;
+  const nowPace = m.effAt(lastT);
+  const toGoT   = (nowPace - plateau) * rc.dist;   // seconds off the finish at the limit
+  document.getElementById('effModelStats').innerHTML = `
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">${rc.label} now</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#d7dee6">${secondsToTime(Math.round(nowPace*rc.dist))}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(nowPace)} /km</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Estimated best (limit)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${secondsToTime(Math.round(plateau*rc.dist))}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(plateau)} /km</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Still to gain</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${toGoT>2?('−'+secondsToTime(Math.round(toGoT)).replace(/^00:/,'')):'~at limit'}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${confColor}">${confPct}%</div>
+      <div style="color:${confColor};font-size:11px;margin-top:2px">R²&nbsp;${m.r2.toFixed(2)} · n=${m.n} (eff ${m.effN.toFixed(0)})</div>
+    </div>`;
+
+  // Honest caveat.
+  const caveat = document.getElementById('effModelCaveat');
+  caveat.style.display = 'block';
+  caveat.querySelector('#effCaveatBody').innerHTML =
+    `<p style="margin:0 0 10px;">Each race is fit from <b style="color:var(--text)">all ${obs.length} runs</b>, not just ones at that exact distance. A run's pace is Riegel-scaled to the race distance (~3.5% per doubling), then weighted by <b style="color:var(--text)">proof of distance</b>: the race distance = 100%, <b style="color:var(--text)">−2.5% per km shorter, +2.5% per km longer</b> (floored at 10%). A longer run is stronger evidence you can hold pace — so a 15 km run counts <b style="color:var(--text)">more</b> toward your 10K than a 5 km does, and there's no upper cap. <b style="color:var(--text)">Effective sample size (eff)</b> is that weighted count.</p>` +
+    `<p style="margin:0 0 10px;">HR and elevation are regressed out; the leftover time trend is the <b style="color:var(--text)">saturating-exponential</b> shown. The <b style="color:var(--text)">plateau (limit) is the least certain number</b> — it's optimistic on sparse data and moves as you add runs. Treat it as a direction.</p>` +
+    `<p style="margin:0;">The dashed line projects <b style="color:var(--text)">2 years</b> past your last run; confidence drops the further out it runs. Confidence <b style="color:var(--text)">(${confPct}%)</b> = weighted fit quality scaled down when few near-distance runs exist.</p>`;
+
+  // ── Chart: weighted scatter of Riegel-projected race pace + fitted curve + projection ──
+  const projPts = m.rows.map(o => {
+    // remove HR + elevation offsets so the point sits on the "standard-condition" scale
+    const norm = o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h);
+    return { x:o.t, y: norm/60, w:o.w };
+  });
+  const ptAlpha  = projPts.map(p => Math.max(0.15, p.w).toFixed(2));
+  const ptRadius = projPts.map(p => 2 + 4*p.w);
+
+  const curve = [];
+  const step = Math.max(1, Math.round((horizon - m.t0)/160));
+  for(let t=m.t0; t<=horizon; t+=step) curve.push({ x:t, y:m.effAt(t)/60 });
+  const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
+  const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
+
+  // Pin x to the data range; one tick per QUARTER (Jan/Apr/Jul/Oct) so months are visible
+  // across the ~2-yr projection without crowding. Ticks labelled "Mon 'YY".
+  const xMin = m.t0, xMax = horizon;
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const qTicks = [];
+  const y0 = new Date(xMin*86400000).getFullYear(), y1 = new Date(xMax*86400000).getFullYear()+1;
+  for(let yr=y0; yr<=y1; yr++) for(const mo of [0,3,6,9]){
+    const dayEpoch = new Date(yr,mo,1).getTime()/86400000;
+    if(dayEpoch >= xMin-1 && dayEpoch <= xMax+1) qTicks.push(dayEpoch);
+  }
+  const fmtTick = v => { const d=new Date(v*86400000); return `${MON[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`; };
+
+  canvas.style.display = '';
+  const ctx = canvas.getContext('2d');
+  charts['effModel'] = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { type:'line', label:`${rc.label} pace (fitted)`, data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'line', label:'Projection (2 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'scatter', label:'Runs (→ race pace, sized by weight)', data:projPts, parsing:false,
+          backgroundColor: projPts.map((_,i)=>`rgba(0,230,118,${ptAlpha[i]})`), borderColor:'#00e676', pointRadius: ptRadius },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction: NEAR_INTERACTION,
+      onClick: tapToDismiss(),
+      plugins: {
+        legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
+          labelColor: c => solidSwatch(c.dataset.borderColor),
+          label: c => `${c.dataset.label}: ${paceStr(Math.round(c.parsed.y*60))} /km`
+        } }
+      },
+      scales: {
+        x: { type:'linear', min:xMin, max:xMax, afterBuildTicks:a=>{a.ticks=qTicks.map(v=>({value:v}));}, ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},autoSkip:true,maxRotation:45,minRotation:45,callback:fmtTick}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { reverse:true, ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10},callback:v=>{const m2=Math.floor(v);const s=Math.round((v%1)*60);return `${m2}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:`Equivalent ${rc.label} pace /km`,color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+
+  renderEffRaceScenarios();
+}
+
+// Race predictor: projected finish time for BOTH races at chosen average HRs, now / +1yr / +2yr.
+function renderEffRaceScenarios() {
+  const strip = document.getElementById('effRaceStrip');
+  if(!strip || !lastEffFits) { if(strip) strip.style.display='none'; return; }
+  const { std, fits } = lastEffFits;
+  const nowT = Date.now()/86400000;
+  const hrs = [
+    clampNum(byId('effRaceHr1'), 160, 120, 210),
+    clampNum(byId('effRaceHr2'), 165, 120, 210),
+    clampNum(byId('effRaceHr3'), 170, 120, 210),
+  ];
+  const dates = [ {label:'now', t:nowT}, {label:'in 1 year', t:nowT+365}, {label:'in 2 years', t:nowT+730} ];
+
+  // For each race that fit, a block: rows = HRs, cols = dates.
+  const blocks = EFF_RACES.filter(rc => fits[rc.key]).map(rc => {
+    const m = fits[rc.key];
+    const rows = hrs.map(hr => {
+      const cells = dates.map(dt => {
+        const pace   = m.effAt(dt.t) + m.cFC*(hr - std.fc);   // race pace at this HR & date
+        const finish = pace * rc.dist;
+        return `<td style="text-align:right;font-family:var(--font-mono);color:var(--text);padding:5px 12px">${secondsToTime(Math.round(finish))}<span style="color:var(--muted2);font-size:11px"> · ${paceStr(Math.round(pace))}/km</span></td>`;
+      }).join('');
+      return `<tr><td style="padding:5px 12px;font-family:var(--font-mono);color:var(--accent)">${hr} bpm</td>${cells}</tr>`;
+    }).join('');
+    return `
+      <div style="margin-bottom:16px">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text);margin-bottom:6px">${rc.label} — ${rc.dist>21?'21.1':rc.dist} km</div>
+        <table style="border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="text-align:left;padding:5px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">Avg HR</th>
+            ${dates.map(d=>`<th style="text-align:right;padding:5px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">${d.label}</th>`).join('')}
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+
+  strip.style.display = 'block';
+  strip.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Race predictor</span>
+      <label style="font-family:var(--font-mono);font-size:12px;color:var(--muted2)">avg HRs
+        <input type="number" id="effRaceHr1" value="${hrs[0]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
+        <input type="number" id="effRaceHr2" value="${hrs[1]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
+        <input type="number" id="effRaceHr3" value="${hrs[2]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()"></label>
+    </div>
+    ${blocks}
+    <p style="margin:4px 0 0;font-family:var(--font-mono);font-size:11px;color:var(--muted)">Assumes a flat course (${std.h} m D+). Lower HR = more aerobic (usually slower); the model rewards holding pace at a lower HR over time. Each race is fit from all your runs, distance-weighted (see caveat).</p>`;
+}
+
+// Render the HR-adjusted trend banner: raw pace change vs HR change vs pace-at-equal-HR.
+function renderEffTrendReadout(rows, std, rc) {
+  const el = document.getElementById('effTrendReadout');
+  if(!el) return;
+  const tr = hrAdjustedTrend(rows, std.fc, std.h);
+  if(!tr || tr.spanMo < 1) { el.innerHTML = ''; return; }
+
+  const secTot = s => (s>=0?'+':'−') + Math.abs(s).toFixed(0) + 's';
+  const bpmTot = b => (b>=0?'+':'−') + Math.abs(b).toFixed(0) + ' bpm';
+  // When HR and time are badly collinear, the adjusted trend can't be pinned down — widen
+  // the "flat" dead-band so we don't over-claim faster/slower on shaky evidence.
+  const collinear = Math.abs(tr.hrTimeCorr) > 0.8;
+  const band = collinear ? 12 : 6;               // s/km over the whole span counted as "flat/noise"
+  const adj = tr.adjDelta;
+  let verdict, vColor, vIcon;
+  if(adj <= -band)      { verdict = `Faster at the same effort — you're getting fitter`; vColor='var(--green)'; vIcon='▲'; }
+  else if(adj >= band)  { verdict = `Slower at the same effort`; vColor='var(--red)'; vIcon='▼'; }
+  else                  { verdict = `Flat at the same effort — stable, within noise`; vColor='var(--muted2)'; vIcon='＝'; }
+  // Does the HR-adjusted story differ from the raw one? (your case: raw looks slower, adjusted is flat/faster)
+  const rawSaysSlower = tr.rawDelta >= 5, hrDropped = tr.hrDelta <= -3;
+  let insight = (rawSaysSlower && adj < tr.rawDelta - 4 && hrDropped)
+    ? `Your raw pace looks slower, but that's because you're running <b style="color:var(--text)">${bpmTot(tr.hrDelta)}</b> — at the same heart rate you're ${adj<=-band?'actually faster':'holding steady'}. The apparent slowdown is easier running, not lost fitness.`
+    : `Raw pace and heart rate move together here, so the raw and HR-adjusted trends agree.`;
+  if(collinear)
+    insight += ` <span style="color:var(--orange)">Your heart rate fell steadily as time passed, so the split between "time" and "effort" is hard to pin down exactly — read the equal-HR number as a direction, not a precise figure.</span>`;
+
+  el.innerHTML = `
+    <div style="border:1px solid ${vColor};border-radius:10px;background:var(--card2);padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <span style="font-size:18px;color:${vColor};font-family:var(--font-mono)">${vIcon}</span>
+        <span style="font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:.3px;color:${vColor}">${verdict}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-left:auto">over ${tr.spanMo.toFixed(0)} months · ${rc.label} · @${std.fc} bpm</span>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Raw pace change</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:#d7dee6">${secTot(tr.rawDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">what a naive look sees</div>
+        </div>
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Heart-rate change</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${tr.hrDelta<=-3?'var(--green)':tr.hrDelta>=3?'var(--orange)':'#d7dee6'}">${bpmTot(tr.hrDelta)}</div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">${tr.hrDelta<=-3?'running easier':tr.hrDelta>=3?'running harder':'about the same'}</div>
+        </div>
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid ${vColor};border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Pace at EQUAL heart rate</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${vColor}">${secTot(tr.adjDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">the real fitness signal</div>
+        </div>
+      </div>
+      <p style="margin:11px 0 0;font-family:var(--font-body);font-size:13px;line-height:1.55;color:var(--muted2)">${insight}${tr.clamped?' <span style="color:var(--muted);font-size:11px">(HR sensitivity clamped to a physiological range — few runs to estimate it from.)</span>':''}</p>
+    </div>`;
+}
+
+// Re-fit when the user edits the standard conditions.
+function refitEffModel() { if(lastRenderedData) renderEfficiencyModel(lastRenderedData); }
+
+function byId(id){ return document.getElementById(id); }
+function clampNum(el, def, lo, hi){
+  if(!el) return def;
+  const v = parseFloat(el.value);
+  if(isNaN(v)) return def;
+  return Math.min(hi, Math.max(lo, v));
+}
+
+function toggleEffCaveat() {
+  const body = document.getElementById('effCaveatBody');
+  const chev = document.getElementById('effCaveatChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
+}
+
 /* ACWR */
 function renderPredictions(data) {
-  const strip = document.getElementById('predictionStrip');
-  const sorted = [...data].filter(r => r.paceSecPerKm).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  const strip    = document.getElementById('predictionStrip');
+  const infoBar  = document.getElementById('predInfoBar');
+  const homeStrip = document.getElementById('homePredStrip');
+  // Usable runs: must have a pace and be >= 4 km (shorter runs don't predict race pace)
+  const sorted = [...data].filter(r => r.paceSecPerKm && r.distance >= 4).sort((a,b) => new Date(a.date)-new Date(b.date));
+  if(sorted.length < 3) {
+    strip.style.display = 'none';
+    if(infoBar) infoBar.style.display = 'none';
+    if(homeStrip) homeStrip.style.display = 'none';
+    return;
+  }
   strip.style.display = 'grid';
+  if(infoBar) infoBar.style.display = '';
+  if(homeStrip) homeStrip.style.display = 'grid';
 
-  const recent = sorted.slice(-10);
-  const weights = recent.map((_, i) => i + 1);
-  const totalW = weights.reduce((a, b) => a + b, 0);
-  let basePaceSec = recent.reduce((s, r, i) => s + r.paceSecPerKm * weights[i], 0) / totalW;
+  // Last 15 runs, square-root weighted so recent form leans the estimate without
+  // dominating it (oldest w=√1 … newest w=√15 ≈ 3.9; ratio bounded ~3.9:1)
+  const recent  = sorted.slice(-15);
+  const weights = recent.map((_, i) => Math.sqrt(i + 1));
+  const totalW  = weights.reduce((a, b) => a + b, 0);
 
-  // Inactivity penalty: +0.75% per day beyond 7 days since last run
+  const now = new Date();
+
+  // Inactivity ("rust"): +0.5% per day beyond 7 days off, capped at +20%
   const lastRunDate = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLastRun = Math.floor((new Date() - lastRunDate) / 86400000);
-  const inactivityPenalty = daysSinceLastRun > 7 ? 1 + (daysSinceLastRun - 7) * 0.0075 : 1;
-  basePaceSec *= inactivityPenalty;
+  const daysSinceLastRun = Math.floor((now - lastRunDate) / 86400000);
+  const rustMult = daysSinceLastRun > 7 ? 1 + Math.min(0.20, (daysSinceLastRun - 7) * 0.005) : 1;
+  const rustPct  = Math.round((rustMult - 1) * 100);
+  const rustTag  = rustPct > 0
+    ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + rustPct + '% rust</span>'
+    : '';
 
-  // 10K (10 km) — 2% degradation (half of Half Marathon)
-  const tenDist = 10;
-  const tenPaceSec = basePaceSec * 1.02;
-  const tenFinishSec = tenPaceSec * tenDist;
-  const rustTag = daysSinceLastRun > 7 ? '<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">+' + (daysSinceLastRun - 7) + '% rust</span>' : '';
+  // Longest run in the last 365 rolling days — "proof of distance" for the wall penalty
+  const yearAgo = new Date(now.getTime() - 365 * 86400000);
+  const longestRun = Math.max(0, ...data.filter(r => r.distance > 0 && new Date(r.date) >= yearAgo).map(r => r.distance));
+
+  const RIEGEL_EXP = 0.05;   // pace shifts ~3.5% per doubling/halving of distance
+  const WALL_K     = 0.075;  // untrained-distance penalty per +100% beyond longest run
+
+  // Per-race predicted pace (sec/km):
+  //   1. normalize each run's pace to the race distance (Riegel), weight-average
+  //   2. apply rust, then the wall penalty for distance beyond your longest run
+  function racePace(raceDist) {
+    const base = recent.reduce((s, r, i) =>
+      s + r.paceSecPerKm * Math.pow(raceDist / r.distance, RIEGEL_EXP) * weights[i], 0) / totalW;
+    const overshoot = longestRun > 0 ? Math.max(0, (raceDist - longestRun) / longestRun) : 0;
+    const wallMult  = 1 + WALL_K * overshoot;
+    return base * rustMult * wallMult;
+  }
+
   const predHTML = (finSec, paceSec) =>
     '<span style="color:var(--text)">' + secondsToTime(Math.round(finSec)) + '</span>' +
     '<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">' + paceStr(Math.round(paceSec)) + ' /km</span>' + rustTag;
-  document.getElementById('predTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
 
-  // Half Marathon (21.0975 km) — 4.25% degradation
-  const hmDist = 21.0975;
-  const hmPaceSec = basePaceSec * 1.0425;
-  const hmFinishSec = hmPaceSec * hmDist;
-  document.getElementById('predHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
+  const races = [
+    { dist: 10,      el: 'predTen',      home: 'homePredTen' },
+    { dist: 21.0975, el: 'predHalf',     home: 'homePredHalf' },
+    { dist: 42.195,  el: 'predMarathon', home: 'homePredMarathon' },
+  ];
+  races.forEach(rc => {
+    const paceSec = racePace(rc.dist);
+    const html = predHTML(paceSec * rc.dist, paceSec);
+    document.getElementById(rc.el).innerHTML = html;
+    if(homeStrip) document.getElementById(rc.home).innerHTML = html;
+  });
+}
 
-  // Marathon (42.195 km) — 8.5% degradation
-  const mDist = 42.195;
-  const mPaceSec = basePaceSec * 1.085;
-  const mFinishSec = mPaceSec * mDist;
-  document.getElementById('predMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
+function togglePredInfo() {
+  const body = document.getElementById('predInfoBody');
+  const chev = document.getElementById('predInfoChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
+}
 
-  // Mirror to overview tab if elements exist
-  const homeStrip = document.getElementById('homePredStrip');
-  if(homeStrip) {
-    homeStrip.style.display = 'grid';
-    document.getElementById('homePredTen').innerHTML = predHTML(tenFinishSec, tenPaceSec);
-    document.getElementById('homePredHalf').innerHTML = predHTML(hmFinishSec, hmPaceSec);
-    document.getElementById('homePredMarathon').innerHTML = predHTML(mFinishSec, mPaceSec);
-  }
+function toggleBikePredInfo() {
+  const body = document.getElementById('bikePredInfoBody');
+  const chev = document.getElementById('bikePredInfoChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
 function renderBikePredictions(data) {
@@ -2237,42 +2872,8 @@ function renderBikePredictions(data) {
   if(sorted.length < 3) { strip.style.display = 'none'; return; }
   strip.style.display = 'grid';
 
-  // Weighted average speed from recent rides (most recent = highest weight)
-  const recent  = sorted.slice(-10);
-  const weights = recent.map((_, i) => i + 1);
-  const totalW  = weights.reduce((a, b) => a + b, 0);
-  let baseSpeed = recent.reduce((s, r, i) => {
-    const spd = r.distance / (r.durationSec / 3600);
-    return s + spd * weights[i];
-  }, 0) / totalW;
-
-  // Inactivity penalty: -0.15% per day beyond 7 days since last ride
-  const lastRideDate   = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLast  = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
-  baseSpeed *= inactivityMult;
-
-  // Degradation: 45 km → -0.1%, 90 km → -1.6%, 140 km → -3.5%
-  const targets = [
-    { dist: 45,  deg: 0.001, id: 'homeBikePred45'  },
-    { dist: 90,  deg: 0.016, id: 'homeBikePred90'  },
-    { dist: 140, deg: 0.035, id: 'homeBikePred140' },
-  ];
-
-  const rustTag = daysSinceLast > 7
-    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 7}d rust</span>`
-    : '';
-
-  targets.forEach(({ dist, deg, id }) => {
-    const speed   = baseSpeed * (1 - deg);
-    const timeSec = (dist / speed) * 3600;
-    const el      = document.getElementById(id);
-    if(!el) return;
-    el.innerHTML =
-      `<span style="color:var(--text)">${secondsToTime(Math.round(timeSec))}</span>` +
-      `<span style="font-size:14px;color:var(--muted2);margin-left:12px;font-family:var(--font-mono)">${speed.toFixed(1)} km/h</span>` +
-      rustTag;
-  });
+  // Same model as the bike tab (Riegel + rust + wall) — see bikePredict()
+  bikePredict(sorted, id => document.getElementById(id), 'homeBikePred');
 }
 
 function renderAcwr(data) {
@@ -2323,21 +2924,21 @@ function renderAcwr(data) {
   else                         { riskLabel = 'High Risk';     riskColor = 'var(--red)'; }
 
   document.getElementById('acwrBadges').innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Status</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${riskLabel}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:15px;font-weight:400">km/d</span></div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:15px;font-weight:400">km/d</span></div>
     </div>`;
 
   document.getElementById('acwrSection').style.display = 'block';
@@ -2355,8 +2956,8 @@ function renderAcwr(data) {
         { label: 'Sweet zone bottom (0.8)', data: sweetLo, borderColor: 'transparent', backgroundColor: 'transparent',          fill: false, pointRadius: 0, tension: 0 },
         {
           label: 'ACWR', data: acwrPoints,
-          borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.10)', fill: false, tension: 0.3,
-          pointRadius: c => { const v = c.raw; return v !== null && v > 1.3 ? 5 : 2; },
+          borderColor: '#d7dee6', backgroundColor: 'rgba(215,222,230,0.10)', fill: false, tension: 0.3,
+          pointRadius: 4, pointBorderWidth: 0, pointHoverBorderWidth: 0,
           pointBackgroundColor: c => {
             const v = c.raw;
             if(v === null) return 'transparent';
@@ -2367,22 +2968,24 @@ function renderAcwr(data) {
           },
           spanGaps: false, borderWidth: 2.7
         },
-        { label: 'Acute 7d (km/day)',   data: acutePoints,   borderColor: '#00e5ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
-        { label: 'Chronic 28d (km/day)', data: chronicPoints, borderColor: '#bf40ff', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
+        { label: 'Acute 7d',   data: acutePoints,   borderColor: '#ff6b4a', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'yKm', borderWidth: 2.7 },
+        { label: 'Chronic 28d', data: chronicPoints, borderColor: '#ff6b4a', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderDash: [4, 3], yAxisID: 'yKm', borderWidth: 2.7 }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels: { color: '#8a9aaa', font: { family: 'DM Mono', size: 10 }, filter: item => item.datasetIndex >= 2 } },
         tooltip: {
           ...TREND_TOOLTIP_STYLE,
           filter: c => c.datasetIndex >= 2,
           callbacks: {
+            labelColor: acwrLabelColor,
             label: c => {
               if(c.datasetIndex === 0 || c.datasetIndex === 1) return null;
-              if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
+              if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
               return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
             }
           }
@@ -2391,7 +2994,7 @@ function renderAcwr(data) {
       scales: {
         x: { ticks: { color: '#5a6a7a', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.04)' } },
         y: { position: 'left', min: 0, ticks: { color: '#ff9100', font: { family: 'DM Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'ACWR', color: '#ff9100', font: { family: 'DM Mono', size: 10 } } },
-        yKm: { position: 'right', min: 0, ticks: { color: '#00e5ff', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/day', color: '#00e5ff', font: { family: 'DM Mono', size: 10 } } }
+        yKm: { position: 'right', min: 0, ticks: { color: '#ff6b4a', font: { family: 'DM Mono', size: 10 }, callback: v => v.toFixed(1) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'km/d', color: '#ff6b4a', font: { family: 'DM Mono', size: 10 } } }
       }
     }
   });
@@ -2400,7 +3003,11 @@ function renderAcwr(data) {
 /* ── SPA NAVIGATION ── */
 function showPage(name) {
   document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('page-' + name).classList.remove('hidden');
+  const pageEl = document.getElementById('page-' + name);
+  pageEl.classList.remove('hidden');
+  // iOS Safari sometimes fails to paint the top border of the first card row when a
+  // display:none page is revealed — force a reflow so it draws immediately.
+  void pageEl.offsetHeight;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('nav-' + name).classList.add('active');
   // Re-render charts on page show (Chart.js needs visible canvas)
@@ -2466,7 +3073,7 @@ function applyBikeFilters() {
   const filtered = getFilteredBikes();
   const badge = document.getElementById('bikeFilterBadge');
   badge.style.display = 'inline-flex';
-  badge.textContent = `${filtered.length} of ${allBikes.length} rides`;
+  badge.textContent = `${filtered.length} / ${allBikes.length} rides`;
   badge.className = 'filter-badge' + (filtered.length < allBikes.length ? ' dimmed' : '');
 
   if(!filtered.length) return;
@@ -2636,9 +3243,9 @@ function renderBikeTrendChart(data) {
     data: {
       labels,
       datasets: [
-        { label:'Speed', data:speedVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label:'BPM',   data:hrVals,   borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#ff3d57', borderWidth:2.7 },
-        { label:'Km',    data:kmVals,   borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#00e5ff', borderWidth:2.7 }
+        { label:'Speed', data:speedVals, borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.07)', tension:0.35, yAxisID:'ySpeed', fill:true, pointRadius:4, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 },
+        { label:'BPM',   data:hrVals,   borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, yAxisID:'yHr', spanGaps:true, pointRadius:3, pointBackgroundColor:'#d7dee6', borderWidth:2.7 },
+        { label:'Km',    data:kmVals,   borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', tension:0.35, yAxisID:'yKm', fill:false, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 }
       ]
     },
     options: {
@@ -2656,9 +3263,9 @@ function renderBikeTrendChart(data) {
       },
       scales: {
         x: { ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
-        ySpeed: { type:'linear', position:'left', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#00e676',font:{family:'DM Mono',size:10}} },
-        yHr: { type:'linear', position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#ff3d57',font:{family:'DM Mono',size:10}} },
-        yKm: { type:'linear', position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        ySpeed: { type:'linear', position:'left', ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Speed',color:'#ff6b4a',font:{family:'DM Mono',size:10}} },
+        yHr: { type:'linear', position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false}, title:{display:true,text:'BPM',color:'#d7dee6',font:{family:'DM Mono',size:10}} },
+        yKm: { type:'linear', position:'right', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false}, title:{display:true,text:'Distance',color:'#00e676',font:{family:'DM Mono',size:10}} }
       }
     }
   });
@@ -2666,33 +3273,69 @@ function renderBikeTrendChart(data) {
 
 /* BIKE: PREDICTIONS */
 function renderBikeTabPredictions(data) {
-  const strip = document.getElementById('bikePredictionStrip');
+  const strip   = document.getElementById('bikePredictionStrip');
+  const infoBar = document.getElementById('bikePredInfoBar');
   const sorted = [...data].filter(r => r.durationSec > 0 && r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
-  if(sorted.length < 3) { strip.style.display = 'none'; return; }
+  if(sorted.length < 3) {
+    strip.style.display = 'none';
+    if(infoBar) infoBar.style.display = 'none';
+    return;
+  }
   strip.style.display = 'grid';
+  if(infoBar) infoBar.style.display = '';
 
-  const recent  = sorted.slice(-10);
-  const weights = recent.map((_, i) => i + 1);
+  bikePredict(sorted, id => document.getElementById(id), 'bikePred');
+}
+
+/* Shared cycling race-time model (used by the home strip and the bike tab).
+   Mirrors the running model: weighted recent base + Riegel distance scaling +
+   inactivity "rust" + a proof-of-distance "wall" beyond your longest ride.
+   `elFor(id)` resolves the target element; `prefix` is the id stem (45/90/140). */
+function bikePredict(sorted, elFor, prefix) {
+  // Base speed: last 15 rides, square-root weighted so recent form leans the estimate
+  // without dominating it (oldest w=√1 … newest w=√15 ≈ 3.9; ratio bounded ~3.9:1)
+  const recent  = sorted.slice(-15);
+  const weights = recent.map((_, i) => Math.sqrt(i + 1));
   const totalW  = weights.reduce((a, b) => a + b, 0);
-  let baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
+  const baseSpeed = recent.reduce((s, r, i) => s + (r.distance / (r.durationSec / 3600)) * weights[i], 0) / totalW;
+  // Weighted reference distance (Riegel anchor): the distance your base speed "belongs to"
+  const refDist = recent.reduce((s, r, i) => s + r.distance * weights[i], 0) / totalW;
 
+  const now = new Date();
+
+  // Inactivity ("rust"): -0.0875% speed per day beyond 10 days off, floored at -8.75%
   const lastRideDate  = new Date(sorted[sorted.length - 1].date);
-  const daysSinceLast = Math.floor((new Date() - lastRideDate) / 86400000);
-  const inactivityMult = daysSinceLast > 7 ? Math.max(0.85, 1 - (daysSinceLast - 7) * 0.0015) : 1;
-  baseSpeed *= inactivityMult;
+  const daysSinceLast = Math.floor((now - lastRideDate) / 86400000);
+  const rustMult = daysSinceLast > 10 ? Math.max(0.9125, 1 - (daysSinceLast - 10) * 0.000875) : 1;
+  const rustTag  = daysSinceLast > 10
+    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 10}d rust</span>` : '';
 
-  const rustTag = daysSinceLast > 7
-    ? `<span style="font-size:11px;color:var(--red);margin-left:8px;font-family:var(--font-mono)">-${daysSinceLast - 7}d rust</span>` : '';
+  // Longest ride in the last 365 rolling days — "proof of distance" for the wall penalty
+  const yearAgo = new Date(now.getTime() - 365 * 86400000);
+  const longestRide = Math.max(0, ...sorted.filter(r => r.distance > 0 && new Date(r.date) >= yearAgo).map(r => r.distance));
+
+  const RIEGEL_EXP = 0.03;   // speed shifts ~2% per doubling/halving of distance
+  const WALL_K     = 0.015;  // untrained-distance penalty per +100% beyond longest ride
+
+  // Predicted speed (km/h) at a target distance:
+  //   1. scale the weighted base speed to the target via Riegel (longer = slower)
+  //   2. apply rust, then the wall penalty for distance beyond your longest ride
+  function raceSpeed(raceDist) {
+    const base = baseSpeed * Math.pow(refDist / raceDist, RIEGEL_EXP);
+    const overshoot = longestRide > 0 ? Math.max(0, (raceDist - longestRide) / longestRide) : 0;
+    const wallMult  = 1 - WALL_K * overshoot;
+    return base * rustMult * wallMult;
+  }
 
   const targets = [
-    { dist: 45,  deg: 0.001, id: 'bikePred45'  },
-    { dist: 90,  deg: 0.016, id: 'bikePred90'  },
-    { dist: 140, deg: 0.035, id: 'bikePred140' },
+    { dist: 45,  id: prefix + '45'  },
+    { dist: 90,  id: prefix + '90'  },
+    { dist: 140, id: prefix + '140' },
   ];
-  targets.forEach(({ dist, deg, id }) => {
-    const speed   = baseSpeed * (1 - deg);
+  targets.forEach(({ dist, id }) => {
+    const speed   = raceSpeed(dist);
     const timeSec = (dist / speed) * 3600;
-    const el      = document.getElementById(id);
+    const el      = elFor(id);
     if(!el) return;
     el.innerHTML =
       `<span style="color:var(--text)">${secondsToTime(Math.round(timeSec))}</span>` +
@@ -2790,21 +3433,21 @@ function renderBikeAcwr(data) {
   else                            { riskLabel = 'High Risk';    riskColor = 'var(--red)'; }
 
   document.getElementById('bikeAcwrBadgesTab').innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Current ACWR</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Status</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${riskColor}">${riskLabel}</div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:${riskColor}">${riskLabel}</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Acute load (7d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:15px;font-weight:400">km/d</span></div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:13px;">
       <div style="color:var(--muted);margin-bottom:4px">Chronic load (28d avg)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:16px;font-weight:400">km/day</span></div>
+      <div style="font-family:var(--font-display);font-size:27px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:15px;font-weight:400">km/d</span></div>
     </div>`;
 
   document.getElementById('bikeAcwrSection').style.display = 'block';
@@ -2818,28 +3461,29 @@ function renderBikeAcwr(data) {
         { label:'Sweet zone top', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet zone bottom', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
         {
-          label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+          label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:4, pointBorderWidth:0, pointHoverBorderWidth:0, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: c => { const v=c.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         },
-        { label:'Acute 7d (km/day)', data:acutePoints, borderColor:'#00e5ff', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
-        { label:'Chronic 28d (km/day)', data:chronicPoints, borderColor:'#bf40ff', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
+        { label:'Acute 7d', data:acutePoints, borderColor:'#ff6b4a', fill:false, tension:0.3, pointRadius:0, yAxisID:'yKm', borderWidth:2.7 },
+        { label:'Chronic 28d', data:chronicPoints, borderColor:'#ff6b4a', fill:false, tension:0.3, pointRadius:0, borderDash:[4,3], yAxisID:'yKm', borderWidth:2.7 }
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}}, filter: item => item.datasetIndex >= 2 },
-        tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { label: c => {
+        tooltip: { ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex >= 2, callbacks: { labelColor: acwrLabelColor, label: c => {
           if(c.datasetIndex < 2) return null;
-          if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/day`;
+          if(c.dataset.yAxisID === 'yKm') return `${c.dataset.label}: ${c.parsed.y.toFixed(1)} km/d`;
           return c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null;
         }}}
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:12}, grid:{color:'rgba(255,255,255,0.04)'} },
         y: { position:'left', min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'ACWR',color:'#ff9100',font:{family:'DM Mono',size:10}} },
-        yKm: { position:'right', min:0, ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/day',color:'#00e5ff',font:{family:'DM Mono',size:10}} }
+        yKm: { position:'right', min:0, ticks:{color:'#ff6b4a',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(1)}, grid:{drawOnChartArea:false}, title:{display:true,text:'km/d',color:'#ff6b4a',font:{family:'DM Mono',size:10}} }
       }
     }
   });
@@ -3025,9 +3669,9 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
     data: {
       labels,
       datasets: [
-        { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#00e676', borderWidth:2.7 },
-        { label: 'BPM', data: hrVals, borderColor:'#ff3d57', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#ff3d57', borderWidth:2.7, yAxisID:'yHr' },
-        { label: 'Km', data: kmVals, borderColor:'#00e5ff', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#00e5ff', borderWidth:2.7, yAxisID:'yKm' }
+        { label: isBike ? 'Speed' : 'Pace', data: yVals, borderColor:'#ff6b4a', backgroundColor:'rgba(255,107,74,0.07)', tension:0.35, fill:true, pointRadius:3, pointBackgroundColor:'#ff6b4a', borderWidth:2.7 },
+        { label: 'BPM', data: hrVals, borderColor:'#d7dee6', backgroundColor:'transparent', tension:0.35, fill:false, spanGaps:true, pointRadius:2, pointBackgroundColor:'#d7dee6', borderWidth:2.7, yAxisID:'yHr' },
+        { label: 'Km', data: kmVals, borderColor:'#00e676', backgroundColor:'transparent', tension:0.35, fill:false, pointRadius:2, pointBackgroundColor:'#00e676', borderWidth:2.7, yAxisID:'yKm' }
       ]
     },
     options: {
@@ -3046,8 +3690,8 @@ function renderHomeTrendChart(canvasId, chartKey, data) {
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ reverse: !isBike, ticks:{color:'#00e676',font:{family:'DM Mono',size:10}, callback: v => isBike ? v.toFixed(0)+' km/h' : (()=>{const m=Math.floor(v);const s=Math.round((v%1)*60);return m+':'+String(s).padStart(2,'0');})()}, grid:{color:'rgba(255,255,255,0.04)'} },
-        yHr:{ position:'right', ticks:{color:'#ff3d57',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
-        yKm:{ position:'right', ticks:{color:'#00e5ff',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
+        yHr:{ position:'right', ticks:{color:'#d7dee6',font:{family:'DM Mono',size:10}}, grid:{drawOnChartArea:false} },
+        yKm:{ position:'right', ticks:{color:'#00e676',font:{family:'DM Mono',size:10},callback:v=>v.toFixed(0)+' km'}, grid:{drawOnChartArea:false} }
       }
     }
   });
@@ -3126,13 +3770,13 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
   const badge = (label, val) => `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;">${label}${val}</div>`;
   document.getElementById(badgesId).innerHTML =
     badge('<div style="color:var(--muted);margin-bottom:2px">Current ACWR</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:${riskColor}">${currentAcwr !== null ? currentAcwr.toFixed(2) : '—'}</div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Status</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${riskColor}">${riskLabel}</div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:${riskColor}">${riskLabel}</div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Acute load (7d avg)</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`) +
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--accent)">${currentAcute.toFixed(1)} <span style="font-size:13px;font-weight:400">km/d</span></div>`) +
     badge('<div style="color:var(--muted);margin-bottom:2px">Chronic load (28d avg)</div>',
-          `<div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:14px;font-weight:400">km/day</span></div>`);
+          `<div style="font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--purple)">${currentChronic.toFixed(1)} <span style="font-size:13px;font-weight:400">km/d</span></div>`);
 
   document.getElementById(sectionId).style.display = 'block';
 
@@ -3144,7 +3788,7 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
       datasets: [
         { label:'Sweet (hi)', data:chartDates.map(()=>SAFE_HI), borderColor:'transparent', backgroundColor:'rgba(0,230,118,0.07)', fill:'+1', pointRadius:0, tension:0 },
         { label:'Sweet (lo)', data:chartDates.map(()=>0.8), borderColor:'transparent', backgroundColor:'transparent', fill:false, pointRadius:0, tension:0 },
-        { label:'ACWR', data:acwrPoints, borderColor:'#ff9100', fill:false, tension:0.3, pointRadius:2, borderWidth:2.7, spanGaps:false,
+        { label:'ACWR', data:acwrPoints, borderColor:'#d7dee6', fill:false, tension:0.3, pointRadius:4, pointBorderWidth:0, pointHoverBorderWidth:0, borderWidth:2.7, spanGaps:false,
           pointBackgroundColor: ctx => { const v=ctx.raw; if(v===null) return 'transparent'; if(v>DANGER_HI) return '#ff3d57'; if(v>SAFE_HI) return '#ff9100'; if(v<0.8) return '#8a9aaa'; return '#00e676'; }
         }
       ]
@@ -3152,7 +3796,8 @@ function renderHomeAcwr(data, canvasId, sectionId, badgesId, sport) {
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
-      plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
+      onClick: tapToDismiss(),
+      plugins:{ legend:{ display:false }, tooltip:{ ...TREND_TOOLTIP_STYLE, filter: c => c.datasetIndex === 2, callbacks:{ labelColor: acwrLabelColor, label: c => c.raw !== null ? `ACWR: ${c.raw.toFixed(2)}` : null } } },
       scales:{
         x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'} },
         y:{ min:0, ticks:{color:'#ff9100',font:{family:'DM Mono',size:10}}, grid:{color:'rgba(255,255,255,0.04)'} }
@@ -3235,7 +3880,7 @@ function renderFitnessChart(data, sport) {
   document.getElementById(prefix + 'FitnessBadges').innerHTML = `
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Fitness (CTL)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${currentCTL.toFixed(0)}</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#d7dee6">${currentCTL.toFixed(0)}</div>
     </div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Fatigue (ATL)</div>
@@ -3256,7 +3901,7 @@ function renderFitnessChart(data, sport) {
     data: {
       labels: chartDates,
       datasets: [
-        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
+        { label:'CTL (Fitness)', data:ctlArr, borderColor:'#d7dee6', backgroundColor:'rgba(215,222,230,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7 },
         { label:'ATL (Fatigue)', data:atlArr, borderColor:'#ff3d57', backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:0, borderWidth:2.7 },
         { label:'TSB (Form)', data:tsbArr, borderColor:'#00e676', backgroundColor:'rgba(0,230,118,0.05)', fill:true, tension:0.3, pointRadius:0, borderWidth:2.7, borderDash:[4,3] }
       ]
@@ -3264,9 +3909,10 @@ function renderFitnessChart(data, sport) {
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction: TREND_INTERACTION,
+      onClick: tapToDismiss(),
       plugins: {
         legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
-        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: { labelColor: c => solidSwatch(c.dataset.borderColor), label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
       },
       scales: {
         x: { ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
@@ -3503,17 +4149,17 @@ function renderProgress(data, sport){
     </details>`;
 
   // ── charts ──
-  const GREEN='#00e676', RED='#ff3d57';
+  const GREEN='#ff6b4a', RED='#d7dee6';
   const GRID='rgba(255,255,255,0.04)';
-  const TT = { backgroundColor:'rgba(14,19,24,0.96)', borderColor:'#1e2a34', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:11}, bodyFont:{family:'DM Mono',size:12}, usePointStyle:true };
+  const TT = { backgroundColor:'rgba(33,46,60,0.97)', borderColor:'#33475a', borderWidth:1, titleColor:'#e8edf2', bodyColor:'#e8edf2', padding:9, cornerRadius:8, titleFont:{family:'DM Mono',size:10}, bodyFont:{family:'DM Mono',size:11}, usePointStyle:true };
   const dashed = (arr,color,axis) => ({ label:'Trend', data:arr, borderColor:color, borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false, tension:0, order:0, yAxisID:axis });
   const perfLabel = isBike ? 'Speed' : 'Pace';
   const perfFmt = c => isBike ? `Speed: ${c.parsed.y.toFixed(1)} km/h` : `Pace: ${fmtPaceMin(c.parsed.y)} /km`;
   const yPerf = isBike
-    ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:true,text:'Speed (higher=fitter)',color:GREEN,font:{family:'DM Mono',size:9}} }
-    : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:true,text:'Pace /km (higher=faster)',color:GREEN,font:{family:'DM Mono',size:9}} };
+    ? { position:'left', ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:v=>v.toFixed(0)+' km/h'}, grid:{color:GRID}, title:{display:false} }
+    : { position:'left', reverse:true, ticks:{color:GREEN,font:{family:'DM Mono',size:9},callback:fmtPaceMin}, grid:{color:GRID}, title:{display:false} };
 
-  const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(0,230,118,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
+  const perfDs = { label:perfLabel, data:perfVals, borderColor:GREEN, backgroundColor:'rgba(255,107,74,0.06)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:GREEN, borderWidth:2.5, yAxisID:'yPerf' };
   const hrDs   = { label:'BPM', data:hrVals, borderColor:RED, backgroundColor:'transparent', fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:RED, borderWidth:2.5, yAxisID:'yHr' };
 
   destroyChart('paDist_'+sport);
@@ -3524,7 +4170,7 @@ function renderProgress(data, sport){
     data:{ labels, datasets:[ perfDs, dashed(perfT.fitted, GREEN, 'yPerf'), hrDs, dashed(hrT.fitted, RED, 'yHr') ] },
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10},filter:i=>i.text!=='Trend'}}, tooltip:{...TT, callbacks:{ label:c=> c.dataset.label==='Trend'?null:(c.dataset.yAxisID==='yPerf'?perfFmt(c):`BPM: ${Math.round(c.parsed.y)} bpm`) }} },
-      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'BPM',color:RED,font:{family:'DM Mono',size:9}}} } }
+      scales:{ x:{ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9}},grid:{color:GRID}}, yPerf, yHr:{position:'right',ticks:{color:RED,font:{family:'DM Mono',size:9}},grid:{drawOnChartArea:false},title:{display:false}} } }
   });
 }
 
@@ -3568,7 +4214,7 @@ function renderPolarizedChart(data, sport) {
   document.getElementById(prefix + 'PolarizedDetails').innerHTML = `
     <div style="margin-bottom:16px;">
       <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${verdictColor};margin-bottom:8px">${verdict}</div>
-      <div style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Based on ${total} sessions with HR data</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--muted)">Based on ${total} sessions</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;">
@@ -3704,7 +4350,7 @@ function renderPersonalRecords(data, sport) {
         html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
           <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
           <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${timeStr}</div>
-          <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${paceDisplay} /km · ${pr.date}</div>
+          <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${paceDisplay} /km · ${paFmtDate(pr.date)}</div>
         </div>`;
       }
     });
@@ -3756,13 +4402,13 @@ function renderPersonalRecords(data, sport) {
           html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${pr.distance.toFixed(1)} km</div>
-            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${secondsToTime(Math.round(pr.time))} · ${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${secondsToTime(Math.round(pr.time))} · ${pr.speed.toFixed(1)} km/h · ${paFmtDate(pr.date)}</div>
           </div>`;
         } else {
           html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;margin-bottom:8px">${d.label}</div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(pr.time))}</div>
-            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${pr.speed.toFixed(1)} km/h · ${pr.date}</div>
+            <div style="font-size:12px;color:var(--muted2);font-family:var(--font-mono);margin-top:4px">${pr.speed.toFixed(1)} km/h · ${paFmtDate(pr.date)}</div>
           </div>`;
         }
       }
