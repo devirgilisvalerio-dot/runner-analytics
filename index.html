@@ -719,11 +719,12 @@ td b{ font-family:var(--font-mono); }
       <div class="mini-filter" id="effRaceToggle" style="margin:0"></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-family:var(--font-mono);font-size:12px;color:var(--muted2);">
         <span style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Standard conditions</span>
-        <label>HR <input type="number" id="effStdHr" value="160" min="100" max="210" style="width:64px" class="filter-input" oninput="refitEffModel()"> bpm</label>
+        <label>HR <input type="number" id="effStdHr" placeholder="auto" min="100" max="210" style="width:64px" class="filter-input" oninput="this.dataset.auto='0';refitEffModel()"> bpm</label>
         <label>D+ <input type="number" id="effStdElev" value="25" min="0" max="3000" step="5" style="width:64px" class="filter-input" oninput="refitEffModel()"> m</label>
       </div>
     </div>
     <p id="effModelNote" style="margin:0 0 16px;font-size:13.5px;color:var(--muted2);font-family:var(--font-body);line-height:1.6;"></p>
+    <div id="effTrendReadout" style="margin:0 0 18px;"></div>
     <div id="effModelStats" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:300px;"><canvas id="effModelChart"></canvas></div>
     <div id="effRaceStrip" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:18px;overflow-x:auto;"></div>
@@ -2419,6 +2420,53 @@ function fitRaceEfficiency(obs, std, targetDist) {
   return best;
 }
 
+// HR-ADJUSTED TREND DECOMPOSITION — answers "am I actually faster, holding HR equal?"
+// Uses a LINEAR-in-time model (stable under HR↔time collinearity, unlike the saturating
+// exponential): pace* = a + b·(months) + cFC·(fc−stdFC) + cH·(h−stdH), weighted.
+// Splits the observed change over the logged span into three honest pieces:
+//   rawDelta = how much raw pace changed (what a naive eye sees)
+//   hrDelta  = how much avg HR changed (are you running easier/harder?)
+//   adjDelta = pace change AT EQUAL HR — the real fitness signal (negative = faster)
+// cFC is clamped to a physiological negative band (higher HR ⇒ faster ⇒ lower sec/km).
+function hrAdjustedTrend(obs, stdFC, stdH) {
+  if(obs.length < 6) return null;
+  const t0 = Math.min(...obs.map(o => o.t));
+  const y  = obs.map(o => o.pace);
+  const w  = obs.map(o => o.w != null ? o.w : 1);
+  const mo = o => (o.t - t0) / 30;                     // time in months
+  let b = olsSolve(obs.map(o => [1, mo(o), o.fc-stdFC, o.h-stdH]), y, w);
+  if(!b) return null;
+  let cFC = b[2];
+  const LO = -4.0, HI = -0.10;                         // plausible s/km per bpm
+  let clamped = false;
+  if(cFC > HI || cFC < LO) {                           // implausible/positive → clamp & refit
+    clamped = true; cFC = Math.max(LO, Math.min(HI, cFC));
+    const yAdj = y.map((v,i) => v - cFC*(obs[i].fc - stdFC));
+    const b2 = olsSolve(obs.map(o => [1, mo(o), o.h-stdH]), yAdj, w);
+    if(!b2) return null;
+    b = [b2[0], b2[1], cFC, b2[2]];
+  }
+  const spanMo   = mo(obs[obs.length-1]);
+  const rawSlope = olsSolve(obs.map(o => [1, mo(o)]), y, w)[1];
+  const hrSlope  = olsSolve(obs.map(o => [1, mo(o)]), obs.map(o => o.fc), w)[1];
+  // Collinearity between HR and time: |corr| near 1 means the fit can't cleanly separate
+  // "slower over time" from "slower because HR changed" — the adjusted trend is then shaky.
+  let mt=0,mf=0,sw=0;
+  for(let i=0;i<obs.length;i++){ const wi=w[i]; sw+=wi; mt+=wi*mo(obs[i]); mf+=wi*obs[i].fc; }
+  mt/=sw; mf/=sw;
+  let cov=0,vt=0,vf=0;
+  for(let i=0;i<obs.length;i++){ const wi=w[i], dt=mo(obs[i])-mt, df=obs[i].fc-mf; cov+=wi*dt*df; vt+=wi*dt*dt; vf+=wi*df*df; }
+  const hrTimeCorr = (vt>0&&vf>0) ? cov/Math.sqrt(vt*vf) : 0;
+  return {
+    cFC, clamped, spanMo,
+    adjSlopeMo: b[1],                    // s/km per month at equal HR
+    adjDelta:   b[1] * spanMo,           // total s/km change at equal HR over the span
+    rawDelta:   rawSlope * spanMo,
+    hrDelta:    hrSlope * spanMo,
+    hrTimeCorr,                          // −1..1; |·|>~0.8 ⇒ adjusted trend is uncertain
+  };
+}
+
 // Races the model projects. Each is fit independently from ALL runs (Riegel-scaled +
 // distance-weighted toward its own distance), so shorter/longer runs still contribute.
 const EFF_RACES = [
@@ -2438,13 +2486,6 @@ function renderEfficiencyModel(data) {
   destroyChart('effModel');
   section.style.display = 'block';
 
-  // Standard conditions the projections assume: an average HR and a flat course.
-  // Distance is NOT a standard condition here — each race defines its own distance.
-  const std = {
-    fc: clampNum(byId('effStdHr'),   160, 100, 210),
-    h:  clampNum(byId('effStdElev'), 25,  0,   3000),
-  };
-
   // Usable runs: need pace, HR, an elevation reading, and a real date. ALL distances.
   const obs = [...data]
     .filter(r => r.paceSecPerKm && r.hr && r.elevGain != null && r.date && r.distance > 0)
@@ -2453,6 +2494,20 @@ function renderEfficiencyModel(data) {
     .filter(o => !isNaN(o.t))
     .sort((a,b) => a.t - b.t);
 
+  // Standard conditions the projections assume: an average HR and a flat course.
+  // Distance is NOT a standard condition here — each race defines its own distance.
+  // Default standard HR = MEDIAN of the runs' HR, so we never extrapolate the pace↔HR
+  // relationship below/above the range you actually train at (a std HR under every run
+  // makes the projection unreliable). The HR box shows this default; editing it overrides.
+  const hrSorted = obs.map(o => o.fc).sort((a,b) => a-b);
+  const medianHr = hrSorted.length ? Math.round(hrSorted[Math.floor(hrSorted.length/2)]) : 160;
+  const hrBox = byId('effStdHr');
+  if(hrBox && (hrBox.value === '' || hrBox.dataset.auto === '1')) { hrBox.value = medianHr; hrBox.dataset.auto = '1'; }
+  const std = {
+    fc: clampNum(byId('effStdHr'),   medianHr, 100, 210),
+    h:  clampNum(byId('effStdElev'), 25,  0,   3000),
+  };
+
   const fail = msg => {
     note.innerHTML = msg;
     canvas.style.display = 'none';
@@ -2460,6 +2515,7 @@ function renderEfficiencyModel(data) {
     document.getElementById('effRaceStrip').style.display = 'none';
     document.getElementById('effModelCaveat').style.display = 'none';
     document.getElementById('effRaceToggle').innerHTML = '';
+    document.getElementById('effTrendReadout').innerHTML = '';
     lastEffFits = null;
   };
 
@@ -2491,6 +2547,11 @@ function renderEfficiencyModel(data) {
   note.innerHTML = `Every run is <b>projected to the ${rc.label} (${rc.dist>21?'21.1':rc.dist} km)</b> using the same Riegel scaling as the race cards, then weighted by how close it was to that distance — ` +
     `runs within <b>±20%</b> count fully, shorter/longer runs count less but still inform the fit. HR and hills are removed (standard: ${std.fc} bpm · ${std.h} m D+). ` +
     `The curve is a <b>saturating-exponential</b> trend — fast early gains flattening toward your limit.`;
+
+  // ── HR-ADJUSTED TREND READOUT — the honest "am I faster at equal HR?" answer ──
+  // Built on the SAME Riegel-scaled, distance-weighted rows the race model uses, so it's
+  // apples-to-apples with the chart above.
+  renderEffTrendReadout(m.rows, std, rc);
 
   // Confidence % from weighted R² capped by effective (weighted) sample size.
   const sampleFactor = Math.min(1, m.effN / 20);
@@ -2633,6 +2694,60 @@ function renderEffRaceScenarios() {
     </div>
     ${blocks}
     <p style="margin:4px 0 0;font-family:var(--font-mono);font-size:11px;color:var(--muted)">Assumes a flat course (${std.h} m D+). Lower HR = more aerobic (usually slower); the model rewards holding pace at a lower HR over time. Each race is fit from all your runs, distance-weighted (see caveat).</p>`;
+}
+
+// Render the HR-adjusted trend banner: raw pace change vs HR change vs pace-at-equal-HR.
+function renderEffTrendReadout(rows, std, rc) {
+  const el = document.getElementById('effTrendReadout');
+  if(!el) return;
+  const tr = hrAdjustedTrend(rows, std.fc, std.h);
+  if(!tr || tr.spanMo < 1) { el.innerHTML = ''; return; }
+
+  const secTot = s => (s>=0?'+':'−') + Math.abs(s).toFixed(0) + 's';
+  const bpmTot = b => (b>=0?'+':'−') + Math.abs(b).toFixed(0) + ' bpm';
+  // When HR and time are badly collinear, the adjusted trend can't be pinned down — widen
+  // the "flat" dead-band so we don't over-claim faster/slower on shaky evidence.
+  const collinear = Math.abs(tr.hrTimeCorr) > 0.8;
+  const band = collinear ? 12 : 6;               // s/km over the whole span counted as "flat/noise"
+  const adj = tr.adjDelta;
+  let verdict, vColor, vIcon;
+  if(adj <= -band)      { verdict = `Faster at the same effort — you're getting fitter`; vColor='var(--green)'; vIcon='▲'; }
+  else if(adj >= band)  { verdict = `Slower at the same effort`; vColor='var(--red)'; vIcon='▼'; }
+  else                  { verdict = `Flat at the same effort — stable, within noise`; vColor='var(--muted2)'; vIcon='＝'; }
+  // Does the HR-adjusted story differ from the raw one? (your case: raw looks slower, adjusted is flat/faster)
+  const rawSaysSlower = tr.rawDelta >= 5, hrDropped = tr.hrDelta <= -3;
+  let insight = (rawSaysSlower && adj < tr.rawDelta - 4 && hrDropped)
+    ? `Your raw pace looks slower, but that's because you're running <b style="color:var(--text)">${bpmTot(tr.hrDelta)}</b> — at the same heart rate you're ${adj<=-band?'actually faster':'holding steady'}. The apparent slowdown is easier running, not lost fitness.`
+    : `Raw pace and heart rate move together here, so the raw and HR-adjusted trends agree.`;
+  if(collinear)
+    insight += ` <span style="color:var(--orange)">Your heart rate fell steadily as time passed, so the split between "time" and "effort" is hard to pin down exactly — read the equal-HR number as a direction, not a precise figure.</span>`;
+
+  el.innerHTML = `
+    <div style="border:1px solid ${vColor};border-radius:10px;background:var(--card2);padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <span style="font-size:18px;color:${vColor};font-family:var(--font-mono)">${vIcon}</span>
+        <span style="font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:.3px;color:${vColor}">${verdict}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-left:auto">over ${tr.spanMo.toFixed(0)} months · ${rc.label} · @${std.fc} bpm</span>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Raw pace change</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:#d7dee6">${secTot(tr.rawDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">what a naive look sees</div>
+        </div>
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Heart-rate change</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${tr.hrDelta<=-3?'var(--green)':tr.hrDelta>=3?'var(--orange)':'#d7dee6'}">${bpmTot(tr.hrDelta)}</div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">${tr.hrDelta<=-3?'running easier':tr.hrDelta>=3?'running harder':'about the same'}</div>
+        </div>
+        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid ${vColor};border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Pace at EQUAL heart rate</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${vColor}">${secTot(tr.adjDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">the real fitness signal</div>
+        </div>
+      </div>
+      <p style="margin:11px 0 0;font-family:var(--font-body);font-size:13px;line-height:1.55;color:var(--muted2)">${insight}${tr.clamped?' <span style="color:var(--muted);font-size:11px">(HR sensitivity clamped to a physiological range — few runs to estimate it from.)</span>':''}</p>
+    </div>`;
 }
 
 // Re-fit when the user edits the standard conditions.
