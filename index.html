@@ -709,6 +709,32 @@ td b{ font-family:var(--font-mono); }
     </p>
   </div>
 
+  <!-- EFFICIENCY MODEL — "YOUR LIMIT" -->
+  <div class="card" id="effModelSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+      <span>Efficiency Model — Your Limit</span>
+      <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">where your pace is heading, and where it plateaus</span>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-family:var(--font-mono);font-size:12px;color:var(--muted2);">
+      <span style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Standard conditions</span>
+      <label>HR <input type="number" id="effStdHr" value="160" min="100" max="210" style="width:64px" class="filter-input" oninput="refitEffModel()"> bpm</label>
+      <label>dist <input type="number" id="effStdDist" value="8.5" min="1" max="60" step="0.5" style="width:64px" class="filter-input" oninput="refitEffModel()"> km</label>
+      <label>D+ <input type="number" id="effStdElev" value="25" min="0" max="3000" step="5" style="width:64px" class="filter-input" oninput="refitEffModel()"> m</label>
+    </div>
+    <p id="effModelNote" style="margin:0 0 16px;font-size:13.5px;color:var(--muted2);font-family:var(--font-body);line-height:1.6;"></p>
+    <div id="effModelStats" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
+    <div style="height:300px;"><canvas id="effModelChart"></canvas></div>
+    <div id="effRaceStrip" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:18px;overflow-x:auto;"></div>
+    <!-- HONEST CAVEAT (collapsible) -->
+    <div id="effModelCaveat" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
+      <div onclick="toggleEffCaveat()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
+        How this model works &amp; how much to trust it
+        <span id="effCaveatChev" style="margin-left:auto;transition:transform .2s;">▸</span>
+      </div>
+      <div id="effCaveatBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);"></div>
+    </div>
+  </div>
+
   <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
   <div class="card" id="runFitnessSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
@@ -1160,6 +1186,8 @@ function parseFIT(buffer) {
             case 7:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.power=v; } break;
             case 39:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertOsc=v/10; } break;
             case 41:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertRatio=v/100; } break;
+            case 2:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.alt=(v/5)-500; } break;    // altitude (m)
+            case 78:  if(fSize===4){ const v=dv.getUint32(pos,true); if(v!==0xFFFFFFFF) rec.ealt=(v/5)-500; } break; // enhanced_altitude (m), preferred
           }
           pos += fSize;
         }
@@ -1198,6 +1226,12 @@ function parseFIT(buffer) {
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
+  // Elevation gain (D+): prefer enhanced_altitude, else altitude. Smoothed to reject
+  // barometric/GPS jitter (raw per-point sums grossly overcount on noisy sensors).
+  const useEAlt = records.some(r => r.ealt != null);
+  const altSeries = records.map(r => useEAlt ? r.ealt : r.alt).filter(v => v != null);
+  const elevGain = altSeries.length >= 5 ? Math.round(elevationGain(altSeries)) : null;
+
   const kmSplits = computeKmSplits(records);
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
@@ -1212,7 +1246,7 @@ function parseFIT(buffer) {
     distance: Number(distKm.toFixed(2)),
     duration: secondsToTime(durationSec),
     durationSec,
-    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
+    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO, elevGain,
     calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
@@ -1290,6 +1324,7 @@ function parseFallbackGPX(xmlText, fileName) {
   let firstTime = null, lastTime = null;
   const MAX_GAP_SEC = 10;
   const points = [];
+  const eleSeries = [];
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
     const lat = parseFloat(pt.getAttribute('lat'));
@@ -1299,6 +1334,8 @@ function parseFallbackGPX(xmlText, fileName) {
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
+    const eleNode = pt.getElementsByTagNameNS('*', 'ele')[0];
+    if(eleNode) { const e = parseFloat(eleNode.textContent); if(!isNaN(e)) eleSeries.push(e); }
     if(i > 0) {
       const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
       if(time && points[i-1].time) {
@@ -1322,10 +1359,28 @@ function parseFallbackGPX(xmlText, fileName) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
+    elevGain: eleSeries.length >= 5 ? Math.round(elevationGain(eleSeries)) : null,
     calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
     hrCount, source: 'GPX', sport: 'running'
   };
+}
+
+// Total ascent from an altitude series (metres). A centered moving-average smooth
+// (window 5) knocks down barometric/GPS jitter before summing positive deltas —
+// raw per-point summing overcounts flat runs by 2–20× on noisy sensors.
+function elevationGain(alts, win = 5) {
+  if(alts.length < 2) return 0;
+  const half = Math.floor(win / 2);
+  const sm = new Array(alts.length);
+  for(let i = 0; i < alts.length; i++) {
+    let s = 0, n = 0;
+    for(let j = Math.max(0, i-half); j <= Math.min(alts.length-1, i+half); j++) { s += alts[j]; n++; }
+    sm[i] = s / n;
+  }
+  let gain = 0;
+  for(let i = 1; i < sm.length; i++) { const d = sm[i] - sm[i-1]; if(d > 0) gain += d; }
+  return gain;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -1443,7 +1498,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 3;
+const RUN_CACHE_VERSION = 4;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1776,6 +1831,7 @@ function renderDashboard(data){
   renderPredictions(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
+  renderEfficiencyModel(data);
   renderAvgKmSplits(data);
   renderAcwr(data);
   renderFitnessChart(data, 'running');
@@ -2252,6 +2308,294 @@ function renderEfficiencyChart(data) {
       }
     }
   });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EFFICIENCY MODEL — "Your Limit"
+   Two-part statistical model (replicating the raffa_dpfit approach):
+     1. Multiple linear regression of pace on physiological + mechanical inputs
+        AND a saturating time-trend, fit JOINTLY:
+          pace = β₁·(FC−FC*) + β₂·(d−d*) + β₃·(h−h*) + g(t)
+          g(t) = g∞ − (g∞ − g₀)·e^(−k·(t−t₀))
+        Conditions are CENTERED on standard values (FC*, d*, h*) so that g(t) is
+        directly the pace you'd run AT those standard conditions over time —
+        i.e. your normalized physiological efficiency, noise stripped out.
+     2. For a fixed k the model is linear in (β₁,β₂,β₃,g∞,g₀), so we grid-search
+        k and solve one 5-column OLS per candidate, keeping the lowest SSE.
+   The saturating exponential is the honest part: big early gains that taper to a
+   personal plateau g∞ — your estimated limit. Plateau is very sensitive to sparse
+   data, so we show it with explicit low/med/high confidence, never as a hard fact. */
+
+// Ordinary least squares: solve (XᵀX)b = Xᵀy via Gauss-Jordan w/ partial pivoting.
+function olsSolve(X, y) {
+  const n = X.length, p = X[0].length;
+  const A = Array.from({length:p}, () => new Array(p).fill(0));
+  const g = new Array(p).fill(0);
+  for(let i=0;i<n;i++) for(let a=0;a<p;a++){
+    g[a] += X[i][a]*y[i];
+    for(let b=0;b<p;b++) A[a][b] += X[i][a]*X[i][b];
+  }
+  const M = A.map((row,i) => [...row, g[i]]);
+  for(let col=0; col<p; col++){
+    let piv = col;
+    for(let r=col+1;r<p;r++) if(Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r;
+    if(Math.abs(M[piv][col]) < 1e-12) return null;   // singular / collinear
+    [M[col],M[piv]] = [M[piv],M[col]];
+    const d = M[col][col];
+    for(let c=col;c<=p;c++) M[col][c] /= d;
+    for(let r=0;r<p;r++){ if(r===col) continue; const f=M[r][col]; for(let c=col;c<=p;c++) M[r][c] -= f*M[col][c]; }
+  }
+  return M.map(row => row[p]);
+}
+
+function rSquared(y, yhat) {
+  const mean = y.reduce((s,v)=>s+v,0)/y.length;
+  let ssRes=0, ssTot=0;
+  for(let i=0;i<y.length;i++){ ssRes += (y[i]-yhat[i])**2; ssTot += (y[i]-mean)**2; }
+  return ssTot > 0 ? 1 - ssRes/ssTot : 0;
+}
+
+// Fit the joint model. `obs` = [{t (days), fc, d, h, pace (sec/km)}]. `std` = {fc,d,h}.
+// Returns null if not enough data. Coeffs are clamped to physically-sane signs.
+function fitEfficiencyModel(obs, std) {
+  if(obs.length < 8) return null;
+  const t0 = Math.min(...obs.map(o => o.t));
+  const y  = obs.map(o => o.pace);
+  let best = null;
+  // k grid in 1/days: half-life from ~5 days (logk≈-2) out to ~5 years (logk≈-7.5)
+  for(let logk=-7.5; logk<=-1.5; logk+=0.03){
+    const k = Math.exp(logk);
+    const X = obs.map(o => {
+      const E = Math.exp(-k*(o.t - t0));
+      return [o.fc - std.fc, o.d - std.d, o.h - std.h, 1 - E, E];
+    });
+    const b = olsSolve(X, y);
+    if(!b) continue;
+    const yhat = X.map(row => row.reduce((s,v,j)=>s+v*b[j], 0));
+    let sse=0; for(let i=0;i<y.length;i++) sse += (y[i]-yhat[i])**2;
+    if(!best || sse < best.sse)
+      best = { k, cFC:b[0], cD:b[1], cH:b[2], ginf:b[3], g0:b[4], sse, t0, yhat };
+  }
+  if(!best) return null;
+  best.r2 = rSquared(y, best.yhat);
+  best.n  = obs.length;
+  // Normalized efficiency at each observation's time (conditions held at standard).
+  best.effAt = t => best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
+  best.halfLifeDays = Math.log(2) / best.k;
+  return best;
+}
+
+let lastEffModel = null;   // cached fit for the race-scenario predictor
+
+function renderEfficiencyModel(data) {
+  const section = document.getElementById('effModelSection');
+  const note    = document.getElementById('effModelNote');
+  const canvas  = document.getElementById('effModelChart');
+  if(!section) return;
+  destroyChart('effModel');
+
+  // Standard conditions (editable). Defaults mirror the reference model: 160bpm·8.5km·25m.
+  const std = {
+    fc: clampNum(byId('effStdHr'),   160, 100, 210),
+    d:  clampNum(byId('effStdDist'), 8.5, 1,   60),
+    h:  clampNum(byId('effStdElev'), 25,  0,   3000),
+  };
+
+  // Usable runs: need pace, HR and an elevation reading, and a real date.
+  const obs = [...data]
+    .filter(r => r.paceSecPerKm && r.hr && r.elevGain != null && r.date)
+    .map(r => ({ date:new Date(r.date), t:new Date(r.date).getTime()/86400000,
+                 fc:r.hr, d:r.distance, h:r.elevGain, pace:r.paceSecPerKm }))
+    .filter(o => !isNaN(o.t))
+    .sort((a,b) => a.t - b.t);
+
+  if(obs.length < 8) {
+    section.style.display = 'block';
+    note.innerHTML = `Needs at least <b>8 runs with heart-rate + elevation</b> to build the model — have <b>${obs.length}</b>. ` +
+      `Older GPX/FIT files without HR or altitude don't count.`;
+    canvas.style.display = 'none';
+    document.getElementById('effModelStats').innerHTML = '';
+    document.getElementById('effRaceStrip').style.display = 'none';
+    document.getElementById('effModelCaveat').style.display = 'none';
+    lastEffModel = null;
+    return;
+  }
+
+  const m = fitEfficiencyModel(obs, std);
+  if(!m) {
+    note.innerHTML = `Couldn't fit the model — your runs may be too uniform (no spread in pace/HR/distance to learn from).`;
+    canvas.style.display = 'none';
+    lastEffModel = null;
+    return;
+  }
+  lastEffModel = { model:m, std };
+  section.style.display = 'block';
+  canvas.style.display = '';
+
+  // Confidence % (higher = better): fit quality (R²) capped by sample size, since a
+  // great R² off very few runs still leaves the plateau fragile. sampleFactor saturates
+  // toward 1 around ~25 runs. e.g. R²0.99·n28 → 99%; R²0.90·n8 → ~29%; R²0.6·n12 → ~29%.
+  const sampleFactor = Math.min(1, m.n / 25);
+  const confPct   = Math.round(100 * Math.max(0, Math.min(1, m.r2)) * sampleFactor);
+  const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
+
+  const t0 = m.t0;
+  const lastT = obs[obs.length-1].t;
+  const spanDays = lastT - t0;
+  // Project forward 5 years past the last observation for the plateau view.
+  const horizon = lastT + 365*5;
+
+  // X is numeric days-epoch (linear axis, no date-adapter dependency); ticks render as years.
+  // Observed normalized-efficiency points (each run, conditions removed).
+  const normPts = obs.map(o => {
+    const norm = o.pace - m.cFC*(o.fc-std.fc) - m.cD*(o.d-std.d) - m.cH*(o.h-std.h);
+    return { x:o.t, y: norm/60 };   // minutes/km for the axis
+  });
+  // Fitted curve + projection, sampled.
+  const curve = [];
+  const step = Math.max(1, Math.round((horizon - t0)/160));
+  for(let t=t0; t<=horizon; t+=step) curve.push({ x:t, y:m.effAt(t)/60 });
+
+  note.innerHTML = `Every run collapsed to one point: its pace <b>normalized</b> to ${std.fc} bpm · ${std.d} km · ${std.h} m D+, ` +
+    `so tiredness, distance and hills are stripped out. The curve is a <b>saturating-exponential</b> fit — ` +
+    `fast early gains flattening toward your plateau.`;
+
+  const plateau = m.ginf;
+  const nowEff  = m.effAt(lastT);
+  const toGo    = nowEff - plateau;   // sec/km still on the table
+  document.getElementById('effModelStats').innerHTML = `
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Current efficiency</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#d7dee6">${paceStr(nowEff)}<span style="font-size:14px;color:var(--muted2)"> /km</span></div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Estimated plateau (limit)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${paceStr(plateau)}<span style="font-size:14px;color:var(--muted2)"> /km</span></div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Still to gain</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${toGo>1?('−'+Math.round(toGo)+'s'):'~at limit'}</div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
+      <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${confColor}">${confPct}%</div>
+      <div style="color:${confColor};font-size:11px;margin-top:2px">R²&nbsp;${m.r2.toFixed(2)} · n=${m.n}</div>
+    </div>`;
+
+  // Honest caveat, tuned to the actual fit.
+  const caveat = document.getElementById('effModelCaveat');
+  caveat.style.display = 'block';
+  const projYrs = 5;
+  caveat.querySelector('#effCaveatBody').innerHTML =
+    `<p style="margin:0 0 10px;">This is a <b style="color:var(--text)">statistical estimate from ${m.n} runs</b>, not a physiological measurement. ` +
+    `The condition adjustments explain <b style="color:var(--text)">R²&nbsp;=&nbsp;${m.r2.toFixed(2)}</b> of your pace variation. ` +
+    `The <b style="color:var(--text)">confidence % (${confPct}%)</b> is that fit quality scaled down when you have few runs — it climbs toward 100% as R² rises and you log more runs (levels off around 25).</p>` +
+    `<p style="margin:0 0 10px;">The <b style="color:var(--text)">plateau is the least certain number here</b> — with sparse data the fit tends to be optimistic and can swing a lot as you add runs. Treat it as a direction, not a promise.</p>` +
+    `<p style="margin:0;">The dashed projection runs <b style="color:var(--text)">${projYrs} years</b> past your last run. Confidence drops the further out it goes. To sharpen it: keep logging runs, and keep them in a <b style="color:var(--text)">similar distance band</b> (the reference model used 7–10 km) so distance doesn't get tangled up with genuine fitness gains.</p>`;
+
+  // Split the curve into observed-span (solid) vs projection (dashed) via a second dataset.
+  const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
+  const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
+
+  const ctx = canvas.getContext('2d');
+  charts['effModel'] = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { type:'line', label:'Fitted efficiency', data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'line', label:'Projection (5 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'scatter', label:'Runs (normalized)', data:normPts, parsing:false, backgroundColor:'#00e67699', borderColor:'#00e676', pointRadius:4 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction: NEAR_INTERACTION,
+      onClick: tapToDismiss(),
+      plugins: {
+        legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
+          labelColor: c => solidSwatch(c.dataset.borderColor),
+          label: c => `${c.dataset.label}: ${paceStr(Math.round(c.parsed.y*60))} /km`
+        } }
+      },
+      scales: {
+        x: { type:'linear', ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxTicksLimit:10,callback:v=>new Date(v*86400000).getFullYear()}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { reverse:true, ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10},callback:v=>{const m2=Math.floor(v);const s=Math.round((v%1)*60);return `${m2}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:'Equivalent pace /km (standard conditions)',color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+
+  renderEffRaceScenarios();
+}
+
+// Race-time predictor: at chosen average HRs, how fast a target distance would be,
+// on chosen future dates, using the fitted efficiency curve + condition coefficients.
+function renderEffRaceScenarios() {
+  const strip = document.getElementById('effRaceStrip');
+  if(!strip || !lastEffModel) { if(strip) strip.style.display='none'; return; }
+  const { model:m, std } = lastEffModel;
+  const raceDist = clampNum(byId('effRaceDist'), 10, 1, 100);
+  // Predicted finish at a given avg HR on a given date (days-epoch t).
+  function predict(hr, t) {
+    // efficiency (standard-condition pace) at time t, then re-apply the HR and
+    // distance offsets from standard to this scenario (elevation assumed = std).
+    const eff = m.effAt(t);
+    const pace = eff + m.cFC*(hr - std.fc) + m.cD*(raceDist - std.d);
+    return { pace, finish: pace*raceDist };
+  }
+  // Scenario HRs bracket a typical race effort; dates: +1yr and +2yr from now.
+  const nowT = Date.now()/86400000;
+  const hrs = [
+    clampNum(byId('effRaceHr1'), 170, 120, 210),
+    clampNum(byId('effRaceHr2'), 176, 120, 210),
+    clampNum(byId('effRaceHr3'), 182, 120, 210),
+  ];
+  const dates = [ {label:'in 1 year', t:nowT+365}, {label:'in 2 years', t:nowT+730} ];
+  const rows = hrs.map(hr => {
+    const cells = dates.map(dt => {
+      const p = predict(hr, dt.t);
+      return `<td style="text-align:right;font-family:var(--font-mono);color:var(--text);padding:6px 12px">${secondsToTime(Math.round(p.finish))}<span style="color:var(--muted2);font-size:11px"> · ${paceStr(Math.round(p.pace))}/km</span></td>`;
+    }).join('');
+    return `<tr><td style="padding:6px 12px;font-family:var(--font-mono);color:var(--accent)">${hr} bpm</td>${cells}</tr>`;
+  }).join('');
+  strip.style.display = 'block';
+  strip.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Race predictor</span>
+      <label style="font-family:var(--font-mono);font-size:12px;color:var(--muted2)">distance
+        <input type="number" id="effRaceDist" value="${raceDist}" min="1" max="100" step="1" style="width:60px" class="filter-input" oninput="renderEffRaceScenarios()"> km</label>
+      <label style="font-family:var(--font-mono);font-size:12px;color:var(--muted2)">HRs
+        <input type="number" id="effRaceHr1" value="${hrs[0]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
+        <input type="number" id="effRaceHr2" value="${hrs[1]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
+        <input type="number" id="effRaceHr3" value="${hrs[2]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()"></label>
+    </div>
+    <table style="border-collapse:collapse;font-size:13.5px">
+      <thead><tr>
+        <th style="text-align:left;padding:6px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">Avg HR</th>
+        ${dates.map(d=>`<th style="text-align:right;padding:6px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">${d.label}</th>`).join('')}
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="margin:8px 0 0;font-family:var(--font-mono);font-size:11px;color:var(--muted)">Assumes flat course (${std.h} m D+). Lower HR = more aerobic (usually slower); the model rewards running the same pace at a lower HR over time.</p>`;
+}
+
+// Re-fit when the user edits the standard conditions.
+function refitEffModel() { if(lastRenderedData) renderEfficiencyModel(lastRenderedData); }
+
+function byId(id){ return document.getElementById(id); }
+function clampNum(el, def, lo, hi){
+  if(!el) return def;
+  const v = parseFloat(el.value);
+  if(isNaN(v)) return def;
+  return Math.min(hi, Math.max(lo, v));
+}
+
+function toggleEffCaveat() {
+  const body = document.getElementById('effCaveatBody');
+  const chev = document.getElementById('effCaveatChev');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
 /* ACWR */
