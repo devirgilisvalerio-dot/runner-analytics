@@ -727,7 +727,6 @@ td b{ font-family:var(--font-mono); }
     <div id="effTrendReadout" style="margin:0 0 18px;"></div>
     <div id="effModelStats" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div style="height:300px;"><canvas id="effModelChart"></canvas></div>
-    <div id="effRaceStrip" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:18px;overflow-x:auto;"></div>
     <!-- HONEST CAVEAT (collapsible) -->
     <div id="effModelCaveat" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
       <div onclick="toggleEffCaveat()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
@@ -2452,6 +2451,11 @@ function fitRaceEfficiency(obs, std, targetDist) {
   // fantasy pace (the raw asymptote ginf is unstable when the curve is near-linear).
   best.bestNorm = Math.min(...yN) * best.wallMult;
   best.limitFloor = best.bestNorm * (1 - 0.08);   // limit ≤ 8% beyond your best normalized run
+  // Weighted scatter (s/km) of normalized pace — drives confidence AND the best-day edge.
+  let mmN=0, wwN=0; for(let i=0;i<yN.length;i++){ wwN+=w[i]; mmN+=w[i]*yN[i]; }
+  const meanYN = mmN/wwN;
+  let vvN=0; for(let i=0;i<yN.length;i++) vvN += w[i]*(yN[i]-meanYN)**2;
+  best.rmse = Math.sqrt(vvN/wwN) * best.wallMult;
   // Projected race pace at time t: fitted trend × wall penalty (unproven-distance tax).
   const rawEff = t => best.k === 0 ? best.ginf
                   : best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
@@ -2551,7 +2555,6 @@ function renderEfficiencyModel(data) {
     note.innerHTML = msg;
     canvas.style.display = 'none';
     document.getElementById('effModelStats').innerHTML = '';
-    document.getElementById('effRaceStrip').style.display = 'none';
     document.getElementById('effModelCaveat').style.display = 'none';
     document.getElementById('effRaceToggle').innerHTML = '';
     document.getElementById('effTrendReadout').innerHTML = '';
@@ -2607,10 +2610,7 @@ function renderEfficiencyModel(data) {
   //   • tightness: how consistent your NORMALIZED runs are (low scatter = trustworthy).
   //     rmse in s/km → 1 at 0, ~0.5 at 20 s/km, → 0 as scatter grows.
   const sampleFactor = Math.min(1, m.effN / 20);
-  let sw2=0, sm=0; for(const o of m.rows){ const yv=o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h); sw2+=o.w; sm+=o.w*yv; }
-  const meanN = sm/sw2;
-  let sv=0; for(const o of m.rows){ const yv=o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h); sv+=o.w*(yv-meanN)**2; }
-  const rmse = Math.sqrt(sv/sw2);                    // s/km scatter of normalized pace
+  const rmse = m.rmse;                               // s/km scatter of normalized pace
   const tightness = 1 / (1 + (rmse/20)**2);          // 1 when perfectly consistent
   const confPct   = Math.round(100 * Math.pow(sampleFactor * tightness, 0.5));   // geometric-ish blend
   const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
@@ -2634,16 +2634,13 @@ function renderEfficiencyModel(data) {
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(bestNow*rc.dist))}</div>
       <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(bestNow)} /km · everything clicks</div>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">Projected best (1.5 yr)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${secondsToTime(Math.round((Math.max(m.bestNorm, plateau - 1.5*rmse))*rc.dist))}</div>
-      <div style="color:var(--muted2);font-size:11px;margin-top:2px">best day, ${plateau<nowPace-0.5?'if trend holds':'~flat trend'}</div>
-    </div>
+    <div id="effPredictCard" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;"></div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${confColor}">${confPct}%</div>
       <div style="color:${confColor};font-size:11px;margin-top:2px">n=${m.n} (eff ${m.effN.toFixed(0)}) · ±${rmse.toFixed(0)}s scatter</div>
     </div>`;
+  renderEffPredictCard();
 
   // Honest caveat.
   const caveat = document.getElementById('effModelCaveat');
@@ -2722,58 +2719,46 @@ function renderEfficiencyModel(data) {
       }
     }
   });
-
-  renderEffRaceScenarios();
 }
 
-// Race predictor: projected finish time for BOTH races at chosen average HRs, now / +1yr / +2yr.
-function renderEffRaceScenarios() {
-  const strip = document.getElementById('effRaceStrip');
-  if(!strip || !lastEffFits) { if(strip) strip.style.display='none'; return; }
-  const { std, fits } = lastEffFits;
-  const nowT = Date.now()/86400000;
-  const hrs = [
-    clampNum(byId('effRaceHr1'), 160, 120, 210),
-    clampNum(byId('effRaceHr2'), 165, 120, 210),
-    clampNum(byId('effRaceHr3'), 170, 120, 210),
-  ];
-  const dates = [ {label:'now', t:nowT}, {label:'in 1 year', t:nowT+365}, {label:'in 2 years', t:nowT+730} ];
+// Interactive predictor card: pick a date, toggle Typical vs Best day → projected finish.
+let effPredMode = 'typical';                 // 'typical' | 'best'
+let effPredDate = null;                      // yyyy-mm-dd string; null = today
+function setEffPredMode(mode){ effPredMode = mode; renderEffPredictCard(); }
+function setEffPredDate(v){ effPredDate = v || null; renderEffPredictCard(); }
 
-  // For each race that fit, a block: rows = HRs, cols = dates.
-  const blocks = EFF_RACES.filter(rc => fits[rc.key]).map(rc => {
-    const m = fits[rc.key];
-    const rows = hrs.map(hr => {
-      const cells = dates.map(dt => {
-        const pace   = Math.max(m.limitFloor, m.effAt(dt.t)) + m.cFC*(hr - std.fc);   // race pace at this HR & date (floored)
-        const finish = pace * rc.dist;
-        return `<td style="text-align:right;font-family:var(--font-mono);color:var(--text);padding:5px 12px">${secondsToTime(Math.round(finish))}<span style="color:var(--muted2);font-size:11px"> · ${paceStr(Math.round(pace))}/km</span></td>`;
-      }).join('');
-      return `<tr><td style="padding:5px 12px;font-family:var(--font-mono);color:var(--accent)">${hr} bpm</td>${cells}</tr>`;
-    }).join('');
-    return `
-      <div style="margin-bottom:16px">
-        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text);margin-bottom:6px">${rc.label} — ${rc.dist>21?'21.1':rc.dist} km</div>
-        <table style="border-collapse:collapse;font-size:13px">
-          <thead><tr>
-            <th style="text-align:left;padding:5px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">Avg HR</th>
-            ${dates.map(d=>`<th style="text-align:right;padding:5px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase">${d.label}</th>`).join('')}
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-  }).join('');
+function renderEffPredictCard() {
+  const el = document.getElementById('effPredictCard');
+  if(!el || !lastEffFits) return;
+  const { fits } = lastEffFits;
+  const rc = EFF_RACES.find(r => r.key === effRaceKey);
+  const m  = fits[effRaceKey];
+  if(!m) { el.innerHTML = ''; return; }
 
-  strip.style.display = 'block';
-  strip.innerHTML = `
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <span style="font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text)">Race predictor</span>
-      <label style="font-family:var(--font-mono);font-size:12px;color:var(--muted2)">avg HRs
-        <input type="number" id="effRaceHr1" value="${hrs[0]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
-        <input type="number" id="effRaceHr2" value="${hrs[1]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()">
-        <input type="number" id="effRaceHr3" value="${hrs[2]}" min="120" max="210" style="width:56px" class="filter-input" oninput="renderEffRaceScenarios()"></label>
+  // Target date → days-epoch. Default = today. Clamp to [first run, horizon+buffer] so the
+  // saturating projection stays in a sensible range.
+  const todayT = Date.now()/86400000;
+  const defISO = new Date(todayT*86400000).toISOString().split('T')[0];
+  const tSel = effPredDate ? new Date(effPredDate+'T00:00:00').getTime()/86400000 : todayT;
+  const tClamped = Math.max(m.t0, tSel);
+
+  const typical = Math.max(m.limitFloor, m.effAt(tClamped));
+  const best    = Math.max(m.bestNorm,   typical - 1.5*m.rmse);
+  const pace    = effPredMode === 'best' ? best : typical;
+  const color   = effPredMode === 'best' ? 'var(--green)' : '#ff6b4a';
+  const tab = (mode,label) =>
+    `<span onclick="setEffPredMode('${mode}')" style="cursor:pointer;padding:2px 8px;border-radius:5px;font-size:11px;`+
+    `${effPredMode===mode?`background:${mode==='best'?'rgba(0,230,118,.18)':'rgba(255,107,74,.18)'};color:${mode==='best'?'var(--green)':'#ff6b4a'};`:'color:var(--muted);'}">${label}</span>`;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      ${tab('typical','Typical')}${tab('best','Best')}
     </div>
-    ${blocks}
-    <p style="margin:4px 0 0;font-family:var(--font-mono);font-size:11px;color:var(--muted)">Assumes a flat course (${std.h} m D+). Lower HR = more aerobic (usually slower); the model rewards holding pace at a lower HR over time. Each race is fit from all your runs, distance-weighted (see caveat).</p>`;
+    <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${color}">${secondsToTime(Math.round(pace*rc.dist))}</div>
+    <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(pace)} /km · ${rc.label}</div>
+    <input type="date" value="${effPredDate||defISO}" min="${new Date(m.t0*86400000).toISOString().split('T')[0]}"
+      onchange="setEffPredDate(this.value)"
+      style="margin-top:8px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;">`;
 }
 
 // Render the HR-adjusted trend banner: raw pace change vs HR change vs pace-at-equal-HR.
