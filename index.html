@@ -718,7 +718,7 @@ td b{ font-family:var(--font-mono); }
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-family:var(--font-mono);font-size:12px;color:var(--muted2);">
       <span style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Standard conditions</span>
       <label>HR <input type="number" id="effStdHr" value="160" min="100" max="210" style="width:64px" class="filter-input" oninput="refitEffModel()"> bpm</label>
-      <label>dist <input type="number" id="effStdDist" value="8.5" min="1" max="60" step="0.5" style="width:64px" class="filter-input" oninput="refitEffModel()"> km</label>
+      <label>dist <input type="number" id="effStdDist" value="10" min="1" max="60" step="0.5" style="width:64px" class="filter-input" oninput="refitEffModel()"> km</label>
       <label>D+ <input type="number" id="effStdElev" value="25" min="0" max="3000" step="5" style="width:64px" class="filter-input" oninput="refitEffModel()"> m</label>
     </div>
     <p id="effModelNote" style="margin:0 0 16px;font-size:13.5px;color:var(--muted2);font-family:var(--font-body);line-height:1.6;"></p>
@@ -2397,7 +2397,7 @@ function renderEfficiencyModel(data) {
   // Standard conditions (editable). Defaults mirror the reference model: 160bpm·8.5km·25m.
   const std = {
     fc: clampNum(byId('effStdHr'),   160, 100, 210),
-    d:  clampNum(byId('effStdDist'), 8.5, 1,   60),
+    d:  clampNum(byId('effStdDist'), 10, 1,   60),
     h:  clampNum(byId('effStdElev'), 25,  0,   3000),
   };
 
@@ -2442,8 +2442,8 @@ function renderEfficiencyModel(data) {
   const t0 = m.t0;
   const lastT = obs[obs.length-1].t;
   const spanDays = lastT - t0;
-  // Project forward 5 years past the last observation for the plateau view.
-  const horizon = lastT + 365*5;
+  // Project forward 2 years past the last observation for the plateau view.
+  const horizon = lastT + 365*2;
 
   // X is numeric days-epoch (linear axis, no date-adapter dependency); ticks render as years.
   // Observed normalized-efficiency points (each run, conditions removed).
@@ -2485,7 +2485,7 @@ function renderEfficiencyModel(data) {
   // Honest caveat, tuned to the actual fit.
   const caveat = document.getElementById('effModelCaveat');
   caveat.style.display = 'block';
-  const projYrs = 5;
+  const projYrs = 2;
   caveat.querySelector('#effCaveatBody').innerHTML =
     `<p style="margin:0 0 10px;">This is a <b style="color:var(--text)">statistical estimate from ${m.n} runs</b>, not a physiological measurement. ` +
     `The condition adjustments explain <b style="color:var(--text)">R²&nbsp;=&nbsp;${m.r2.toFixed(2)}</b> of your pace variation. ` +
@@ -2503,7 +2503,7 @@ function renderEfficiencyModel(data) {
     data: {
       datasets: [
         { type:'line', label:'Fitted efficiency', data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
-        { type:'line', label:'Projection (5 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'line', label:'Projection (2 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
         { type:'scatter', label:'Runs (normalized)', data:normPts, parsing:false, backgroundColor:'#00e67699', borderColor:'#00e676', pointRadius:4 },
       ]
     },
@@ -2546,9 +2546,9 @@ function renderEffRaceScenarios() {
   // Scenario HRs bracket a typical race effort; dates: +1yr and +2yr from now.
   const nowT = Date.now()/86400000;
   const hrs = [
-    clampNum(byId('effRaceHr1'), 170, 120, 210),
-    clampNum(byId('effRaceHr2'), 176, 120, 210),
-    clampNum(byId('effRaceHr3'), 182, 120, 210),
+    clampNum(byId('effRaceHr1'), 160, 120, 210),
+    clampNum(byId('effRaceHr2'), 165, 120, 210),
+    clampNum(byId('effRaceHr3'), 170, 120, 210),
   ];
   const dates = [ {label:'in 1 year', t:nowT+365}, {label:'in 2 years', t:nowT+730} ];
   const rows = hrs.map(hr => {
