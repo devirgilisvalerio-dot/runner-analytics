@@ -2437,14 +2437,26 @@ function fitRaceEfficiency(obs, std, targetDist) {
 
   best.cFC = cFC; best.cH = cH; best.t0 = t0;
   best.n = rows.length; best.effN = effN; best.targetDist = targetDist; best.rows = rows;
+
+  // WALL PENALTY — same idea as the main race cards: projecting a race far beyond your
+  // longest actual run is optimistic (Riegel assumes perfect endurance you haven't proven).
+  // Penalize pace by WALL_K per +100% the race exceeds your longest run. This is why a Half
+  // extrapolated from mostly-10K training gets marked slower/more honest.
+  const WALL_K = 0.075;
+  const longestRun = Math.max(0, ...obs.map(o => o.d));
+  const overshoot  = longestRun > 0 ? Math.max(0, (targetDist - longestRun) / longestRun) : 0;
+  best.wallMult    = 1 + WALL_K * overshoot;
+  best.longestRun  = longestRun;
+
   // Fastest normalized run — used to bound the projected "limit" so it can't extrapolate to a
   // fantasy pace (the raw asymptote ginf is unstable when the curve is near-linear).
-  best.bestNorm = Math.min(...yN);
+  best.bestNorm = Math.min(...yN) * best.wallMult;
   best.limitFloor = best.bestNorm * (1 - 0.08);   // limit ≤ 8% beyond your best normalized run
-  // yhat for R² (on normalized pace).
-  best.effAt = t => best.k === 0 ? best.ginf
+  // Projected race pace at time t: fitted trend × wall penalty (unproven-distance tax).
+  const rawEff = t => best.k === 0 ? best.ginf
                   : best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
-  const yhat = rows.map((o) => best.effAt(o.t));
+  best.effAt = t => rawEff(t) * best.wallMult;
+  const yhat = rows.map((o) => rawEff(o.t));
   best.r2 = rSquared(yN, yhat, w);
   best.halfLifeDays = best.k > 0 ? Math.log(2) / best.k : Infinity;
   return best;
@@ -2578,7 +2590,11 @@ function renderEfficiencyModel(data) {
     `${rc.label} = 100%, −2.5%/km shorter, +2.5%/km longer (a 15&nbsp;km run counts more toward your 10K than a 5&nbsp;km does). ` +
     `Then each run's pace is <b>normalized to ${std.fc} bpm · ${std.h} m D+</b>: ` +
     `<code style="font-family:var(--font-mono);color:var(--text)">pace₍norm₎ = pace − ${sHRabs}·(${std.fc} − HR)</code> — ` +
-    `so a run at the same pace but <b>lower HR normalizes faster</b> (here every −1 bpm ≈ −${sHRabs} s/km). The curve is a <b>saturating-exponential</b> trend.`;
+    `so a run at the same pace but <b>lower HR normalizes faster</b> (here every −1 bpm ≈ −${sHRabs} s/km). ` +
+    `The <b style="color:#ff6b4a">orange line</b> is your <b>typical/expected</b> pace; the <b style="color:#00e676">green line</b> is your <b>best day possible</b> — the fast edge of the scatter, where everything clicks.` +
+    (m.wallMult > 1.001
+      ? ` <span style="color:var(--orange)">Your longest run in the last year is ${m.longestRun.toFixed(0)} km, so this ${rc.label} projection carries a <b>+${((m.wallMult-1)*100).toFixed(0)}% unproven-distance penalty</b> — run longer to earn it back.</span>`
+      : ``);
 
   // ── HR-ADJUSTED TREND READOUT — the honest "am I faster at equal HR?" answer ──
   // Built on the SAME Riegel-scaled, distance-weighted rows the race model uses, so it's
@@ -2606,21 +2622,22 @@ function renderEfficiencyModel(data) {
   const effClamped = t => Math.max(m.limitFloor, m.effAt(t));
   const nowPace = effClamped(lastT);
   const plateau = effClamped(horizon);
-  const toGoT   = (nowPace - plateau) * rc.dist;   // seconds off the finish at the limit
+  const bestNow = Math.max(m.bestNorm, nowPace - 1.5*rmse);   // fast edge today (best-day pace)
   document.getElementById('effModelStats').innerHTML = `
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">${rc.label} now</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#d7dee6">${secondsToTime(Math.round(nowPace*rc.dist))}</div>
-      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(nowPace)} /km</div>
+      <div style="color:var(--muted);margin-bottom:4px">${rc.label} — typical day</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#ff6b4a">${secondsToTime(Math.round(nowPace*rc.dist))}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(nowPace)} /km · avg effort</div>
     </div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">Estimated best (limit)</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${secondsToTime(Math.round(plateau*rc.dist))}</div>
-      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(plateau)} /km</div>
+      <div style="color:var(--muted);margin-bottom:4px">${rc.label} — best day now</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(bestNow*rc.dist))}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(bestNow)} /km · everything clicks</div>
     </div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">Still to gain</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${toGoT>2?('−'+secondsToTime(Math.round(toGoT)).replace(/^00:/,'')):'~at limit'}</div>
+      <div style="color:var(--muted);margin-bottom:4px">Projected best (1.5 yr)</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)">${secondsToTime(Math.round((Math.max(m.bestNorm, plateau - 1.5*rmse))*rc.dist))}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-top:2px">best day, ${plateau<nowPace-0.5?'if trend holds':'~flat trend'}</div>
     </div>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
       <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
@@ -2651,6 +2668,13 @@ function renderEfficiencyModel(data) {
   const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
   const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
 
+  // BEST-DAY line (green): the orange line is your AVERAGE/expected pace at 165 bpm; your PBs
+  // sit on the fast edge of the scatter. Best day ≈ fitted − 1.5·scatter (a "good day" that
+  // lands near your fastest normalized runs), never faster than your actual best normalized run.
+  const bestEdge = t => Math.max(m.bestNorm, effClamped(t) - 1.5*rmse);
+  const bestCurve = curve.map(p => ({ x:p.x, y: bestEdge(p.x)/60 }));
+  const bestNowSec = bestEdge(lastT);   // best 10K you could realistically run today
+
   // Pin x to the data range; one tick per QUARTER (Jan/Apr/Jul/Oct) so months are visible
   // across the ~2-yr projection without crowding. Ticks labelled "Mon 'YY".
   const xMin = m.t0, xMax = horizon;
@@ -2671,8 +2695,9 @@ function renderEfficiencyModel(data) {
       datasets: [
         { type:'line', label:`${rc.label} pace (fitted)`, data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
         { type:'line', label:'Projection (1.5 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
+        { type:'line', label:'Best day possible', data:bestCurve, parsing:false, borderColor:'#00e676', borderWidth:2.4, pointRadius:0, tension:0.25, fill:false },
         { type:'scatter', label:'Runs (→ race pace, sized by weight)', data:projPts, parsing:false,
-          backgroundColor: projPts.map((_,i)=>`rgba(0,230,118,${ptAlpha[i]})`), borderColor:'#00e676', pointRadius: ptRadius },
+          backgroundColor: projPts.map((_,i)=>`rgba(120,150,170,${Math.max(0.25,ptAlpha[i])})`), borderColor:'#8b9bad', pointRadius: ptRadius },
       ]
     },
     options: {
@@ -4507,8 +4532,9 @@ function clearLogFilters() {
 
 /* ── UTILS ── */
 function paceStr(sec) {
-  const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
+  const total = Math.round(sec);            // round FIRST, else 299.7 → 4:60
+  const m = Math.floor(total / 60);
+  const s = total % 60;
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 function secondsToTime(s){
