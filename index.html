@@ -721,7 +721,7 @@ td b{ font-family:var(--font-mono); }
       <b style="color:var(--green)">TSB (Form)</b> CTL−ATL. Readiness to perform<br><br>
       <span style="color:var(--green)">TSB +10 to +25</span> peak, ready to race<br>
       <span style="color:var(--text)">TSB 0 to +10</span> fresh, good for quality sessions<br>
-      <span style="color:var(--text)">TSB 0 to −10</span> neutral, normal productive training load<br>
+      <span style="color:var(--text)">TSB -10 to 0</span> neutral, normal productive training load<br>
       <span style="color:var(--orange)">TSB −10 to −30</span> building fitness, manageable fatigue<br>
       <span style="color:var(--red)">TSB &lt; −30</span> high fatigue, rest needed
     </p>
@@ -1940,7 +1940,7 @@ const DEFAULT_SHOE_LIMIT = 500;
 const SHOE_LIMITS = {
   'Kiprun Carbon': 400,
   'Vomero Plus':   550,
-  'Sconosciuta':   500,
+  'N/A':   500,
 };
 function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
 
