@@ -709,34 +709,6 @@ td b{ font-family:var(--font-mono); }
     </p>
   </div>
 
-  <!-- EFFICIENCY MODEL — "YOUR LIMIT" -->
-  <div class="card" id="effModelSection" style="display:none;margin-bottom:20px;">
-    <div class="card-title" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
-      <span>Efficiency Model — Your Limit</span>
-      <span style="font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">where your pace is heading, and where it plateaus</span>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-      <div class="mini-filter" id="effRaceToggle" style="margin:0"></div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-family:var(--font-mono);font-size:12px;color:var(--muted2);">
-        <span style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Standard conditions</span>
-        <label>HR <input type="number" id="effStdHr" placeholder="auto" min="100" max="210" style="width:64px" class="filter-input" oninput="this.dataset.auto='0';refitEffModel()"> bpm</label>
-        <label>D+ <input type="number" id="effStdElev" value="25" min="0" max="3000" step="5" style="width:64px" class="filter-input" oninput="refitEffModel()"> m</label>
-      </div>
-    </div>
-    <p id="effModelNote" style="margin:0 0 16px;font-size:13.5px;color:var(--muted2);font-family:var(--font-body);line-height:1.6;"></p>
-    <div id="effTrendReadout" style="margin:0 0 18px;"></div>
-    <div id="effModelStats" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;"></div>
-    <div style="height:300px;"><canvas id="effModelChart"></canvas></div>
-    <!-- HONEST CAVEAT (collapsible) -->
-    <div id="effModelCaveat" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;background:var(--card2);overflow:hidden;">
-      <div onclick="toggleEffCaveat()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">
-        How this model works &amp; how much to trust it
-        <span id="effCaveatChev" style="margin-left:auto;transition:transform .2s;">▸</span>
-      </div>
-      <div id="effCaveatBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);"></div>
-    </div>
-  </div>
-
   <!-- FITNESS / FATIGUE (CTL/ATL/TSB) -->
   <div class="card" id="runFitnessSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Fitness / Fatigue / Form</span></div>
@@ -1188,8 +1160,6 @@ function parseFIT(buffer) {
             case 7:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.power=v; } break;
             case 39:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertOsc=v/10; } break;
             case 41:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertRatio=v/100; } break;
-            case 2:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.alt=(v/5)-500; } break;    // altitude (m)
-            case 78:  if(fSize===4){ const v=dv.getUint32(pos,true); if(v!==0xFFFFFFFF) rec.ealt=(v/5)-500; } break; // enhanced_altitude (m), preferred
           }
           pos += fSize;
         }
@@ -1228,12 +1198,6 @@ function parseFIT(buffer) {
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
-  // Elevation gain (D+): prefer enhanced_altitude, else altitude. Smoothed to reject
-  // barometric/GPS jitter (raw per-point sums grossly overcount on noisy sensors).
-  const useEAlt = records.some(r => r.ealt != null);
-  const altSeries = records.map(r => useEAlt ? r.ealt : r.alt).filter(v => v != null);
-  const elevGain = altSeries.length >= 5 ? Math.round(elevationGain(altSeries)) : null;
-
   const kmSplits = computeKmSplits(records);
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
@@ -1248,7 +1212,7 @@ function parseFIT(buffer) {
     distance: Number(distKm.toFixed(2)),
     duration: secondsToTime(durationSec),
     durationSec,
-    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO, elevGain,
+    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
     calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
@@ -1326,7 +1290,6 @@ function parseFallbackGPX(xmlText, fileName) {
   let firstTime = null, lastTime = null;
   const MAX_GAP_SEC = 10;
   const points = [];
-  const eleSeries = [];
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
     const lat = parseFloat(pt.getAttribute('lat'));
@@ -1336,8 +1299,6 @@ function parseFallbackGPX(xmlText, fileName) {
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
-    const eleNode = pt.getElementsByTagNameNS('*', 'ele')[0];
-    if(eleNode) { const e = parseFloat(eleNode.textContent); if(!isNaN(e)) eleSeries.push(e); }
     if(i > 0) {
       const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
       if(time && points[i-1].time) {
@@ -1361,28 +1322,10 @@ function parseFallbackGPX(xmlText, fileName) {
     duration: secondsToTime(durationSec),
     durationSec,
     hr: avgHr, cad: null, power: null, vertOsc: null,
-    elevGain: eleSeries.length >= 5 ? Math.round(elevationGain(eleSeries)) : null,
     calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
     hrCount, source: 'GPX', sport: 'running'
   };
-}
-
-// Total ascent from an altitude series (metres). A centered moving-average smooth
-// (window 5) knocks down barometric/GPS jitter before summing positive deltas —
-// raw per-point summing overcounts flat runs by 2–20× on noisy sensors.
-function elevationGain(alts, win = 5) {
-  if(alts.length < 2) return 0;
-  const half = Math.floor(win / 2);
-  const sm = new Array(alts.length);
-  for(let i = 0; i < alts.length; i++) {
-    let s = 0, n = 0;
-    for(let j = Math.max(0, i-half); j <= Math.min(alts.length-1, i+half); j++) { s += alts[j]; n++; }
-    sm[i] = s / n;
-  }
-  let gain = 0;
-  for(let i = 1; i < sm.length; i++) { const d = sm[i] - sm[i-1]; if(d > 0) gain += d; }
-  return gain;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -1500,7 +1443,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 4;
+const RUN_CACHE_VERSION = 3;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1833,7 +1776,6 @@ function renderDashboard(data){
   renderPredictions(data);
   renderPaceDistChart(data);
   renderEfficiencyChart(data);
-  renderEfficiencyModel(data);
   renderAvgKmSplits(data);
   renderAcwr(data);
   renderFitnessChart(data, 'running');
@@ -2310,519 +2252,6 @@ function renderEfficiencyChart(data) {
       }
     }
   });
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   EFFICIENCY MODEL — "Your Limit"
-   Two-part statistical model (replicating the raffa_dpfit approach):
-     1. Multiple linear regression of pace on physiological + mechanical inputs
-        AND a saturating time-trend, fit JOINTLY:
-          pace = β₁·(FC−FC*) + β₂·(d−d*) + β₃·(h−h*) + g(t)
-          g(t) = g∞ − (g∞ − g₀)·e^(−k·(t−t₀))
-        Conditions are CENTERED on standard values (FC*, d*, h*) so that g(t) is
-        directly the pace you'd run AT those standard conditions over time —
-        i.e. your normalized physiological efficiency, noise stripped out.
-     2. For a fixed k the model is linear in (β₁,β₂,β₃,g∞,g₀), so we grid-search
-        k and solve one 5-column OLS per candidate, keeping the lowest SSE.
-   The saturating exponential is the honest part: big early gains that taper to a
-   personal plateau g∞ — your estimated limit. Plateau is very sensitive to sparse
-   data, so we show it with explicit low/med/high confidence, never as a hard fact. */
-
-// Weighted least squares: solve (XᵀWX)b = XᵀWy via Gauss-Jordan w/ partial pivoting.
-// `w` is an optional per-row weight vector (defaults to all-ones = plain OLS).
-function olsSolve(X, y, w) {
-  const n = X.length, p = X[0].length;
-  const A = Array.from({length:p}, () => new Array(p).fill(0));
-  const g = new Array(p).fill(0);
-  for(let i=0;i<n;i++){ const wi = w ? w[i] : 1; for(let a=0;a<p;a++){
-    g[a] += wi*X[i][a]*y[i];
-    for(let b=0;b<p;b++) A[a][b] += wi*X[i][a]*X[i][b];
-  }}
-  const M = A.map((row,i) => [...row, g[i]]);
-  for(let col=0; col<p; col++){
-    let piv = col;
-    for(let r=col+1;r<p;r++) if(Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r;
-    if(Math.abs(M[piv][col]) < 1e-12) return null;   // singular / collinear
-    [M[col],M[piv]] = [M[piv],M[col]];
-    const d = M[col][col];
-    for(let c=col;c<=p;c++) M[col][c] /= d;
-    for(let r=0;r<p;r++){ if(r===col) continue; const f=M[r][col]; for(let c=col;c<=p;c++) M[r][c] -= f*M[col][c]; }
-  }
-  return M.map(row => row[p]);
-}
-
-function rSquared(y, yhat, w) {
-  let sw=0, wm=0;
-  for(let i=0;i<y.length;i++){ const wi=w?w[i]:1; sw+=wi; wm+=wi*y[i]; }
-  const mean = wm/sw;
-  let ssRes=0, ssTot=0;
-  for(let i=0;i<y.length;i++){ const wi=w?w[i]:1; ssRes += wi*(y[i]-yhat[i])**2; ssTot += wi*(y[i]-mean)**2; }
-  return ssTot > 0 ? 1 - ssRes/ssTot : 0;
-}
-
-const RIEGEL_EXP_EFF = 0.05;   // Riegel: pace shifts ~3.5% per doubling — matches renderPredictions()
-
-// Distance weight — ASYMMETRIC & LINEAR: a run's evidence for a race scales with
-// "proof of distance". Target distance = 100%; every km SHORTER subtracts 2.5%, every km
-// LONGER adds 2.5% (no upper cap — "longer always counts more": a marathon informs your 10K
-// more than a 5 km does). Floored at 0.10 so short runs still contribute meaningfully.
-//   weight(d) = clamp( 1 + 0.025·(d − target), 0.10, ∞ )
-const DIST_WEIGHT_PER_KM = 0.025;
-function distanceWeight(runDist, targetDist) {
-  if(runDist <= 0) return 0;
-  return Math.max(0.10, 1 + DIST_WEIGHT_PER_KM * (runDist - targetDist));
-}
-
-// Fit the efficiency model FOR ONE RACE DISTANCE using ALL runs.
-//   obs = [{t (days), fc, d, h, pace (sec/km)}], std = {fc,h}, targetDist (km).
-// Each run's pace is Riegel-scaled to the target distance (so DISTANCE is normalized
-// out — no distance covariate, which kills the distance-vs-fitness collinearity), then
-// weighted by proximity to the target distance. We regress the scaled pace on HR and
-// elevation offsets plus a saturating time trend; the fitted trend is directly your
-// projected RACE PACE at the target distance and standard HR/elevation over time.
-// Physiological clamps so a noisy fit can't invent an absurd HR/elevation sensitivity
-// (a free OLS gave 3+ s/km per bpm — 3–6× too high — which shoved the whole normalized
-// cloud slower). Realistic running-economy HR cost ≈ 0.3–1.5 s/km per bpm.
-const EFF_CFC_LO = -1.5, EFF_CFC_HI = -0.3;   // s/km per bpm (negative: higher HR ⇒ faster)
-const EFF_CH_LO  = 0.0,  EFF_CH_HI  = 0.5;    // s/km per metre of D+
-
-function fitRaceEfficiency(obs, std, targetDist) {
-  // Riegel-normalize pace to the target distance + proximity weights.
-  const rows = obs.map(o => ({
-    t: o.t, fc: o.fc, h: o.h,
-    pace: o.pace * Math.pow(targetDist / o.d, RIEGEL_EXP_EFF),
-    w: distanceWeight(o.d, targetDist),
-  })).filter(o => o.w > 0.02);   // drop negligible contributors
-  const effN = rows.reduce((s,o) => s + o.w, 0);
-  if(rows.length < 8 || effN < 4) return null;
-
-  const t0 = Math.min(...rows.map(o => o.t));
-  const w  = rows.map(o => o.w);
-
-  // STEP 1 — estimate HR & elevation sensitivity SEPARATELY (controlling for a linear time
-  // trend so the trend doesn't leak into them), then CLAMP to the physiological range. This
-  // is what prevents the runaway coefficient; then we normalize and fit the curve on top.
-  const mo = o => (o.t - t0) / 30;
-  let cFC = -0.8, cH = 0.1;   // sane priors if the linear solve fails
-  const lin = olsSolve(rows.map(o => [1, mo(o), o.fc-std.fc, o.h-std.h]), rows.map(o=>o.pace), w);
-  if(lin) { cFC = lin[2]; cH = lin[3]; }
-  cFC = Math.max(EFF_CFC_LO, Math.min(EFF_CFC_HI, cFC));
-  cH  = Math.max(EFF_CH_LO,  Math.min(EFF_CH_HI,  cH));
-
-  // STEP 2 — normalize every run to standard HR + D+ (this is the pace at 'std' conditions).
-  const yN = rows.map(o => o.pace - cFC*(o.fc - std.fc) - cH*(o.h - std.h));
-
-  // Flat (no-trend) baseline: weighted mean. Used both as a candidate and to guarantee the
-  // curve is NON-WORSENING (ginf ≤ g0) — the "limit" models improvement-toward-plateau, never
-  // decline (decline is what the separate HR-adjusted readout is for).
-  let sw=0, sy=0; for(let i=0;i<yN.length;i++){ sw+=w[i]; sy+=w[i]*yN[i]; }
-  const flatMean = sy/sw;
-  const sseOf = (fn) => { let s=0; for(let i=0;i<yN.length;i++){ const e=yN[i]-fn(i); s+=w[i]*e*e; } return s; };
-  let best = { k: 0, ginf: flatMean, g0: flatMean, sse: sseOf(()=>flatMean) };
-
-  // STEP 3 — grid-search k; per k solve the 2-col saturating model on the NORMALIZED pace.
-  // Keep only IMPROVING fits (ginf ≤ g0); worsening ones fall back to the flat baseline.
-  // k half-life bounded 30 d … 5 y (fast cap stops the instant-jump artefact).
-  for(let logk=-7.6; logk<=-3.75; logk+=0.02){
-    const k = Math.exp(logk);
-    const X = rows.map(o => { const E = Math.exp(-k*(o.t - t0)); return [1 - E, E]; });
-    const b = olsSolve(X, yN, w);
-    if(!b) continue;
-    const [ginf, g0] = b;
-    if(ginf > g0 + 0.01) continue;              // reject worsening curves
-    const sse = sseOf(i => { const E = Math.exp(-k*(rows[i].t - t0)); return ginf*(1-E) + g0*E; });
-    if(sse < best.sse) best = { k, ginf, g0, sse };
-  }
-
-  best.cFC = cFC; best.cH = cH; best.t0 = t0;
-  best.n = rows.length; best.effN = effN; best.targetDist = targetDist; best.rows = rows;
-
-  // WALL PENALTY — projecting a race far beyond your PROVEN distance is optimistic (Riegel
-  // assumes endurance you haven't demonstrated). Crucially, "proven" is NOT your single
-  // longest run: doing a distance once or twice doesn't mean you can race it. We require ~3
-  // exposures — proven distance = your 3rd-longest run — so two lifetime 21 km runs do NOT
-  // erase the Half penalty. Pace is taxed WALL_K per +100% the race exceeds that.
-  const WALL_K = 0.075;
-  const distsDesc  = obs.map(o => o.d).sort((a,b) => b - a);
-  const provenDist = distsDesc[Math.min(2, distsDesc.length - 1)];   // 3rd-longest (needs ≥3 to trust)
-  const overshoot  = provenDist > 0 ? Math.max(0, (targetDist - provenDist) / provenDist) : 0;
-  best.wallMult    = 1 + WALL_K * overshoot;
-  best.provenDist  = provenDist;
-  best.longRunCount = obs.filter(o => o.d >= targetDist * 0.95).length;   // runs at/near race distance
-
-  // Fastest normalized run — used to bound the projected "limit" so it can't extrapolate to a
-  // fantasy pace (the raw asymptote ginf is unstable when the curve is near-linear).
-  best.bestNorm = Math.min(...yN) * best.wallMult;
-  best.limitFloor = best.bestNorm * (1 - 0.08);   // limit ≤ 8% beyond your best normalized run
-  // Weighted scatter (s/km) of normalized pace — drives confidence AND the best-day edge.
-  let mmN=0, wwN=0; for(let i=0;i<yN.length;i++){ wwN+=w[i]; mmN+=w[i]*yN[i]; }
-  const meanYN = mmN/wwN;
-  let vvN=0; for(let i=0;i<yN.length;i++) vvN += w[i]*(yN[i]-meanYN)**2;
-  best.rmse = Math.sqrt(vvN/wwN) * best.wallMult;
-  // Projected race pace at time t: fitted trend × wall penalty (unproven-distance tax).
-  const rawEff = t => best.k === 0 ? best.ginf
-                  : best.ginf - (best.ginf - best.g0) * Math.exp(-best.k * (t - best.t0));
-  best.effAt = t => rawEff(t) * best.wallMult;
-  const yhat = rows.map((o) => rawEff(o.t));
-  best.r2 = rSquared(yN, yhat, w);
-  best.halfLifeDays = best.k > 0 ? Math.log(2) / best.k : Infinity;
-  return best;
-}
-
-// HR-ADJUSTED TREND DECOMPOSITION — answers "am I actually faster, holding HR equal?"
-// Uses a LINEAR-in-time model (stable under HR↔time collinearity, unlike the saturating
-// exponential): pace* = a + b·(months) + cFC·(fc−stdFC) + cH·(h−stdH), weighted.
-// Splits the observed change over the logged span into three honest pieces:
-//   rawDelta = how much raw pace changed (what a naive eye sees)
-//   hrDelta  = how much avg HR changed (are you running easier/harder?)
-//   adjDelta = pace change AT EQUAL HR — the real fitness signal (negative = faster)
-// cFC is clamped to a physiological negative band (higher HR ⇒ faster ⇒ lower sec/km).
-function hrAdjustedTrend(obs, stdFC, stdH) {
-  if(obs.length < 6) return null;
-  const t0 = Math.min(...obs.map(o => o.t));
-  const y  = obs.map(o => o.pace);
-  const w  = obs.map(o => o.w != null ? o.w : 1);
-  const mo = o => (o.t - t0) / 30;                     // time in months
-  let b = olsSolve(obs.map(o => [1, mo(o), o.fc-stdFC, o.h-stdH]), y, w);
-  if(!b) return null;
-  let cFC = b[2];
-  const LO = -4.0, HI = -0.10;                         // plausible s/km per bpm
-  let clamped = false;
-  if(cFC > HI || cFC < LO) {                           // implausible/positive → clamp & refit
-    clamped = true; cFC = Math.max(LO, Math.min(HI, cFC));
-    const yAdj = y.map((v,i) => v - cFC*(obs[i].fc - stdFC));
-    const b2 = olsSolve(obs.map(o => [1, mo(o), o.h-stdH]), yAdj, w);
-    if(!b2) return null;
-    b = [b2[0], b2[1], cFC, b2[2]];
-  }
-  const spanMo   = mo(obs[obs.length-1]);
-  const rawSlope = olsSolve(obs.map(o => [1, mo(o)]), y, w)[1];
-  const hrSlope  = olsSolve(obs.map(o => [1, mo(o)]), obs.map(o => o.fc), w)[1];
-  // Collinearity between HR and time: |corr| near 1 means the fit can't cleanly separate
-  // "slower over time" from "slower because HR changed" — the adjusted trend is then shaky.
-  let mt=0,mf=0,sw=0;
-  for(let i=0;i<obs.length;i++){ const wi=w[i]; sw+=wi; mt+=wi*mo(obs[i]); mf+=wi*obs[i].fc; }
-  mt/=sw; mf/=sw;
-  let cov=0,vt=0,vf=0;
-  for(let i=0;i<obs.length;i++){ const wi=w[i], dt=mo(obs[i])-mt, df=obs[i].fc-mf; cov+=wi*dt*df; vt+=wi*dt*dt; vf+=wi*df*df; }
-  const hrTimeCorr = (vt>0&&vf>0) ? cov/Math.sqrt(vt*vf) : 0;
-  return {
-    cFC, clamped, spanMo,
-    adjSlopeMo: b[1],                    // s/km per month at equal HR
-    adjDelta:   b[1] * spanMo,           // total s/km change at equal HR over the span
-    rawDelta:   rawSlope * spanMo,
-    hrDelta:    hrSlope * spanMo,
-    hrTimeCorr,                          // −1..1; |·|>~0.8 ⇒ adjusted trend is uncertain
-  };
-}
-
-// Races the model projects. Each is fit independently from ALL runs (Riegel-scaled +
-// distance-weighted toward its own distance), so shorter/longer runs still contribute.
-const EFF_RACES = [
-  { key:'10k',  label:'10K',            dist:10 },
-  { key:'half', label:'Half Marathon',  dist:21.0975 },
-];
-let effRaceKey = '10k';               // which race drives the chart + stat cards
-let lastEffFits = null;               // { std, fits:{10k:model, half:model}, obs, horizon,... }
-
-function setEffRace(key){ effRaceKey = key; if(lastRenderedData) renderEfficiencyModel(lastRenderedData); }
-
-function renderEfficiencyModel(data) {
-  const section = document.getElementById('effModelSection');
-  const note    = document.getElementById('effModelNote');
-  const canvas  = document.getElementById('effModelChart');
-  if(!section) return;
-  destroyChart('effModel');
-  section.style.display = 'block';
-
-  // Usable runs: need pace, HR, an elevation reading, and a real date. ALL distances.
-  const obs = [...data]
-    .filter(r => r.paceSecPerKm && r.hr && r.elevGain != null && r.date && r.distance > 0)
-    .map(r => ({ date:new Date(r.date), t:new Date(r.date).getTime()/86400000,
-                 fc:r.hr, d:r.distance, h:r.elevGain, pace:r.paceSecPerKm }))
-    .filter(o => !isNaN(o.t))
-    .sort((a,b) => a.t - b.t);
-
-  // Standard conditions the projections assume: an average HR and a flat course.
-  // Distance is NOT a standard condition here — each race defines its own distance.
-  // Default standard HR = 165 bpm (a typical tempo/race effort). Editing the box overrides.
-  const DEFAULT_STD_HR = 165;
-  const hrBox = byId('effStdHr');
-  if(hrBox && (hrBox.value === '' || hrBox.dataset.auto === '1')) { hrBox.value = DEFAULT_STD_HR; hrBox.dataset.auto = '1'; }
-  const std = {
-    fc: clampNum(byId('effStdHr'),   DEFAULT_STD_HR, 100, 210),
-    h:  clampNum(byId('effStdElev'), 25,  0,   3000),
-  };
-
-  const fail = msg => {
-    note.innerHTML = msg;
-    canvas.style.display = 'none';
-    document.getElementById('effModelStats').innerHTML = '';
-    document.getElementById('effModelCaveat').style.display = 'none';
-    document.getElementById('effRaceToggle').innerHTML = '';
-    document.getElementById('effTrendReadout').innerHTML = '';
-    lastEffFits = null;
-  };
-
-  if(obs.length < 8)
-    return fail(`Needs at least <b>8 runs with heart-rate + elevation</b> to build the model — have <b>${obs.length}</b>. Older GPX/FIT files without HR or altitude don't count.`);
-
-  // Fit one model per race distance, using every run (weighted by distance proximity).
-  const fits = {};
-  EFF_RACES.forEach(rc => { fits[rc.key] = fitRaceEfficiency(obs, std, rc.dist); });
-  if(!fits[effRaceKey]) {
-    // fall back to whichever race did fit
-    const ok = EFF_RACES.find(rc => fits[rc.key]);
-    if(!ok) return fail(`Couldn't fit the model — your runs may be too uniform to learn a trend.`);
-    effRaceKey = ok.key;
-  }
-
-  const lastT   = obs[obs.length-1].t;
-  const horizon = lastT + Math.round(365*1.5);      // project 1.5 years past the last run
-  lastEffFits = { std, fits, obs, lastT, horizon };
-
-  // Race toggle buttons.
-  document.getElementById('effRaceToggle').innerHTML = EFF_RACES.map(rc =>
-    `<div class="mini-chip${rc.key===effRaceKey?' active':''}" style="${fits[rc.key]?'':'opacity:.4;pointer-events:none'}" onclick="setEffRace('${rc.key}')">${rc.label}</div>`
-  ).join('');
-
-  const rc = EFF_RACES.find(r => r.key===effRaceKey);
-  const m  = fits[effRaceKey];
-
-  // s/km gained per bpm (negative = higher HR runs faster). Shown so the HR normalization is transparent.
-  const sHR = m.cFC;
-  const sHRabs = Math.abs(sHR).toFixed(2);
-  note.innerHTML = `Every run is <b>projected to the ${rc.label} (${rc.dist>21?'21.1':rc.dist} km)</b> (Riegel, same as the race cards), then weighted by <b>distance proximity</b> — ` +
-    `${rc.label} = 100%, −2.5%/km shorter, +2.5%/km longer (a 15&nbsp;km run counts more toward your 10K than a 5&nbsp;km does). ` +
-    `Then each run's pace is <b>normalized to ${std.fc} bpm · ${std.h} m D+</b>: ` +
-    `<code style="font-family:var(--font-mono);color:var(--text)">pace₍norm₎ = pace − ${sHRabs}·(${std.fc} − HR)</code> — ` +
-    `so a run at the same pace but <b>lower HR normalizes faster</b> (here every −1 bpm ≈ −${sHRabs} s/km). ` +
-    `The <b style="color:#ff6b4a">orange line</b> is your <b>typical/expected</b> pace; the <b style="color:#00e676">green line</b> is your <b>best day possible</b> — the fast edge of the scatter, where everything clicks.` +
-    (m.wallMult > 1.001
-      ? ` <span style="color:var(--orange)">You've only run ≥${(rc.dist*0.95).toFixed(0)} km <b>${m.longRunCount}&nbsp;time${m.longRunCount===1?'':'s'}</b> (proven distance ≈ ${m.provenDist.toFixed(0)} km), so this ${rc.label} carries a <b>+${((m.wallMult-1)*100).toFixed(0)}% unproven-distance penalty</b> — Riegel-scaling from shorter runs flatters the long stuff. Do more long runs to earn it back.</span>`
-      : ``);
-
-  // ── HR-ADJUSTED TREND READOUT — the honest "am I faster at equal HR?" answer ──
-  // Built on the SAME Riegel-scaled, distance-weighted rows the race model uses, so it's
-  // apples-to-apples with the chart above.
-  renderEffTrendReadout(m.rows, std, rc);
-
-  // Confidence % — how much to trust WHERE YOU ARE (not whether a trend exists; a flat but
-  // tight history is high-confidence). Blend of two things:
-  //   • sample: effective near-distance run count, saturating toward 1 around ~20 runs.
-  //   • tightness: how consistent your NORMALIZED runs are (low scatter = trustworthy).
-  //     rmse in s/km → 1 at 0, ~0.5 at 20 s/km, → 0 as scatter grows.
-  const sampleFactor = Math.min(1, m.effN / 20);
-  const rmse = m.rmse;                               // s/km scatter of normalized pace
-  const tightness = 1 / (1 + (rmse/20)**2);          // 1 when perfectly consistent
-  const confPct   = Math.round(100 * Math.pow(sampleFactor * tightness, 0.5));   // geometric-ish blend
-  const confColor = confPct >= 66 ? 'var(--green)' : confPct >= 40 ? 'var(--orange)' : 'var(--red)';
-
-  // Projected typical pace at time t, floored so it can't extrapolate past a physically
-  // plausible ~8% beyond your best normalized run (the raw asymptote is unstable when the
-  // curve is near-linear). Drives both the chart curve and the predictor boxes.
-  const effClamped = t => Math.max(m.limitFloor, m.effAt(t));
-
-  document.getElementById('effModelStats').innerHTML = `
-    <div id="effPredictCard" style="display:contents"></div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:4px">Confidence</div>
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:${confColor}">${confPct}%</div>
-      <div style="color:${confColor};font-size:11px;margin-top:2px">n=${m.n} (eff ${m.effN.toFixed(0)}) · ±${rmse.toFixed(0)}s scatter</div>
-    </div>`;
-  renderEffPredictCard();
-
-  // Honest caveat.
-  const caveat = document.getElementById('effModelCaveat');
-  caveat.style.display = 'block';
-  caveat.querySelector('#effCaveatBody').innerHTML =
-    `<p style="margin:0 0 10px;">Each race is fit from <b style="color:var(--text)">all ${obs.length} runs</b>, not just ones at that exact distance. A run's pace is Riegel-scaled to the race distance (~3.5% per doubling), then weighted by <b style="color:var(--text)">proof of distance</b>: the race distance = 100%, <b style="color:var(--text)">−2.5% per km shorter, +2.5% per km longer</b> (floored at 10%). A longer run is stronger evidence you can hold pace — so a 15 km run counts <b style="color:var(--text)">more</b> toward your 10K than a 5 km does, and there's no upper cap. <b style="color:var(--text)">Effective sample size (eff)</b> is that weighted count.</p>` +
-    `<p style="margin:0 0 10px;">HR and elevation are regressed out; the leftover time trend is the <b style="color:var(--text)">saturating-exponential</b> shown. The <b style="color:var(--text)">plateau (limit) is the least certain number</b> — it's optimistic on sparse data and moves as you add runs. Treat it as a direction.</p>` +
-    `<p style="margin:0;">The dashed line projects <b style="color:var(--text)">1.5 years</b> past your last run; confidence drops the further out it runs. Confidence <b style="color:var(--text)">(${confPct}%)</b> reflects how many runs back the fit and how tightly they cluster — not whether a time-trend exists.</p>`;
-
-  // ── Chart: weighted scatter of Riegel-projected race pace + fitted curve + projection ──
-  const projPts = m.rows.map(o => {
-    // remove HR + elevation offsets so the point sits on the "standard-condition" scale
-    const norm = o.pace - m.cFC*(o.fc-std.fc) - m.cH*(o.h-std.h);
-    return { x:o.t, y: norm/60, w:o.w };
-  });
-  const ptAlpha  = projPts.map(p => Math.max(0.15, p.w).toFixed(2));
-  const ptRadius = projPts.map(p => 2 + 4*p.w);
-
-  const curve = [];
-  const step = Math.max(1, Math.round((horizon - m.t0)/160));
-  for(let t=m.t0; t<=horizon; t+=step) curve.push({ x:t, y:effClamped(t)/60 });
-  const solidCurve = curve.map(p => (p.x <= lastT) ? p : {x:p.x, y:null});
-  const projCurve  = curve.map(p => (p.x >= lastT) ? p : {x:p.x, y:null});
-
-  // BEST-DAY line (green): the orange line is your AVERAGE/expected pace at 165 bpm; your PBs
-  // sit on the fast edge of the scatter. Best day ≈ fitted − 1.5·scatter (a "good day" that
-  // lands near your fastest normalized runs), never faster than your actual best normalized run.
-  const bestEdge = t => Math.max(m.bestNorm, effClamped(t) - 1.5*rmse);
-  const bestCurve = curve.map(p => ({ x:p.x, y: bestEdge(p.x)/60 }));
-
-  // Pin x to the data range; one tick per QUARTER (Jan/Apr/Jul/Oct) so months are visible
-  // across the ~2-yr projection without crowding. Ticks labelled "Mon 'YY".
-  const xMin = m.t0, xMax = horizon;
-  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const qTicks = [];
-  const y0 = new Date(xMin*86400000).getFullYear(), y1 = new Date(xMax*86400000).getFullYear()+1;
-  for(let yr=y0; yr<=y1; yr++) for(const mo of [0,3,6,9]){
-    const dayEpoch = new Date(yr,mo,1).getTime()/86400000;
-    if(dayEpoch >= xMin-1 && dayEpoch <= xMax+1) qTicks.push(dayEpoch);
-  }
-  const fmtTick = v => { const d=new Date(v*86400000); return `${MON[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`; };
-
-  canvas.style.display = '';
-  const ctx = canvas.getContext('2d');
-  charts['effModel'] = new Chart(ctx, {
-    type: 'scatter',
-    data: {
-      datasets: [
-        { type:'line', label:`${rc.label} pace (fitted)`, data:solidCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2.7, pointRadius:0, tension:0.25, fill:false, spanGaps:false },
-        { type:'line', label:'Projection (1.5 yr)', data:projCurve, parsing:false, borderColor:'#ff6b4a', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.25, fill:false, spanGaps:false },
-        { type:'line', label:'Best day possible', data:bestCurve, parsing:false, borderColor:'#00e676', borderWidth:2.4, pointRadius:0, tension:0.25, fill:false },
-        { type:'scatter', label:'Runs (→ race pace, sized by weight)', data:projPts, parsing:false,
-          backgroundColor: projPts.map((_,i)=>`rgba(120,150,170,${Math.max(0.25,ptAlpha[i])})`), borderColor:'#8b9bad', pointRadius: ptRadius },
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      interaction: NEAR_INTERACTION,
-      onClick: tapToDismiss(),
-      plugins: {
-        legend: { labels:{color:'#8a9aaa',font:{family:'DM Mono',size:10}} },
-        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
-          title: items => {
-            const d = new Date(items[0].parsed.x * 86400000);
-            const p = n => String(n).padStart(2,'0');
-            return `${p(d.getDate())}/${p(d.getMonth()+1)}/${String(d.getFullYear()).slice(2)}`;
-          },
-          labelColor: c => solidSwatch(c.dataset.borderColor),
-          label: c => `${paceStr(Math.round(c.parsed.y*60))} /km`
-        } }
-      },
-      scales: {
-        x: { type:'linear', min:xMin, max:xMax, afterBuildTicks:a=>{a.ticks=qTicks.map(v=>({value:v}));}, ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},autoSkip:true,maxRotation:45,minRotation:45,callback:fmtTick}, grid:{color:'rgba(255,255,255,0.04)'} },
-        y: { reverse:true, ticks:{color:'#8a9aaa',font:{family:'DM Mono',size:10},callback:v=>{const m2=Math.floor(v);const s=Math.round((v%1)*60);return `${m2}:${String(s).padStart(2,'0')}`;}}, grid:{color:'rgba(255,255,255,0.04)'}, title:{display:true,text:`Equivalent ${rc.label} pace /km`,color:'#5a6a7a',font:{family:'DM Mono',size:10}} }
-      }
-    }
-  });
-}
-
-// Interactive predictor: two boxes (Typical + Best) for a single user-chosen date.
-let effPredDate = null;                      // yyyy-mm-dd string; null = today
-function setEffPredDate(v){ effPredDate = v || null; renderEffPredictCard(); }
-
-function renderEffPredictCard() {
-  const el = document.getElementById('effPredictCard');
-  if(!el || !lastEffFits) return;
-  const { fits } = lastEffFits;
-  const rc = EFF_RACES.find(r => r.key === effRaceKey);
-  const m  = fits[effRaceKey];
-  if(!m) { el.innerHTML = ''; return; }
-
-  // Chosen date → days-epoch (default today), clamped to ≥ first run.
-  const todayT = Date.now()/86400000;
-  const defISO = new Date(todayT*86400000).toISOString().split('T')[0];
-  const tSel = effPredDate ? new Date(effPredDate+'T00:00:00').getTime()/86400000 : todayT;
-  const tClamped = Math.max(m.t0, tSel);
-
-  const typical = Math.max(m.limitFloor, m.effAt(tClamped));
-  const best    = Math.max(m.bestNorm,   typical - 1.5*m.rmse);
-  const dateInput =
-    `<input type="date" value="${effPredDate||defISO}" min="${new Date(m.t0*86400000).toISOString().split('T')[0]}"`+
-    ` onchange="setEffPredDate(this.value)"`+
-    ` style="margin-top:8px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;">`;
-
-  el.innerHTML = `
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:var(--font-mono);font-size:14px;">
-      <div style="color:var(--muted);margin-bottom:8px">${rc.label} — projected finish</div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap;">
-        <div>
-          <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:#ff6b4a">${secondsToTime(Math.round(typical*rc.dist))}</div>
-          <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(typical)} /km · typical day</div>
-        </div>
-        <div>
-          <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--green)">${secondsToTime(Math.round(best*rc.dist))}</div>
-          <div style="color:var(--muted2);font-size:11px;margin-top:2px">${paceStr(best)} /km · best day</div>
-        </div>
-      </div>
-      ${dateInput}
-    </div>`;
-}
-
-// Render the HR-adjusted trend banner: raw pace change vs HR change vs pace-at-equal-HR.
-function renderEffTrendReadout(rows, std, rc) {
-  const el = document.getElementById('effTrendReadout');
-  if(!el) return;
-  const tr = hrAdjustedTrend(rows, std.fc, std.h);
-  if(!tr || tr.spanMo < 1) { el.innerHTML = ''; return; }
-
-  const secTot = s => (s>=0?'+':'−') + Math.abs(s).toFixed(0) + 's';
-  const bpmTot = b => (b>=0?'+':'−') + Math.abs(b).toFixed(0) + ' bpm';
-  // When HR and time are badly collinear, the adjusted trend can't be pinned down — widen
-  // the "flat" dead-band so we don't over-claim faster/slower on shaky evidence.
-  const collinear = Math.abs(tr.hrTimeCorr) > 0.8;
-  const band = collinear ? 12 : 6;               // s/km over the whole span counted as "flat/noise"
-  const adj = tr.adjDelta;
-  let verdict, vColor, vIcon;
-  if(adj <= -band)      { verdict = `Faster at the same effort — you're getting fitter`; vColor='var(--green)'; vIcon='▲'; }
-  else if(adj >= band)  { verdict = `Slower at the same effort`; vColor='var(--red)'; vIcon='▼'; }
-  else                  { verdict = `Flat at the same effort — stable, within noise`; vColor='var(--muted2)'; vIcon='＝'; }
-  // Does the HR-adjusted story differ from the raw one? (your case: raw looks slower, adjusted is flat/faster)
-  const rawSaysSlower = tr.rawDelta >= 5, hrDropped = tr.hrDelta <= -3;
-  let insight = (rawSaysSlower && adj < tr.rawDelta - 4 && hrDropped)
-    ? `Your raw pace looks slower, but that's because you're running <b style="color:var(--text)">${bpmTot(tr.hrDelta)}</b> — at the same heart rate you're ${adj<=-band?'actually faster':'holding steady'}. The apparent slowdown is easier running, not lost fitness.`
-    : `Raw pace and heart rate move together here, so the raw and HR-adjusted trends agree.`;
-  if(collinear)
-    insight += ` <span style="color:var(--orange)">Your heart rate fell steadily as time passed, so the split between "time" and "effort" is hard to pin down exactly — read the equal-HR number as a direction, not a precise figure.</span>`;
-
-  el.innerHTML = `
-    <div style="border:1px solid ${vColor};border-radius:10px;background:var(--card2);padding:14px 16px;">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <span style="font-size:18px;color:${vColor};font-family:var(--font-mono)">${vIcon}</span>
-        <span style="font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:.3px;color:${vColor}">${verdict}</span>
-        <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-left:auto">over ${tr.spanMo.toFixed(0)} months · ${rc.label} · @${std.fc} bpm</span>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
-          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Raw pace change</div>
-          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:#d7dee6">${secTot(tr.rawDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
-          <div style="color:var(--muted);font-size:10px;margin-top:2px">what a naive look sees</div>
-        </div>
-        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
-          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Heart-rate change</div>
-          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${tr.hrDelta<=-3?'var(--green)':tr.hrDelta>=3?'var(--orange)':'#d7dee6'}">${bpmTot(tr.hrDelta)}</div>
-          <div style="color:var(--muted);font-size:10px;margin-top:2px">${tr.hrDelta<=-3?'running easier':tr.hrDelta>=3?'running harder':'about the same'}</div>
-        </div>
-        <div style="flex:1;min-width:150px;background:var(--card);border:1px solid ${vColor};border-radius:8px;padding:9px 13px;font-family:var(--font-mono)">
-          <div style="color:var(--muted);font-size:11px;margin-bottom:3px">Pace at EQUAL heart rate</div>
-          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${vColor}">${secTot(tr.adjDelta)}<span style="font-size:12px;color:var(--muted2)"> /km</span></div>
-          <div style="color:var(--muted);font-size:10px;margin-top:2px">the real fitness signal</div>
-        </div>
-      </div>
-      <p style="margin:11px 0 0;font-family:var(--font-body);font-size:13px;line-height:1.55;color:var(--muted2)">${insight}${tr.clamped?' <span style="color:var(--muted);font-size:11px">(HR sensitivity clamped to a physiological range — few runs to estimate it from.)</span>':''}</p>
-    </div>`;
-}
-
-// Re-fit when the user edits the standard conditions.
-function refitEffModel() { if(lastRenderedData) renderEfficiencyModel(lastRenderedData); }
-
-function byId(id){ return document.getElementById(id); }
-function clampNum(el, def, lo, hi){
-  if(!el) return def;
-  const v = parseFloat(el.value);
-  if(isNaN(v)) return def;
-  return Math.min(hi, Math.max(lo, v));
-}
-
-function toggleEffCaveat() {
-  const body = document.getElementById('effCaveatBody');
-  const chev = document.getElementById('effCaveatChev');
-  const open = body.style.display === 'block';
-  body.style.display = open ? 'none' : 'block';
-  chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
 /* ACWR */
@@ -4508,9 +3937,8 @@ function clearLogFilters() {
 
 /* ── UTILS ── */
 function paceStr(sec) {
-  const total = Math.round(sec);            // round FIRST, else 299.7 → 4:60
-  const m = Math.floor(total / 60);
-  const s = total % 60;
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 function secondsToTime(s){
