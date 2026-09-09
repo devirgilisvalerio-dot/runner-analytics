@@ -2001,19 +2001,18 @@ function renderBikeComponents() {
   const rides = allBikes || [];
   let html = '';
   for(const c of BIKE_COMPONENTS){
-    let baseKm, hrSum = 0, hrCount = 0, kmForSpeed = 0, secForSpeed = 0;
-    if(typeof c.fixedKm === 'number'){
-      baseKm = c.fixedKm;
-    } else {
-      baseKm = 0;
-      rides.forEach(r => {
-        if(c.from && r.date < c.from) return;
-        if(c.to   && r.date > c.to)   return;
-        baseKm += r.distance;
-        if(r.hr){ hrSum += r.hr; hrCount++; }
-        if(r.durationSec > 0 && r.distance > 0){ kmForSpeed += r.distance; secForSpeed += r.durationSec; }
-      });
-    }
+    let rideKm = 0, hrSum = 0, hrCount = 0, kmForSpeed = 0, secForSpeed = 0;
+    // Always scan rides in the component's date window for HR/speed stats,
+    // even when km is a fixed pre-tracking total — so avg BPM/speed fill in
+    // whenever any synced rides fall in that range.
+    rides.forEach(r => {
+      if(c.from && r.date < c.from) return;
+      if(c.to   && r.date > c.to)   return;
+      rideKm += r.distance;
+      if(r.hr){ hrSum += r.hr; hrCount++; }
+      if(r.durationSec > 0 && r.distance > 0){ kmForSpeed += r.distance; secForSpeed += r.durationSec; }
+    });
+    const baseKm = typeof c.fixedKm === 'number' ? c.fixedKm : rideKm;
     const totalKm = baseKm * (1 + c.uplift); // uplift hidden — folded in silently
     const wearPct = (totalKm / c.limit) * 100;      // true wear (can exceed 100%)
     const barWidth = Math.min(100, wearPct);        // bar can't overflow visually
