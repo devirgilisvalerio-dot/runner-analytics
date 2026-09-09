@@ -940,6 +940,13 @@ td b{ font-family:var(--font-mono); }
           <p style="margin:0;">If the target is longer than your <b style="color:var(--text)">longest ride in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">1.5% slower for every time the target exceeds your longest ride</b> (for example, 140 km off a 70 km longest ride is twice the distance, so it's penalized ~1.5%).</p>
         </div>
       </div>
+      <!-- COMPONENT WEAR (chain / tires) — mirror of Shoe Rotation -->
+      <div id="bikeComponentSection" style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
+        <div class="card-title"><span>Component Wear</span> <span style="color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— chain &amp; tires</span></div>
+        <div id="bikeComponentContainer" style="display:flex;flex-direction:row;gap:14px;flex-wrap:wrap;">
+          <p style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">Sync to analyze wear.</p>
+        </div>
+      </div>
     </div>
 
     <!-- PROGRESS ANALYZER -->
@@ -1972,6 +1979,66 @@ function renderShoes(data) {
   document.getElementById('shoeContainer').innerHTML = html || '<p style="color:var(--muted);font-size:13px;font-family:var(--font-mono)">No shoes detected.</p>';
 }
 
+/* BIKE COMPONENT WEAR (chain / tires) — mirror of Shoe Rotation.
+   Cumulative lifetime mileage per component, so it reads from ALL rides
+   (allBikes), NOT the filtered set — a year filter shouldn't shrink an odometer.
+   Each component's `uplift` accounts for untracked km (e.g. rides without a
+   recorded file); it is folded into the displayed total but NEVER shown. */
+const BIKE_COMPONENTS = [
+  // Previous chain: pre-tracking, known total 4177.2 km + 10% (hidden). Retired 2025-05-01.
+  { icon:'⛓️', name:'Chain — previous', limit:5000, uplift:0.10, fixedKm:4177.2, to:'2025-05-01', retired:true },
+  // Current chain: rides on/after 2025-05-10, + 5% (hidden).
+  { icon:'⛓️', name:'Chain — current',  limit:5000, uplift:0.05, from:'2025-05-10' },
+  // Previous tires (Michelin): 2021-07-25 → 2026-07-14, + 5% (hidden). Retired.
+  { icon:'🛞', name:'Tires — Michelin (previous)', limit:4000, uplift:0.05, from:'2021-07-25', to:'2026-07-14', retired:true },
+  // Current tires (Pirelli): rides on/after 2026-07-18, + 5% (hidden).
+  { icon:'🛞', name:'Tires — Pirelli (current)',   limit:4000, uplift:0.05, from:'2026-07-18' },
+];
+
+function renderBikeComponents() {
+  const container = document.getElementById('bikeComponentContainer');
+  if(!container) return;
+  const rides = allBikes || [];
+  let html = '';
+  for(const c of BIKE_COMPONENTS){
+    let baseKm, hrSum = 0, hrCount = 0, kmForSpeed = 0, secForSpeed = 0;
+    if(typeof c.fixedKm === 'number'){
+      baseKm = c.fixedKm;
+    } else {
+      baseKm = 0;
+      rides.forEach(r => {
+        if(c.from && r.date < c.from) return;
+        if(c.to   && r.date > c.to)   return;
+        baseKm += r.distance;
+        if(r.hr){ hrSum += r.hr; hrCount++; }
+        if(r.durationSec > 0 && r.distance > 0){ kmForSpeed += r.distance; secForSpeed += r.durationSec; }
+      });
+    }
+    const totalKm = baseKm * (1 + c.uplift); // uplift hidden — folded in silently
+    const wear = Math.min(100, (totalKm / c.limit) * 100);
+    const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
+    const bpm = hrCount ? Math.round(hrSum / hrCount) : null;
+    const avgSpeed = secForSpeed > 0 ? (kmForSpeed / (secForSpeed / 3600)).toFixed(1) + ' km/h' : null;
+    const range = c.from && c.to ? `${c.from} → ${c.to}`
+                : c.from ? `${c.from} → now`
+                : c.to   ? `until ${c.to}`
+                : '';
+    const retiredTag = c.retired ? ` <span style="font-size:11px;color:var(--muted2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;">retired</span>` : '';
+    html += `
+    <div class="shoe-card" style="flex:1 1 0;min-width:220px;${c.retired ? 'opacity:.72;' : ''}">
+      <div class="shoe-header"><strong>${c.icon} ${c.name}</strong><span class="shoe-km">${totalKm.toFixed(1)} km</span></div>
+      <div style="margin-top:2px;font-size:12px;color:var(--muted);font-family:var(--font-mono)">${range}${retiredTag}</div>
+      <div style="display:flex;gap:16px;margin-top:4px;">
+        <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
+        <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg speed: <b style="color:var(--green)">${avgSpeed ?? '—'}</b></div>
+      </div>
+      <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of ${c.limit} km</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
 /* TABLE */
 function renderTable(data) {
   const tbody = document.getElementById('runsTable');
@@ -2616,6 +2683,7 @@ function renderBikeDashboard(data) {
   renderProgress(data, 'cycling');
   renderPolarizedChart(data, 'cycling');
   renderPersonalRecords(data, 'cycling');
+  renderBikeComponents();
   renderBikeTable(data);
 }
 
