@@ -2024,7 +2024,7 @@ function renderBikeComponents() {
                 : c.from ? `${c.from} → now`
                 : c.to   ? `until ${c.to}`
                 : '';
-    const retiredTag = c.retired ? ` <span style="font-size:10px;color:var(--muted2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;border:1px solid var(--border);border-radius:4px;padding:1px 5px;vertical-align:1px;">retired</span>` : '';
+    const retiredTag = c.retired ? ` <span style="font-size:10px;font-weight:400;color:var(--red);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;vertical-align:1px;">retired</span>` : '';
     html += `
     <div class="shoe-card" style="flex:1 1 0;min-width:220px;${c.retired ? 'opacity:.72;' : ''}">
       <div class="shoe-header"><strong>${c.icon} ${c.name}${retiredTag}</strong><span class="shoe-km">${totalKm.toFixed(1)} km</span></div>
@@ -2034,7 +2034,7 @@ function renderBikeComponents() {
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg speed: <b style="color:var(--green)">${avgSpeed ?? '—'}</b></div>
       </div>
       <div class="bar"><div class="fill" style="width:${barWidth}%;background:${wearColor}"></div></div>
-      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wearPct.toFixed(0)}% of ${c.limit} km${wearPct > 100 ? ' <span style="color:var(--red)">· replace</span>' : ''}</div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wearPct.toFixed(0)}% of ${c.limit} km</div>
     </div>`;
   }
   container.innerHTML = html;
