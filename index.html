@@ -1985,14 +1985,14 @@ function renderShoes(data) {
    Each component's `uplift` accounts for untracked km (e.g. rides without a
    recorded file); it is folded into the displayed total but NEVER shown. */
 const BIKE_COMPONENTS = [
-  // Previous chain: pre-tracking, known total 4177.2 km + 10% (hidden). Retired 2025-05-01.
-  { icon:'⛓️', name:'Chain — previous', limit:5000, uplift:0.10, fixedKm:4177.2, to:'2025-05-01', retired:true },
+  // Previous chain: pre-tracking, known total 4177.2 km + 10% (hidden). 2021-02-27 → 2025-05-01.
+  { icon:'⛓️', name:'Chain', limit:5000, uplift:0.10, fixedKm:4177.2, from:'2021-02-27', to:'2025-05-01', retired:true },
   // Current chain: rides on/after 2025-05-10, + 5% (hidden).
-  { icon:'⛓️', name:'Chain — current',  limit:5000, uplift:0.05, from:'2025-05-10' },
+  { icon:'⛓️', name:'Chain',  limit:5000, uplift:0.05, from:'2025-05-10' },
   // Previous tires (Michelin): 2021-07-25 → 2026-07-14, + 5% (hidden). Retired.
-  { icon:'🛞', name:'Tires — Michelin (previous)', limit:4000, uplift:0.05, from:'2021-07-25', to:'2026-07-14', retired:true },
+  { icon:'🔘', name:'Tires — Michelin', limit:4000, uplift:0.05, from:'2021-07-25', to:'2026-07-14', retired:true },
   // Current tires (Pirelli): rides on/after 2026-07-18, + 5% (hidden).
-  { icon:'🛞', name:'Tires — Pirelli (current)',   limit:4000, uplift:0.05, from:'2026-07-18' },
+  { icon:'🔘', name:'Tires — Pirelli',   limit:4000, uplift:0.05, from:'2026-07-18' },
 ];
 
 function renderBikeComponents() {
@@ -2015,25 +2015,26 @@ function renderBikeComponents() {
       });
     }
     const totalKm = baseKm * (1 + c.uplift); // uplift hidden — folded in silently
-    const wear = Math.min(100, (totalKm / c.limit) * 100);
-    const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
+    const wearPct = (totalKm / c.limit) * 100;      // true wear (can exceed 100%)
+    const barWidth = Math.min(100, wearPct);        // bar can't overflow visually
+    const wearColor = wearPct < 40 ? 'var(--green)' : wearPct < 75 ? 'var(--orange)' : 'var(--red)';
     const bpm = hrCount ? Math.round(hrSum / hrCount) : null;
     const avgSpeed = secForSpeed > 0 ? (kmForSpeed / (secForSpeed / 3600)).toFixed(1) + ' km/h' : null;
     const range = c.from && c.to ? `${c.from} → ${c.to}`
                 : c.from ? `${c.from} → now`
                 : c.to   ? `until ${c.to}`
                 : '';
-    const retiredTag = c.retired ? ` <span style="font-size:11px;color:var(--muted2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;">retired</span>` : '';
+    const retiredTag = c.retired ? ` <span style="font-size:10px;color:var(--muted2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;border:1px solid var(--border);border-radius:4px;padding:1px 5px;vertical-align:1px;">retired</span>` : '';
     html += `
     <div class="shoe-card" style="flex:1 1 0;min-width:220px;${c.retired ? 'opacity:.72;' : ''}">
-      <div class="shoe-header"><strong>${c.icon} ${c.name}</strong><span class="shoe-km">${totalKm.toFixed(1)} km</span></div>
-      <div style="margin-top:2px;font-size:12px;color:var(--muted);font-family:var(--font-mono)">${range}${retiredTag}</div>
+      <div class="shoe-header"><strong>${c.icon} ${c.name}${retiredTag}</strong><span class="shoe-km">${totalKm.toFixed(1)} km</span></div>
+      <div style="margin-top:2px;font-size:12px;color:var(--muted);font-family:var(--font-mono)">${range}</div>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg speed: <b style="color:var(--green)">${avgSpeed ?? '—'}</b></div>
       </div>
-      <div class="bar"><div class="fill" style="width:${wear}%;background:${wearColor}"></div></div>
-      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wear.toFixed(0)}% of ${c.limit} km</div>
+      <div class="bar"><div class="fill" style="width:${barWidth}%;background:${wearColor}"></div></div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted);font-family:var(--font-mono)">Wear ${wearPct.toFixed(0)}% of ${c.limit} km${wearPct > 100 ? ' <span style="color:var(--red)">· replace</span>' : ''}</div>
     </div>`;
   }
   container.innerHTML = html;
