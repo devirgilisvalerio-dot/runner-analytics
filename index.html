@@ -2410,6 +2410,14 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
 
   const labels = shown.map(r => r.date);
   const kms    = shown.map(r => r.distance);
+  // secondary metric shown on the "Total" tooltip line: pace for running, speed for cycling
+  const metricStr = shown.map(r => {
+    if(sport === 'cycling'){
+      const kmh = r.durationSec > 0 ? r.distance / (r.durationSec / 3600) : null;
+      return kmh ? kmh.toFixed(1) + ' km/h' : null;
+    }
+    return r.paceSecPerKm ? paceStr(r.paceSecPerKm) + ' /km' : null;
+  });
   // per-zone km series
   const zoneSeries = ZONELOAD_ZONES.map(() => []);
   const noHrKm = [];
@@ -2452,12 +2460,19 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
         legend: { display: false },
         tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
           label: c => {
-            if(c.dataset.label === 'Km') return `Total: ${c.parsed.y.toFixed(1)} km`;
+            if(c.dataset.label === 'Km'){
+              const m = metricStr[c.dataIndex];
+              return `Total: ${c.parsed.y.toFixed(1)} km${m ? '   ·   ' + m : ''}`;
+            }
             const tot = kms[c.dataIndex] || 0;
             if(!c.parsed.y) return null;
             const pct = tot ? Math.round(c.parsed.y / tot * 100) : 0;
             return `${c.dataset.label}: ${pct}%  (${c.parsed.y.toFixed(1)} km)`;
-          }
+          },
+          // no color swatch for the Km/Total row (transparent box)
+          labelColor: c => c.dataset.label === 'Km'
+            ? { borderColor:'transparent', backgroundColor:'transparent', borderWidth:0 }
+            : { borderColor:c.dataset.borderColor, backgroundColor:c.dataset.borderColor, borderWidth:0 }
         } }
       },
       scales: {
