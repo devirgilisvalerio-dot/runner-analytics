@@ -2458,11 +2458,11 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
+        tooltip: { ...TREND_TOOLTIP_STYLE, usePointStyle: false, callbacks: {
           label: c => {
             if(c.dataset.label === 'Km'){
               const m = metricStr[c.dataIndex];
-              return `Total: ${c.parsed.y.toFixed(1)} km${m ? '   ·   ' + m : ''}`;
+              return `Total: ${c.parsed.y.toFixed(1)} km${m ? ' · ' + m : ''}`;
             }
             const tot = kms[c.dataIndex] || 0;
             if(!c.parsed.y) return null;
