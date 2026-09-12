@@ -529,6 +529,20 @@ td b{ font-family:var(--font-mono); }
       </div>
     </div>
 
+    <!-- HOME: Training Load by Zone side by side (last 12 activities) -->
+    <div class="two-col" style="margin-bottom:20px;align-items:start;">
+      <div class="card" id="homeZoneLoadRunSection" style="display:none;">
+        <div class="card-title"><span>Training Load by Zone</span> <span id="homeZoneLoadRunTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Running · last 12</span></div>
+        <div class="chart-box-lg"><canvas id="homeZoneLoadRun"></canvas></div>
+        <div id="zoneLoadLegendHomeRun" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-family:var(--font-mono);font-size:12px;color:var(--muted2);"></div>
+      </div>
+      <div class="card" id="homeZoneLoadBikeSection" style="display:none;">
+        <div class="card-title"><span>Training Load by Zone</span> <span id="homeZoneLoadBikeTitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— Cycling · last 12</span></div>
+        <div class="chart-box-lg"><canvas id="homeZoneLoadBike"></canvas></div>
+        <div id="zoneLoadLegendHomeBike" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-family:var(--font-mono);font-size:12px;color:var(--muted2);"></div>
+      </div>
+    </div>
+
     <!-- HOME: ACWR side by side -->
     <div class="two-col" style="margin-bottom:20px;align-items:start;">
       <div class="card" id="homeAcwrRunSection" style="display:none;">
@@ -726,6 +740,14 @@ td b{ font-family:var(--font-mono); }
     </p>
   </div>
 
+  <!-- TRAINING LOAD BY ZONE (zone-colored area under KM line) -->
+  <div class="card" id="runZoneLoadSection" style="display:none;margin-bottom:20px;">
+    <div class="card-title"><span>Training Load by Zone</span> <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">— KM per activity, area colored by time in each HR zone</span></div>
+    <div class="mini-filter" id="zoneLoadControlsRun"></div>
+    <div class="chart-box-lg"><canvas id="runZoneLoad"></canvas></div>
+    <div id="zoneLoadLegendRun" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--muted2);"></div>
+  </div>
+
   <!-- POLARIZED TRAINING CHECK -->
   <div class="card" id="runPolarizedSection" style="display:none;margin-bottom:20px;">
     <div class="card-title"><span>Polarized Training Check</span></div>
@@ -773,7 +795,7 @@ td b{ font-family:var(--font-mono); }
           Max HR:
           <input id="maxHrInput" type="number" value="187" min="140" max="220"
             style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
-            oninput="renderHrZones(lastRenderedData)">
+            oninput="renderHrZones(lastRenderedData); renderPolarizedChart(lastRenderedData||[], 'running'); renderZoneLoadChart('runZoneLoad','runZoneLoad',lastRenderedData||[],'running',ZONELOAD_N,'zoneLoadNoteRun'); if(allRuns&&allRuns.length) renderZoneLoadChart('homeZoneLoadRun','homeZoneLoadRun',allRuns,'running',12,null)">
         </span>
       </div>
       <div id="hrZoneContainer">
@@ -991,6 +1013,14 @@ td b{ font-family:var(--font-mono); }
       </p>
     </div>
 
+    <!-- TRAINING LOAD BY ZONE (zone-colored area under KM line) -->
+    <div class="card" id="bikeZoneLoadSection" style="display:none;margin-bottom:20px;">
+      <div class="card-title"><span>Training Load by Zone</span> <span style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono);color:var(--muted)">— KM per activity, area colored by time in each HR zone</span></div>
+      <div class="mini-filter" id="zoneLoadControlsBike"></div>
+      <div class="chart-box-lg"><canvas id="bikeZoneLoad"></canvas></div>
+      <div id="zoneLoadLegendBike" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--muted2);"></div>
+    </div>
+
     <!-- POLARIZED TRAINING CHECK -->
     <div class="card" id="bikePolarizedSection" style="display:none;margin-bottom:20px;">
       <div class="card-title"><span>Polarized Training Check</span></div>
@@ -1027,7 +1057,7 @@ td b{ font-family:var(--font-mono); }
             Max HR:
             <input id="bikeMaxHrInput" type="number" value="187" min="140" max="220"
               style="width:56px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:14px;padding:3px 6px;outline:none;text-align:center;"
-              oninput="renderBikeHrZones(allBikes)">
+              oninput="renderBikeHrZones(allBikes); renderPolarizedChart(lastBikeRenderedData||[], 'cycling'); renderZoneLoadChart('bikeZoneLoad','bikeZoneLoad',lastBikeRenderedData||[],'cycling',ZONELOAD_N,'zoneLoadNoteBike'); if(allBikes&&allBikes.length) renderZoneLoadChart('homeZoneLoadBike','homeZoneLoadBike',allBikes,'cycling',12,null)">
           </span>
         </div>
         <div id="bikeHrZoneContainer">
@@ -1211,6 +1241,7 @@ function parseFIT(buffer) {
 
   const withSpd = records.filter(r => r.speed != null && r.speed > 3);
   const paceDistribution = computePaceDistribution(withSpd);
+  const hrHist = computeHrHistogram(records);
 
   const dateStr = firstTs ? new Date(firstTs).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
@@ -1221,9 +1252,30 @@ function parseFIT(buffer) {
     durationSec,
     hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
     calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
-    paceSecPerKm, bestSplitPace, kmSplits, paceDistribution,
+    paceSecPerKm, bestSplitPace, kmSplits, paceDistribution, hrHist,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
   };
+}
+
+// Time-in-HR-distribution: seconds spent at each integer bpm (time-weighted by the
+// gaps ≤ MAX_GAP_SEC, so pauses are excluded — mirrors the moving-time rule). Zones
+// are computed from this at RENDER time, since Max HR is user-editable. Falls back to
+// per-sample counts when the file has no usable timestamps. `null` when no HR at all.
+function computeHrHistogram(records, MAX_GAP_SEC = 10) {
+  const byTime = [...records].filter(r => r.ts != null).sort((a,b) => a.ts - b.ts);
+  const hist = {};
+  for(let i = 1; i < byTime.length; i++) {
+    const dt = (byTime[i].ts - byTime[i-1].ts) / 1000;
+    const hr = byTime[i].hr;
+    if(dt > 0 && dt <= MAX_GAP_SEC && hr && hr > 30 && hr < 250) {
+      const b = Math.round(hr);
+      hist[b] = (hist[b] || 0) + dt;
+    }
+  }
+  if(Object.keys(hist).length === 0) {   // no timestamps → weight each sample equally
+    records.forEach(r => { if(r.hr && r.hr > 30 && r.hr < 250){ const b = Math.round(r.hr); hist[b] = (hist[b] || 0) + 1; } });
+  }
+  return Object.keys(hist).length ? hist : null;
 }
 
 // Moving time from FIT records: sum only the inter-point gaps ≤ MAX_GAP_SEC so
@@ -1297,6 +1349,7 @@ function parseFallbackGPX(xmlText, fileName) {
   let firstTime = null, lastTime = null;
   const MAX_GAP_SEC = 10;
   const points = [];
+  const hrHist = {};   // seconds at each bpm (time-weighted), for time-in-zone
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
     const lat = parseFloat(pt.getAttribute('lat'));
@@ -1305,7 +1358,8 @@ function parseFallbackGPX(xmlText, fileName) {
     const tn = pt.getElementsByTagNameNS('*', 'time')[0];
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
-    if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; } }
+    let hrVal = null;
+    if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; hrVal=v; } }
     if(i > 0) {
       const dist = haversine(points[i-1].lat, points[i-1].lon, lat, lon);
       if(time && points[i-1].time) {
@@ -1313,6 +1367,7 @@ function parseFallbackGPX(xmlText, fileName) {
         if(dt > 0 && dt <= MAX_GAP_SEC) {
           movingTimeSec += dt;
           movingDist += dist;
+          if(hrVal){ const b = Math.round(hrVal); hrHist[b] = (hrHist[b] || 0) + dt; }
         }
       }
     }
@@ -1331,6 +1386,7 @@ function parseFallbackGPX(xmlText, fileName) {
     hr: avgHr, cad: null, power: null, vertOsc: null,
     calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
+    hrHist: Object.keys(hrHist).length ? hrHist : null,
     hrCount, source: 'GPX', sport: 'running'
   };
 }
@@ -1376,6 +1432,19 @@ const TREND_PRESETS = [8, 12, 15, 20, 0];  // 0 = All
 const ACWR_PRESETS  = [30, 60, 90, 180];
 let FITNESS_DAYS = 90;                      // days shown in Fitness/Fatigue/Form
 const FITNESS_PRESETS = [30, 60, 90, 180];
+let ZONELOAD_N = 0;                         // activities shown in Training Load by Zone (0 = All, filterable on tabs)
+const ZONELOAD_PRESETS = [8, 12, 15, 20, 0];
+
+// HR zones for the zone-load chart — SAME thresholds/colors as the HR Zones + Polarized
+// sections (fraction of Max HR). Buckets are computed at render time from each run's
+// hrHist, so an edited Max HR restyles the whole chart.
+const ZONELOAD_ZONES = [
+  { label:'Z1 Recovery',  min:0.00, max:0.60, color:'#5a6a7a' },
+  { label:'Z2 Aerobic',   min:0.60, max:0.70, color:'#00e676' },
+  { label:'Z3 Tempo',     min:0.70, max:0.80, color:'#ffea00' },
+  { label:'Z4 Threshold', min:0.80, max:0.90, color:'#ff9100' },
+  { label:'Z5 Max',       min:0.90, max:1.00, color:'#ff3d57' },
+];
 
 // Progress Analyzer: distance bands (km) shared by running & cycling. Each tab
 // keeps its own selected band since typical run vs ride distances differ.
@@ -1450,7 +1519,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 3;
+const RUN_CACHE_VERSION = 4;
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -1787,6 +1856,8 @@ function renderDashboard(data){
   renderAcwr(data);
   renderFitnessChart(data, 'running');
   renderProgress(data, 'running');
+  buildZoneLoadControls('zoneLoadControlsRun');
+  renderZoneLoadChart('runZoneLoad','runZoneLoad',data,'running',ZONELOAD_N,'zoneLoadNoteRun');
   renderPolarizedChart(data, 'running');
   renderPersonalRecords(data, 'running');
   document.getElementById('splitsSection').style.display = 'block';
@@ -2253,6 +2324,147 @@ function renderTrendChart(data) {
   });
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   TRAINING LOAD BY ZONE  (Variant D — time-in-zone stacked area)
+   One KM line per activity; the area beneath is split into 5 stacked
+   slices sized by the REAL fraction of that activity's time in each HR
+   zone (green Z2 at the bottom … red Z5 on top). Zones are bucketed from
+   each run's hrHist at render time using the current Max HR.
+══════════════════════════════════════════════════════════════════ */
+// Split one activity's km into 5 slices proportional to time-in-zone.
+// Returns [z1..z5] km summing to the activity's distance (all in the fastest
+// non-null zone that has data). Activities with no hrHist put all km in a 6th
+// "no HR" bucket handled by the caller.
+function zoneKmSlices(run, maxHr){
+  const hist = run.hrHist;
+  const km = run.distance || 0;
+  if(!hist) return null;
+  const zoneSec = [0,0,0,0,0];
+  let totalSec = 0;
+  for(const bpm in hist){
+    const sec = hist[bpm];
+    const frac = (+bpm) / maxHr;
+    let zi = 0;
+    for(let z = 0; z < ZONELOAD_ZONES.length; z++){ if(frac >= ZONELOAD_ZONES[z].min) zi = z; }
+    zoneSec[zi] += sec; totalSec += sec;
+  }
+  if(totalSec <= 0) return null;
+  return zoneSec.map(s => +(km * s / totalSec).toFixed(3));
+}
+
+function renderZoneLoadLegend(legendId, hasNoHr){
+  const el = document.getElementById(legendId);
+  if(!el) return;
+  let html = ZONELOAD_ZONES.map(z =>
+    `<span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:${z.color}"></span>${z.label}</span>`
+  ).join('');
+  if(hasNoHr) html += `<span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:rgba(120,135,150,0.5)"></span>No HR data</span>`;
+  el.innerHTML = html;
+}
+
+function buildZoneLoadControls(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const chips = ZONELOAD_PRESETS.map(n =>
+    `<div class="mini-chip${n === ZONELOAD_N ? ' active' : ''}" onclick="setZoneLoadN(${n})">${trendLabel(n)}</div>`
+  ).join('');
+  const customActive = !ZONELOAD_PRESETS.includes(ZONELOAD_N);
+  el.innerHTML =
+    `<span class="mini-filter-label">Activities</span>${chips}` +
+    `<input type="number" min="2" max="500" step="1" class="mini-input" placeholder="custom"` +
+      ` value="${customActive ? ZONELOAD_N : ''}" onchange="setZoneLoadN(parseInt(this.value,10))"` +
+      ` oninput="this.value=this.value.replace(/[^0-9]/g,'')">` +
+    `<span class="mini-note" id="${containerId === 'zoneLoadControlsRun' ? 'zoneLoadNoteRun' : 'zoneLoadNoteBike'}"></span>`;
+}
+function setZoneLoadN(n){
+  if(!Number.isFinite(n) || n < 0) return;
+  if(n !== 0 && n < 2) n = 2;
+  ZONELOAD_N = n;
+  ['zoneLoadControlsRun','zoneLoadControlsBike'].forEach(buildZoneLoadControls);
+  if(lastRenderedData && lastRenderedData.length) renderZoneLoadChart('runZoneLoad','runZoneLoad',lastRenderedData,'running',ZONELOAD_N,'zoneLoadNoteRun');
+  if(lastBikeRenderedData && lastBikeRenderedData.length) renderZoneLoadChart('bikeZoneLoad','bikeZoneLoad',lastBikeRenderedData,'cycling',ZONELOAD_N,'zoneLoadNoteBike');
+}
+
+// canvasId = <canvas> id; chartKey = charts[] key; n = 0→All else last-n; noteId optional.
+function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
+  destroyChart(chartKey);
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const sectionEl = canvas.closest('.card');
+  const maxHrInput = document.getElementById(sport === 'cycling' ? 'bikeMaxHrInput' : 'maxHrInput');
+  const maxHr = maxHrInput ? parseInt(maxHrInput.value, 10) || 187 : 187;
+
+  const all = [...data].filter(r => r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const withZones = all.filter(r => r.hrHist);
+  if(withZones.length < 2){ if(sectionEl) sectionEl.style.display = 'none'; if(noteId){const e=document.getElementById(noteId); if(e) e.textContent='';} return; }
+  if(sectionEl) sectionEl.style.display = '';
+
+  const shown = (n && n > 0) ? all.slice(-n) : all;
+  if(noteId){ const e = document.getElementById(noteId); if(e) e.textContent = `Showing ${shown.length} of ${all.length} activit${all.length === 1 ? 'y' : 'ies'}`; }
+
+  const labels = shown.map(r => r.date);
+  const kms    = shown.map(r => r.distance);
+  // per-zone km series
+  const zoneSeries = ZONELOAD_ZONES.map(() => []);
+  const noHrKm = [];
+  shown.forEach(r => {
+    const slices = zoneKmSlices(r, maxHr);
+    if(slices){ slices.forEach((v,zi) => zoneSeries[zi].push(v)); noHrKm.push(0); }
+    else { zoneSeries.forEach(s => s.push(0)); noHrKm.push(r.distance); }
+  });
+
+  const datasets = ZONELOAD_ZONES.map((z, zi) => ({
+    label: z.label, data: zoneSeries[zi],
+    backgroundColor: z.color + 'd0', borderColor: z.color, borderWidth: 0,
+    fill: true, tension: 0.35, pointRadius: 0, stack: 'zones', order: 2,
+  }));
+  // "no HR" grey slice so activities without HR still show their volume
+  if(noHrKm.some(v => v > 0)) datasets.push({
+    label: 'No HR data', data: noHrKm,
+    backgroundColor: 'rgba(120,135,150,0.28)', borderColor: 'rgba(120,135,150,0.5)', borderWidth: 0,
+    fill: true, tension: 0.35, pointRadius: 0, stack: 'zones', order: 2,
+  });
+  // KM outline on top (not stacked)
+  datasets.push({
+    label: 'Km', data: kms, type: 'line',
+    borderColor: '#e6edf3', borderWidth: 2.2, tension: 0.35,
+    fill: false, pointRadius: 3, pointBackgroundColor: '#e6edf3', stack: 'total', order: 1, yAxisID: 'y',
+  });
+
+  const legendMap = { runZoneLoad:'zoneLoadLegendRun', bikeZoneLoad:'zoneLoadLegendBike',
+                      homeZoneLoadRun:'zoneLoadLegendHomeRun', homeZoneLoadBike:'zoneLoadLegendHomeBike' };
+  renderZoneLoadLegend(legendMap[canvasId], noHrKm.some(v => v > 0));
+
+  const ctx = canvas.getContext('2d');
+  charts[chartKey] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { ...TREND_TOOLTIP_STYLE, callbacks: {
+          label: c => {
+            if(c.dataset.label === 'Km') return `Total: ${c.parsed.y.toFixed(1)} km`;
+            const tot = kms[c.dataIndex] || 0;
+            if(!c.parsed.y) return null;
+            const pct = tot ? Math.round(c.parsed.y / tot * 100) : 0;
+            return `${c.dataset.label}: ${pct}%  (${c.parsed.y.toFixed(1)} km)`;
+          }
+        } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color:'#8a9aaa', font:{family:'DM Mono',size:10} }, grid: { display:false } },
+        y: { stacked: true, beginAtZero: true, position:'left',
+             title: { display:true, text:'Distance (km)', color:'#00e676', font:{family:'DM Mono',size:10} },
+             ticks: { color:'#00e676', font:{family:'DM Mono',size:10}, callback:v=>v+' km' },
+             grid: { color:'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+}
+
 function renderPaceDistChart(data) {
   destroyChart('paceDist');
   const allDists = data.filter(r => r.paceDistribution);
@@ -2681,6 +2893,8 @@ function renderBikeDashboard(data) {
   renderBikeAcwr(data);
   renderFitnessChart(data, 'cycling');
   renderProgress(data, 'cycling');
+  buildZoneLoadControls('zoneLoadControlsBike');
+  renderZoneLoadChart('bikeZoneLoad','bikeZoneLoad',data,'cycling',ZONELOAD_N,'zoneLoadNoteBike');
   renderPolarizedChart(data, 'cycling');
   renderPersonalRecords(data, 'cycling');
   renderBikeComponents();
@@ -3177,6 +3391,10 @@ function renderHomePage() {
   if(acwrRunTitle) acwrRunTitle.textContent = `— Running (${allRuns.length} activit${allRuns.length === 1 ? 'y' : 'ies'})`;
   const acwrBikeTitle = document.getElementById('homeAcwrBikeTitle');
   if(acwrBikeTitle) acwrBikeTitle.textContent = `— Cycling (${allBikes.length} activit${allBikes.length === 1 ? 'y' : 'ies'})`;
+
+  // ── Home Training Load by Zone (fixed last 12, no filter) ──
+  renderZoneLoadChart('homeZoneLoadRun', 'homeZoneLoadRun', allRuns, 'running', 12, null);
+  renderZoneLoadChart('homeZoneLoadBike', 'homeZoneLoadBike', allBikes, 'cycling', 12, null);
 
   // ── Home ACWR ──
   renderHomeAcwr(allRuns, 'homeAcwrRunChart', 'homeAcwrRunSection', 'homeAcwrRunBadges', 'running');
