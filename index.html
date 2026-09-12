@@ -2467,7 +2467,8 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
             const tot = kms[c.dataIndex] || 0;
             if(!c.parsed.y) return null;
             const pct = tot ? Math.round(c.parsed.y / tot * 100) : 0;
-            return `${c.dataset.label}: ${pct}%  (${c.parsed.y.toFixed(1)} km)`;
+            const shortLabel = /^Z\d/.test(c.dataset.label) ? c.dataset.label.split(' ')[0] : c.dataset.label;  // "Z2 Aerobic" → "Z2"
+            return `${shortLabel}: ${pct}%  (${c.parsed.y.toFixed(1)} km)`;
           },
           // no color swatch for the Km/Total row (transparent box)
           labelColor: c => c.dataset.label === 'Km'
