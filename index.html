@@ -735,9 +735,9 @@ td b{ font-family:var(--font-mono); }
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
       80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
-      <span style="color:var(--green)">Easy (Z1–Z2)</span> below 80% max HR. Builds aerobic base, promotes recovery<br>
-      <span style="color:var(--orange)">Grey zone (Z3)</span> 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
-      <span style="color:var(--red)">Hard (Z4–Z5)</span> above 88% max HR. Threshold work. This is where speed improves
+      <span style="color:var(--green)">Easy (Z1–Z2)</span> below 70% max HR. Builds aerobic base, promotes recovery<br>
+      <span style="color:var(--orange)">Grey zone (Z3)</span> 70–80% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+      <span style="color:var(--red)">Hard (Z4–Z5)</span> above 80% max HR. Threshold work. This is where speed improves
     </p>
   </div>
 
@@ -1000,9 +1000,9 @@ td b{ font-family:var(--font-mono); }
       </div>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.7;">
         80/20 rule: ~80% at low intensity (Z2), ~20% at high intensity (Z4–Z5), and minimal time in the "grey zone" (Z3)<br><br>
-        <span style="color:var(--green)">Easy (Z1–Z2)</span> below 80% max HR. Builds aerobic base, promotes recovery<br>
-        <span style="color:var(--orange)">Grey zone (Z3)</span> 80–88% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
-        <span style="color:var(--red)">Hard (Z4–Z5)</span> above 88% max HR. Threshold work. This is where speed improves
+        <span style="color:var(--green)">Easy (Z1–Z2)</span> below 70% max HR. Builds aerobic base, promotes recovery<br>
+        <span style="color:var(--orange)">Grey zone (Z3)</span> 70–80% max HR. Hard to recover from, easy to build speed. Avoid spending more than 5–10% here<br>
+        <span style="color:var(--red)">Hard (Z4–Z5)</span> above 80% max HR. Threshold work. This is where speed improves
       </p>
     </div>
 
@@ -3734,8 +3734,8 @@ function renderPolarizedChart(data, sport) {
   if(withHr.length < 3) { section.style.display = 'none'; return; }
   section.style.display = 'block';
 
-  const easyThresh = maxHr * 0.80;
-  const hardThresh = maxHr * 0.88;
+  const easyThresh = maxHr * 0.70;   // Z1–Z2 / Z3 boundary (matches HR-zone table)
+  const hardThresh = maxHr * 0.80;   // Z3 / Z4–Z5 boundary (matches HR-zone table)
 
   let easy = 0, grey = 0, hard = 0;
   withHr.forEach(r => {
