@@ -1434,6 +1434,7 @@ let FITNESS_DAYS = 90;                      // days shown in Fitness/Fatigue/For
 const FITNESS_PRESETS = [30, 60, 90, 180];
 let ZONELOAD_N = 0;                         // activities shown in Training Load by Zone (0 = All, filterable on tabs)
 const ZONELOAD_PRESETS = [8, 12, 15, 20, 0];
+const ZONELOAD_BIKE_START = '2024-09-29';   // no cycling HR data before this date — hide earlier rides from the zone chart
 
 // HR zones for the zone-load chart — SAME thresholds/colors as the HR Zones + Polarized
 // sections (fraction of Max HR). Buckets are computed at render time from each run's
@@ -2394,7 +2395,12 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
   const maxHrInput = document.getElementById(sport === 'cycling' ? 'bikeMaxHrInput' : 'maxHrInput');
   const maxHr = maxHrInput ? parseInt(maxHrInput.value, 10) || 187 : 187;
 
-  const all = [...data].filter(r => r.distance > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+  // Cycling HR data only exists from 2024-09-29 on; earlier rides would show as an
+  // all-grey "No HR data" stretch, so drop them from this chart entirely.
+  const startFloor = sport === 'cycling' ? ZONELOAD_BIKE_START : null;
+  const all = [...data]
+    .filter(r => r.distance > 0 && (!startFloor || r.date >= startFloor))
+    .sort((a,b) => new Date(a.date)-new Date(b.date));
   const withZones = all.filter(r => r.hrHist);
   if(withZones.length < 2){ if(sectionEl) sectionEl.style.display = 'none'; if(noteId){const e=document.getElementById(noteId); if(e) e.textContent='';} return; }
   if(sectionEl) sectionEl.style.display = '';
