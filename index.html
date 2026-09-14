@@ -1432,7 +1432,7 @@ const TREND_PRESETS = [8, 12, 15, 20, 0];  // 0 = All
 const ACWR_PRESETS  = [30, 60, 90, 180];
 let FITNESS_DAYS = 90;                      // days shown in Fitness/Fatigue/Form
 const FITNESS_PRESETS = [30, 60, 90, 180];
-let ZONELOAD_N = 0;                         // activities shown in Training Load by Zone (0 = All, filterable on tabs)
+let ZONELOAD_N = 25;                        // activities shown in Training Load by Zone (0 = All, filterable on tabs)
 const ZONELOAD_PRESETS = [10, 15, 20, 25, 0];
 const ZONELOAD_BIKE_START = '2024-09-29';   // no cycling HR data before this date — hide earlier rides from the zone chart
 
@@ -2175,6 +2175,26 @@ function tapToDismiss() {
     }
   };
 }
+
+// Clear the pinned tooltip on every chart EXCEPT the one whose canvas was just
+// tapped (that one manages its own via interaction/onClick).
+function clearChartTooltips(exceptCanvas) {
+  Object.values(charts).forEach(ch => {
+    if (!ch || ch.canvas === exceptCanvas) return;
+    ch.setActiveElements([]);
+    if (ch.tooltip) ch.tooltip.setActiveElements([], { x: 0, y: 0 });
+    ch.update();
+  });
+}
+// Mobile: there's no mouse-leave, so a tapped tooltip stays pinned. Tapping ANYWHERE
+// that isn't a chart canvas (card, title, legend, another section, empty space) now
+// dismisses all open tooltips so the chart is visible again. Registered once.
+['click', 'touchstart'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    const onCanvas = e.target && e.target.tagName === 'CANVAS';
+    clearChartTooltips(onCanvas ? e.target : null);
+  }, { passive: true, capture: true })
+);
 // Tooltip legend swatch as a SOLID filled circle (no contrasting edge/ring).
 function solidSwatch(col) { return { borderColor: col, backgroundColor: col, borderWidth: 0 }; }
 // ACWR row → risk color from the point; other rows → the line's own color.
