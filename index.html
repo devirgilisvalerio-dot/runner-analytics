@@ -2456,6 +2456,7 @@ function renderZoneLoadChart(canvasId, chartKey, data, sport, n, noteId){
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
+      onClick: tapToDismiss(),
       plugins: {
         legend: { display: false },
         tooltip: { ...TREND_TOOLTIP_STYLE, usePointStyle: false, callbacks: {
