@@ -1651,7 +1651,12 @@ async function listFiles(){
 
 /* ── FILTERS ── */
 function populateShoeFilter(runs) {
-  const shoes = [...new Set(runs.map(r => r.shoe))].sort();
+  // Alphabetical, but always keep "N/A" (no-shoe-tag runs) last.
+  const shoes = [...new Set(runs.map(r => r.shoe))].sort((a, b) => {
+    if(a === 'N/A') return 1;
+    if(b === 'N/A') return -1;
+    return a.localeCompare(b);
+  });
   const group = document.getElementById('shoeFilterGroup');
   const container = document.getElementById('shoeFilterContainer');
 
