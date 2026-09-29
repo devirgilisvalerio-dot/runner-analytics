@@ -2035,8 +2035,18 @@ function renderShoes(data) {
     if(r.hr){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
     if(r.paceSecPerKm){ shoes[r.shoe].paceSum += r.paceSecPerKm; shoes[r.shoe].paceCount++; }
   });
+  // Explicit card order; any shoe not listed falls to the end (alphabetical).
+  const SHOE_ORDER = ['N/A', 'Vom_Plus', 'Kip_Carb', 'Kip_Carb2'];
+  const orderedNames = Object.keys(shoes).sort((a, b) => {
+    const ia = SHOE_ORDER.indexOf(a), ib = SHOE_ORDER.indexOf(b);
+    if(ia === -1 && ib === -1) return a.localeCompare(b);
+    if(ia === -1) return 1;
+    if(ib === -1) return -1;
+    return ia - ib;
+  });
   let html = '';
-  for(const [name, s] of Object.entries(shoes)){
+  for(const name of orderedNames){
+    const s = shoes[name];
     const limit = shoeLimit(name);
     const wear = Math.min(100, (s.km/limit)*100);
     const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
