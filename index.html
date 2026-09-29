@@ -814,6 +814,7 @@ td b{ font-family:var(--font-mono); }
     <div class="card">
       <div class="card-title"><span>Running Efficiency (Power vs Pace)</span></div>
       <div class="chart-box"><canvas id="efficiencyChart"></canvas></div>
+      <p id="efficiencyEmpty" style="display:none;color:var(--muted);font-size:13px;padding:20px;font-family:var(--font-mono)">Not enough power data.</p>
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">Each dot is one run. X-axis = average power output (watts); Y-axis = average pace. Dots moving toward the bottom-left over time mean you're running faster with less effort — the key sign of improving fitness.</p>
     </div>
   </div>
@@ -2562,14 +2563,21 @@ function renderPaceDistChart(data) {
 
 function renderEfficiencyChart(data) {
   destroyChart('eff');
+  const canvas = document.getElementById('efficiencyChart');
+  const empty  = document.getElementById('efficiencyEmpty');
   const runs = data.filter(r => r.power && r.paceSecPerKm);
   if(runs.length < 2) {
-    document.getElementById('efficiencyChart').parentNode.innerHTML =
-      '<p style="color:var(--muted);font-size:13px;padding:20px;font-family:var(--font-mono)">Not enough power data.</p>';
+    // Toggle a sibling message — do NOT overwrite parentNode.innerHTML, which would
+    // permanently delete the <canvas> and make every later re-render throw on
+    // getContext(), freezing all charts rendered after this one.
+    if(canvas) canvas.style.display = 'none';
+    if(empty)  empty.style.display = 'block';
     return;
   }
+  if(canvas) canvas.style.display = '';
+  if(empty)  empty.style.display = 'none';
   const sorted = [...runs].sort((a,b) => new Date(a.date)-new Date(b.date));
-  const ctx = document.getElementById('efficiencyChart').getContext('2d');
+  const ctx = canvas.getContext('2d');
   charts['eff'] = new Chart(ctx, {
     type: 'scatter',
     data: {
