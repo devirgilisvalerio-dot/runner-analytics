@@ -1990,6 +1990,17 @@ function renderAvgKmSplits(data) {
   // Fixed pace-based color coding: ≤ 5:20 green, 5:21–5:30 amber, > 5:30 red.
   const paceClass = sec => sec <= 320 ? 'pace-fast' : sec <= 330 ? 'pace-mid' : 'pace-slow';
 
+  // HR-zone color coding for the avg bpm — SAME thresholds/colors as the HR Zones section.
+  const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
+  const hrZoneColor = bpm => {
+    const frac = bpm / maxHr;
+    if(frac < 0.60) return '#5a6a7a'; // Z1 Recovery
+    if(frac < 0.70) return '#00e676'; // Z2 Aerobic
+    if(frac < 0.80) return '#ffea00'; // Z3 Tempo
+    if(frac < 0.90) return '#ff9100'; // Z4 Threshold
+    return '#ff3d57';                 // Z5 Max
+  };
+
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
   const slowestPace = validPaces.length ? Math.max(...validPaces) : null;
@@ -2011,7 +2022,7 @@ function renderAvgKmSplits(data) {
     <div class="split-cell${highlight}">
       <div class="split-km">KM ${a.km}</div>
       <div class="split-pace ${cls}">${paceStr(a.avgPaceSec)}</div>
-      <div class="split-hr" style="color:var(--muted2)">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
+      <div class="split-hr" style="color:${a.avgHr ? hrZoneColor(a.avgHr) : 'var(--muted2)'}">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
       <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${a.count} run${a.count===1?'':'s'}</div>
       ${tag}
     </div>`;
