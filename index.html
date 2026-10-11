@@ -774,9 +774,9 @@ td b{ font-family:var(--font-mono); }
     <div class="card-title"><span>Average per Kilometer</span> <span style="color:var(--muted);font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-mono)">— averaged across all your runs for each km</span></div>
     <div class="splits-grid" id="splitsGrid"></div>
     <div style="display:flex;flex-direction:column;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:14px;color:var(--muted2);">
-      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--green)"></span>≤ 5:20 /km</span>
-      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:#ffe566"></span>5:21 – 5:30 /km</span>
-      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--red)"></span>&gt; 5:30 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--green)"></span>≤ 5:15 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:#ffe566"></span>5:16 – 5:25 /km</span>
+      <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--red)"></span>&gt; 5:25 /km</span>
     </div>
   </div>
 
@@ -1987,8 +1987,8 @@ function renderAvgKmSplits(data) {
     });
   }
 
-  // Fixed pace-based color coding: ≤ 5:20 green, 5:21–5:30 amber, > 5:30 red.
-  const paceClass = sec => sec <= 320 ? 'pace-fast' : sec <= 330 ? 'pace-mid' : 'pace-slow';
+  // Fixed pace-based color coding: ≤ 5:15 green, 5:16–5:25 amber, > 5:25 red.
+  const paceClass = sec => sec <= 315 ? 'pace-fast' : sec <= 325 ? 'pace-mid' : 'pace-slow';
 
   // HR-zone color coding for the avg bpm — SAME thresholds/colors as the HR Zones section.
   const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
