@@ -305,6 +305,42 @@ body::before{
 .split-highlight.highlight-pace-fast{ border-color:var(--green); box-shadow:0 0 0 1px var(--green), 0 0 12px rgba(0,230,118,0.25); }
 .split-highlight.highlight-pace-mid{ border-color:#ffe566; box-shadow:0 0 0 1px #ffe566, 0 0 12px rgba(255,229,102,0.25); }
 .split-highlight.highlight-pace-slow{ border-color:var(--red); box-shadow:0 0 0 1px var(--red), 0 0 12px rgba(255,61,87,0.25); }
+.split-clickable{ cursor:pointer; }
+.split-clickable:hover{ transform:translateY(-1px); }
+
+/* Per-km detail popup (click a split card) */
+.kmd-overlay{
+  position:fixed; inset:0; z-index:1000; display:none;
+  background:rgba(6,12,20,0.72); backdrop-filter:blur(3px);
+  align-items:center; justify-content:center; padding:24px;
+}
+.kmd-overlay.open{ display:flex; }
+.kmd-modal{
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  width:min(420px,100%); max-height:80vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,0.55);
+}
+.kmd-top{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--border);
+}
+.kmd-title{ font-family:var(--font-display); font-size:19px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--text); }
+.kmd-close{
+  cursor:pointer; border:1px solid var(--border); background:var(--card2); color:var(--muted2);
+  border-radius:7px; width:30px; height:30px; font-size:16px; line-height:1; font-family:var(--font-mono);
+}
+.kmd-close:hover{ border-color:var(--accent); color:var(--text); }
+.kmd-body{ overflow-y:auto; padding:12px 20px 18px; }
+.kmd-head, .kmd-row{
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:center;
+  font-family:var(--font-mono); font-size:14px; padding:8px 0;
+}
+.kmd-head{
+  font-size:10.5px; letter-spacing:1px; color:var(--muted); text-transform:uppercase;
+  border-bottom:1px solid var(--border); padding-top:0;
+}
+.kmd-row{ border-bottom:1px solid rgba(255,255,255,0.04); }
+.kmd-row:last-child{ border-bottom:none; }
 
 /* ── CHARTS ── */
 .chart-box{ height:280px; }
@@ -1952,6 +1988,24 @@ function renderHrZones(data) {
 }
 
 /* AVERAGE KM SPLITS */
+// Shared color coding for the Average Per Kilometer section (grid + per-km detail popup).
+// Pace: ≤ 5:15 green, 5:16–5:25 amber, > 5:25 red.
+function splitPaceClass(sec){ return sec <= 315 ? 'pace-fast' : sec <= 325 ? 'pace-mid' : 'pace-slow'; }
+// Avg bpm: SAME thresholds/colors as the HR Zones section (% of editable Max HR).
+function splitHrColor(bpm){
+  const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
+  const frac = bpm / maxHr;
+  if(frac < 0.60) return '#5a6a7a'; // Z1 Recovery
+  if(frac < 0.70) return '#00e676'; // Z2 Aerobic
+  if(frac < 0.80) return '#ffea00'; // Z3 Tempo
+  if(frac < 0.90) return '#ff9100'; // Z4 Threshold
+  return '#ff3d57';                 // Z5 Max
+}
+
+// Per-km breakdown captured by renderAvgKmSplits for the click-through detail popup:
+// { km: [{ paceSec, hr, date }, …] }.
+let kmSplitDetail = {};
+
 function renderAvgKmSplits(data) {
   const MAX_KM = 20;
   // Median instead of mean: robust to a single paused/stopped run inflating a
@@ -1965,6 +2019,7 @@ function renderAvgKmSplits(data) {
   };
 
   const byKm = {};
+  kmSplitDetail = {};
   data.forEach(r => {
     if(!r.kmSplits) return;
     r.kmSplits.forEach(s => {
@@ -1972,6 +2027,8 @@ function renderAvgKmSplits(data) {
       if(!byKm[s.km]) byKm[s.km] = { paces: [], hrs: [] };
       byKm[s.km].paces.push(s.paceSec);
       if(s.hr) byKm[s.km].hrs.push(s.hr);
+      // Keep every run's split for this km so a card click can list them all.
+      (kmSplitDetail[s.km] || (kmSplitDetail[s.km] = [])).push({ paceSec: s.paceSec, hr: s.hr || null, date: r.date });
     });
   });
 
@@ -1987,19 +2044,8 @@ function renderAvgKmSplits(data) {
     });
   }
 
-  // Fixed pace-based color coding: ≤ 5:15 green, 5:16–5:25 amber, > 5:25 red.
-  const paceClass = sec => sec <= 315 ? 'pace-fast' : sec <= 325 ? 'pace-mid' : 'pace-slow';
-
-  // HR-zone color coding for the avg bpm — SAME thresholds/colors as the HR Zones section.
-  const maxHr = parseInt(document.getElementById('maxHrInput').value, 10) || 190;
-  const hrZoneColor = bpm => {
-    const frac = bpm / maxHr;
-    if(frac < 0.60) return '#5a6a7a'; // Z1 Recovery
-    if(frac < 0.70) return '#00e676'; // Z2 Aerobic
-    if(frac < 0.80) return '#ffea00'; // Z3 Tempo
-    if(frac < 0.90) return '#ff9100'; // Z4 Threshold
-    return '#ff3d57';                 // Z5 Max
-  };
+  const paceClass = splitPaceClass;
+  const hrZoneColor = splitHrColor;
 
   const validPaces = avgs.filter(Boolean).map(a => a.avgPaceSec);
   const fastestPace = validPaces.length ? Math.min(...validPaces) : null;
@@ -2019,7 +2065,7 @@ function renderAvgKmSplits(data) {
     if(a.avgPaceSec === fastestPace)      { highlight = ` split-highlight highlight-${cls}`; tag = '<div class="split-tag" style="color:var(--green)">▲ fastest</div>'; }
     else if(a.avgPaceSec === slowestPace) { highlight = ` split-highlight highlight-${cls}`; tag = '<div class="split-tag" style="color:var(--red)">▼ slowest</div>'; }
     return `
-    <div class="split-cell${highlight}">
+    <div class="split-cell split-clickable${highlight}" onclick="openKmSplitDetail(${a.km})" title="Click to see every run's time at KM ${a.km}">
       <div class="split-km">KM ${a.km}</div>
       <div class="split-pace ${cls}">${paceStr(a.avgPaceSec)}</div>
       <div class="split-hr" style="color:${a.avgHr ? hrZoneColor(a.avgHr) : 'var(--muted2)'}">${a.avgHr ? a.avgHr + ' bpm' : '—'}</div>
@@ -2028,6 +2074,38 @@ function renderAvgKmSplits(data) {
     </div>`;
   }).join('');
 }
+
+// Click-through: list every run's split for a given km, newest first.
+// Reuses the SAME color coding as the grid (pace classes + HR-zone bpm colors).
+function openKmSplitDetail(km){
+  const rows = (kmSplitDetail[km] || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+  const body = document.getElementById('kmDetailBody');
+  const title = document.getElementById('kmDetailTitle');
+  title.textContent = `KM ${km} — every run`;
+  if(!rows.length){
+    body.innerHTML = '<p style="color:var(--muted);font-family:var(--font-mono);font-size:13px;padding:8px 0">No runs reached this km.</p>';
+  } else {
+    body.innerHTML = `
+      <div class="kmd-head">
+        <span>TIME /km</span><span>BPM</span><span>DATE</span>
+      </div>` + rows.map(r => {
+      const pc = splitPaceClass(r.paceSec);
+      const paceColor = pc==='pace-mid' ? '#ffe566' : (pc==='pace-fast' ? 'var(--green)' : 'var(--red)');
+      const hrColor = r.hr ? splitHrColor(r.hr) : 'var(--muted2)';
+      return `
+      <div class="kmd-row">
+        <span style="color:${paceColor};font-weight:700">${paceStr(r.paceSec)}</span>
+        <span style="color:${hrColor}">${r.hr ? r.hr + ' bpm' : '—'}</span>
+        <span style="color:var(--muted2)">${kmdDate(r.date)}</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('kmDetailOverlay').classList.add('open');
+}
+function closeKmSplitDetail(){ document.getElementById('kmDetailOverlay').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeKmSplitDetail(); });
+// dd/mm/aa (2-digit year) to match the user's requested format, e.g. 27/09/26.
+function kmdDate(iso){ const p = (iso||'').split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0].slice(-2)}` : iso; }
 
 /* SHOES */
 // Per-shoe wear limit in km (matched by shoe name); DEFAULT_SHOE_LIMIT for anything else.
@@ -4310,6 +4388,17 @@ function secondsToTime(s){
 }
 function nd(){ return `<span style="color:var(--muted);font-family:var(--font-mono)">—</span>`; }
 </script>
+
+<!-- Per-km split detail popup (opened from the Average Per Kilometer cards) -->
+<div class="kmd-overlay" id="kmDetailOverlay" onclick="if(event.target===this)closeKmSplitDetail()">
+  <div class="kmd-modal">
+    <div class="kmd-top">
+      <span class="kmd-title" id="kmDetailTitle">KM</span>
+      <button class="kmd-close" onclick="closeKmSplitDetail()">×</button>
+    </div>
+    <div class="kmd-body" id="kmDetailBody"></div>
+  </div>
+</div>
 
 <script src="https://apis.google.com/js/api.js"        onload="gapiLoaded()"></script>
 <script src="https://accounts.google.com/gsi/client"   onload="gisLoaded()"></script>
