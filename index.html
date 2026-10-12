@@ -1142,7 +1142,7 @@ td b{ font-family:var(--font-mono); }
           <thead>
             <tr>
               <th>Date</th><th>Distance</th><th>Duration</th>
-              <th>Avg Speed</th><th>BPM</th><th>Cadence</th>
+              <th>Avg Speed</th><th>BPM</th><th>D+</th>
               <th>Calories</th>
             </tr>
           </thead>
@@ -3456,7 +3456,7 @@ function renderBikeTable(data) {
       <td style="font-family:var(--font-mono)">${r.duration}</td>
       <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
       <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
-      <td>${r.cad !== null ? r.cad + ' rpm' : nd()}</td>
+      <td>${r.elevGain != null ? r.elevGain.toLocaleString() + ' m' : nd()}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
     </tr>`;
   });
@@ -3494,7 +3494,7 @@ function filterBikeTable() {
       <td style="font-family:var(--font-mono)">${r.duration}</td>
       <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
       <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
-      <td>${r.cad !== null ? r.cad + ' rpm' : nd()}</td>
+      <td>${r.elevGain != null ? r.elevGain.toLocaleString() + ' m' : nd()}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
     </tr>`;
   });
