@@ -587,7 +587,7 @@ td b{ font-family:var(--font-mono); }
         <div style="height:220px;"><canvas id="homeAcwrRunChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
           <span style="color:var(--green)">0.8–1.3</span> = safe training zone &nbsp;·&nbsp;
-          <span style="color:var(--orange)">&gt; 1.3</span> = elevated injury risk &nbsp;·&nbsp;
+          <span style="color:var(--orange)">&gt; 1.3</span> = injury risk &nbsp;·&nbsp;
           <span style="color:var(--red)">&gt; 1.5</span> = high injury risk &nbsp;·&nbsp;
           <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week
         </p>
@@ -598,7 +598,7 @@ td b{ font-family:var(--font-mono); }
         <div style="height:220px;"><canvas id="homeAcwrBikeChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;font-family:var(--font-mono);line-height:1.9;">
           <span style="color:var(--green)">0.8–2.2</span> = safe training zone &nbsp;·&nbsp;
-          <span style="color:var(--orange)">&gt; 2.2</span> = elevated injury risk &nbsp;·&nbsp;
+          <span style="color:var(--orange)">&gt; 2.2</span> = injury risk &nbsp;·&nbsp;
           <span style="color:var(--red)">&gt; 3.5</span> = high injury risk &nbsp;·&nbsp;
           <span style="color:var(--muted2)">&lt; 0.8</span> = undertraining / deload week
         </p>
@@ -721,7 +721,7 @@ td b{ font-family:var(--font-mono); }
       <div id="predInfoBody" style="display:none;padding:14px 18px 16px;border-top:1px solid var(--border);font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--muted2);">
         <p style="margin:0 0 10px;">The estimate uses your <b style="color:var(--text)">last 15 runs over 4 km</b>. Recent runs count more than older ones.</p>
         <p style="margin:0 0 10px;">Each run is adjusted to the race distance: the pace changes by about <b style="color:var(--text)">3.5% for every doubling (or halving) of distance</b>. So if your past runs are shorter than the target, the predicted pace is slower; if they're longer, it's faster; same distance, the pace stays unchanged.</p>
-        <p style="margin:0 0 10px;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>.</p>
+        <p style="margin:0 0 10px;">If you haven't run for more than <b style="color:var(--text)">7 days</b>, the estimate slows by <b style="color:var(--text)">0.5% for each additional day off</b>, up to a maximum of <b style="color:var(--text)">+20%</b>. This "rust" counts days off your feet across <b style="color:var(--text)">all runs</b> — filtering to a single shoe won't trigger it.</p>
         <p style="margin:0;">If the race is longer than your <b style="color:var(--text)">longest run in the last 365 days</b>, the extra distance is penalized: about <b style="color:var(--text)">+7.5% slower for every time the target distance exceeds your longest run</b> (for example, a marathon (42 km) is twice a 21 km longest run, so it's penalized ~7.5%).</p>
       </div>
     </div>
@@ -754,7 +754,7 @@ td b{ font-family:var(--font-mono); }
       ACWR compares last 7 days of load against 28-day average<br>
       <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week<br>
       <span style="color:var(--green)">0.8–1.3</span> safe training zone<br>
-      <span style="color:var(--orange)">1.3–1.5</span> overreaching, elevated injury risk<br>
+      <span style="color:var(--orange)">1.3–1.5</span> overreaching, injury risk<br>
       <span style="color:var(--red)">&gt; 1.5</span> high injury risk
     </p>
   </div>
@@ -1027,7 +1027,7 @@ td b{ font-family:var(--font-mono); }
       <p style="margin-top:14px;font-size:14px;color:var(--muted);font-family:var(--font-mono);line-height:1.5;">
         ACWR compares last 7 days of load against 28-day average<br>
         <span style="color:var(--green)">0.8–2.2</span> safe training zone<br>
-        <span style="color:var(--orange)">&gt; 2.2</span> overreaching, elevated injury risk<br>
+        <span style="color:var(--orange)">&gt; 2.2</span> overreaching, injury risk<br>
         <span style="color:var(--red)">&gt; 3.5</span> high injury risk<br>
         <span style="color:var(--muted2)">&lt; 0.8</span> undertraining / deload week
       </p>
@@ -2116,6 +2116,9 @@ const SHOE_LIMITS = {
   'N/A':   500,
 };
 function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
+// Shoes no longer in rotation — shown dimmed with a "retired" tag (like the old
+// chain/tyres on the Cycling tab). N/A = legacy runs with no shoe tag.
+const RETIRED_SHOES = new Set(['N/A']);
 
 function renderShoes(data) {
   const shoes = {};
@@ -2126,8 +2129,11 @@ function renderShoes(data) {
     if(r.paceSecPerKm){ shoes[r.shoe].paceSum += r.paceSecPerKm; shoes[r.shoe].paceCount++; }
   });
   // Explicit card order; any shoe not listed falls to the end (alphabetical).
-  const SHOE_ORDER = ['N/A', 'Vom_Plus', 'Kip_Carb', 'Kip_Carb2'];
+  // Retired shoes (N/A) sort LAST so the active rotation leads.
+  const SHOE_ORDER = ['Vom_Plus', 'Kip_Carb', 'Kip_Carb2', 'N/A'];
   const orderedNames = Object.keys(shoes).sort((a, b) => {
+    const ra = RETIRED_SHOES.has(a), rb = RETIRED_SHOES.has(b);
+    if(ra !== rb) return ra ? 1 : -1;   // retired to the end
     const ia = SHOE_ORDER.indexOf(a), ib = SHOE_ORDER.indexOf(b);
     if(ia === -1 && ib === -1) return a.localeCompare(b);
     if(ia === -1) return 1;
@@ -2142,9 +2148,11 @@ function renderShoes(data) {
     const bpm  = s.hrCount ? Math.round(s.hrSum/s.hrCount) : null;
     const avgPace = s.paceCount ? paceStr(s.paceSum / s.paceCount) : null;
     const wearColor = wear < 40 ? 'var(--green)' : wear < 75 ? 'var(--orange)' : 'var(--red)';
+    const retired = RETIRED_SHOES.has(name);
+    const retiredTag = retired ? ` <span style="font-size:10px;font-weight:400;color:var(--red);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;vertical-align:1px;">retired</span>` : '';
     html += `
-    <div class="shoe-card" style="flex:1 1 0;min-width:220px;">
-      <div class="shoe-header"><strong>👟 ${name}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
+    <div class="shoe-card" style="flex:1 1 0;min-width:220px;${retired ? 'opacity:.72;' : ''}">
+      <div class="shoe-header"><strong>👟 ${name}${retiredTag}</strong><span class="shoe-km">${s.km.toFixed(1)} km</span></div>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg BPM: <b style="color:var(--text)">${bpm ?? '—'}</b></div>
         <div style="font-size:14px;color:var(--muted2);font-family:var(--font-mono)">Avg pace: <b style="color:var(--green)">${avgPace ?? '—'}</b></div>
@@ -2713,8 +2721,13 @@ function renderPredictions(data) {
 
   const now = new Date();
 
-  // Inactivity ("rust"): +0.5% per day beyond 7 days off, capped at +20%
-  const lastRunDate = new Date(sorted[sorted.length - 1].date);
+  // Inactivity ("rust"): +0.5% per day beyond 7 days off, capped at +20%.
+  // Rust measures time off your FEET, not time off a specific shoe — so it's
+  // computed from the most recent run across ALL runs (allRuns), never the
+  // filtered subset. Filtering to one shoe (e.g. race-day Kip_Carb) must not
+  // fake rust just because you trained the last 6 months in a different shoe.
+  const rustPool = (allRuns && allRuns.length) ? allRuns : sorted;
+  const lastRunDate = new Date(Math.max(...rustPool.map(r => new Date(r.date).getTime())));
   const daysSinceLastRun = Math.floor((now - lastRunDate) / 86400000);
   const rustMult = daysSinceLastRun > 7 ? 1 + Math.min(0.20, (daysSinceLastRun - 7) * 0.005) : 1;
   const rustPct  = Math.round((rustMult - 1) * 100);
