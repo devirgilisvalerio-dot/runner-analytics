@@ -522,7 +522,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="homeBikeTime">—</div><div class="stat-sub" id="homeBikeAvgDist">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
-      <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="homeBikeCad">—</div><div class="stat-sub">rpm</div></div>
+      <div class="stat-card c-cad"><div class="stat-title">Elevation Gain</div><div class="stat-value purple" id="homeBikeElev">—</div><div class="stat-sub">D+ total</div></div>
     </div>
 
     <!-- HOME: Trend Performance side by side -->
@@ -920,7 +920,7 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-dur"><div class="stat-title">Total Time</div><div class="stat-value red" id="bikeTotalTime">—</div><div class="stat-sub" id="bikeAvgDistSub">—</div></div>
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="bikeAvgHr">—</div><div class="stat-sub" id="bikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="bikeTotalCal">—</div><div class="stat-sub" id="bikeAvgCal">—</div></div>
-      <div class="stat-card c-cad"><div class="stat-title">Avg Cadence</div><div class="stat-value purple" id="bikeAvgCad">—</div><div class="stat-sub">rpm</div></div>
+      <div class="stat-card c-cad"><div class="stat-title">Elevation Gain</div><div class="stat-value purple" id="bikeElevGain">—</div><div class="stat-sub" id="bikeElevSub">D+ total</div></div>
     </div>
 
     <!-- BIKE FILTERS -->
@@ -1232,6 +1232,8 @@ function parseFIT(buffer) {
             case 3:   if(fSize===1){ const v=bytes[pos]; if(v!==0xFF&&v>30) rec.hr=v; } break;
             case 4:   if(fSize===1){ const v=bytes[pos]; if(v!==0xFF) rec.cad=v*2; } break;
             case 7:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.power=v; } break;
+            case 2:   if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.alt=v/5-500; } break;             // altitude (m)
+            case 78:  if(fSize===4){ const v=dv.getUint32(pos,true); if(v!==0xFFFFFFFF) rec.altEnh=v/5-500; } break;      // enhanced_altitude (preferred)
             case 39:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertOsc=v/10; } break;
             case 41:  if(fSize===2){ const v=dv.getUint16(pos,true); if(v!==0xFFFF) rec.vertRatio=v/100; } break;
           }
@@ -1272,6 +1274,9 @@ function parseFIT(buffer) {
   const withVO  = records.filter(r => r.vertOsc != null);
   const avgVO   = withVO.length ? (withVO.reduce((s,r) => s+r.vertOsc, 0) / withVO.length).toFixed(1) : null;
 
+  // Elevation gain (D+): prefer enhanced_altitude (f78), fall back to altitude (f2).
+  const elevGain = elevationGain(records.map(r => r.altEnh != null ? r.altEnh : r.alt));
+
   const kmSplits = computeKmSplits(records);
   const paceSecPerKm = durationSec > 0 && distKm > 0 ? durationSec / distKm : null;
   const bestSplitPace = kmSplits.length ? Math.min(...kmSplits.map(s => s.paceSec)) : null;
@@ -1287,7 +1292,7 @@ function parseFIT(buffer) {
     distance: Number(distKm.toFixed(2)),
     duration: secondsToTime(durationSec),
     durationSec,
-    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO,
+    hr: avgHr, cad: avgCad, power: avgPow, vertOsc: avgVO, elevGain,
     calories: records._calories || estimateCalories(avgHr, durationSec, sport === 2 ? 'cycling' : 'running'),
     paceSecPerKm, bestSplitPace, kmSplits, paceDistribution, hrHist,
     hrCount: withHr.length, source: 'FIT', sport: sport === 2 ? 'cycling' : 'running'
@@ -1386,6 +1391,7 @@ function parseFallbackGPX(xmlText, fileName) {
   let firstTime = null, lastTime = null;
   const MAX_GAP_SEC = 10;
   const points = [];
+  const alts = [];
   const hrHist = {};   // seconds at each bpm (time-weighted), for time-in-zone
   for(let i = 0; i < trkpts.length; i++) {
     const pt = trkpts[i];
@@ -1394,6 +1400,8 @@ function parseFallbackGPX(xmlText, fileName) {
     let time = null;
     const tn = pt.getElementsByTagNameNS('*', 'time')[0];
     if(tn) { const t = new Date(tn.textContent.trim()); if(!isNaN(t.getTime())) { time = t; if(!firstTime) firstTime = t; lastTime = t; } }
+    const eleNode = pt.getElementsByTagNameNS('*', 'ele')[0];
+    if(eleNode){ const e = parseFloat(eleNode.textContent); if(!isNaN(e)) alts.push(e); }
     const hrNode = pt.getElementsByTagNameNS('*', 'hr')[0];
     let hrVal = null;
     if(hrNode) { const v = parseInt(hrNode.textContent, 10); if(!isNaN(v)&&v>30&&v<250){ hrSum+=v; hrCount++; hrVal=v; } }
@@ -1420,12 +1428,29 @@ function parseFallbackGPX(xmlText, fileName) {
     distance: Number(distKm.toFixed(2)),
     duration: secondsToTime(durationSec),
     durationSec,
-    hr: avgHr, cad: null, power: null, vertOsc: null,
+    hr: avgHr, cad: null, power: null, vertOsc: null, elevGain: elevationGain(alts),
     calories: estimateCalories(avgHr, durationSec, 'running'),
     paceSecPerKm, bestSplitPace: null, kmSplits: [], paceDistribution: null,
     hrHist: Object.keys(hrHist).length ? hrHist : null,
     hrCount, source: 'GPX', sport: 'running'
   };
+}
+
+// Total ascent (D+) in metres from a series of altitude samples. Smooths with a
+// window-5 moving average BEFORE summing positive deltas — raw per-point summing
+// overcounts flat rides 2–20× on noisy barometric/GPS altitude. Returns null when
+// there are too few samples to be meaningful.
+function elevationGain(alts) {
+  const a = alts.filter(v => v != null && isFinite(v));
+  if(a.length < 5) return null;
+  const sm = a.map((_, i) => {
+    let s = 0, c = 0;
+    for(let j = Math.max(0, i-2); j <= Math.min(a.length-1, i+2); j++){ s += a[j]; c++; }
+    return s / c;
+  });
+  let gain = 0;
+  for(let i = 1; i < sm.length; i++){ const d = sm[i] - sm[i-1]; if(d > 0) gain += d; }
+  return Math.round(gain);
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -1557,7 +1582,7 @@ function extractShoeName(name){
 
 /* ── PARSED-RUN CACHE (localStorage, keyed by Drive file ID) ── */
 const RUN_CACHE_PREFIX  = 'runneros:run:';
-const RUN_CACHE_VERSION = 4;
+const RUN_CACHE_VERSION = 5;   // v5: added per-activity elevGain (D+)
 function readCachedRun(fileId){
   try{
     const raw = localStorage.getItem(RUN_CACHE_PREFIX + fileId);
@@ -3038,8 +3063,8 @@ function renderBikeDashboard(data) {
   const maxSpeedKmh = Math.max(...data.filter(r=>r.durationSec>0).map(r => r.distance / (r.durationSec / 3600)));
   const withHr  = data.filter(r => r.hr);
   const avgHr   = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
-  const withCad = data.filter(r => r.cad);
-  const avgCad  = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+  const withElev = data.filter(r => r.elevGain != null);
+  const totalElev = withElev.reduce((s,r) => s + r.elevGain, 0);
   const totalCal = data.reduce((s,r) => s + (r.calories||0), 0);
 
   document.getElementById('bikeAvgSpeed').textContent   = avgSpeedKmh ? avgSpeedKmh.toFixed(1) + ' km/h' : '—';
@@ -3052,7 +3077,8 @@ function renderBikeDashboard(data) {
   document.getElementById('bikeHrRange').textContent    = withHr.length ? 'min ' + Math.min(...withHr.map(r=>r.hr)) + ' · max ' + Math.max(...withHr.map(r=>r.hr)) : '—';
   document.getElementById('bikeTotalCal').textContent   = totalCal > 0 ? totalCal.toLocaleString() + ' kcal' : '—';
   document.getElementById('bikeAvgCal').textContent     = totalCal > 0 ? Math.round(totalCal / data.length) + ' kcal avg' : '—';
-  document.getElementById('bikeAvgCad').textContent     = avgCad ? avgCad + ' rpm' : '—';
+  document.getElementById('bikeElevGain').textContent   = withElev.length ? totalElev.toLocaleString() + ' m' : '—';
+  document.getElementById('bikeElevSub').textContent    = withElev.length ? '+' + Math.round(totalElev / withElev.length).toLocaleString() + ' m avg/ride' : 'D+ total';
 
   renderBikeTrendChart(data);
   renderBikeTabPredictions(data);
@@ -3525,8 +3551,8 @@ function renderHomePage() {
     const avgSpeedKmh = totalSec > 0 ? (totalKm / (totalSec / 3600)) : null;
     const withHr = bikes.filter(r => r.hr);
     const avgHr = withHr.length ? Math.round(withHr.reduce((s,r) => s+r.hr, 0) / withHr.length) : null;
-    const withCad = bikes.filter(r => r.cad);
-    const avgCad = withCad.length ? Math.round(withCad.reduce((s,r) => s+r.cad, 0) / withCad.length) : null;
+    const withElev = bikes.filter(r => r.elevGain != null);
+    const totalElev = withElev.reduce((s,r) => s + r.elevGain, 0);
     const withPow = bikes.filter(r => r.power);
     const avgPow = withPow.length ? Math.round(withPow.reduce((s,r) => s+r.power, 0) / withPow.length) : null;
 
@@ -3541,7 +3567,7 @@ function renderHomePage() {
     const totalBikeCal = bikes.reduce((s,r) => s + (r.calories||0), 0);
     document.getElementById('homeBikeCal').textContent = totalBikeCal > 0 ? totalBikeCal.toLocaleString() + ' kcal' : '—';
     document.getElementById('homeBikeAvgCal').textContent = totalBikeCal > 0 ? Math.round(totalBikeCal / bikes.length) + ' kcal avg' : '—';
-    document.getElementById('homeBikeCad').textContent = avgCad ? avgCad + ' rpm' : '—';
+    document.getElementById('homeBikeElev').textContent = withElev.length ? totalElev.toLocaleString() + ' m' : '—';
   }
 
   // ── Home trend charts ──
