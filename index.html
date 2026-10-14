@@ -2154,11 +2154,8 @@ function renderShoes(data) {
     if(r.paceSecPerKm){ shoes[r.shoe].paceSum += r.paceSecPerKm; shoes[r.shoe].paceCount++; }
   });
   // Explicit card order; any shoe not listed falls to the end (alphabetical).
-  // Retired shoes (N/A) sort LAST so the active rotation leads.
-  const SHOE_ORDER = ['Vom_Plus', 'Kip_Carb', 'Kip_Carb2', 'N/A'];
+  const SHOE_ORDER = ['N/A', 'Vom_Plus', 'Kip_Carb', 'Kip_Carb2'];
   const orderedNames = Object.keys(shoes).sort((a, b) => {
-    const ra = RETIRED_SHOES.has(a), rb = RETIRED_SHOES.has(b);
-    if(ra !== rb) return ra ? 1 : -1;   // retired to the end
     const ia = SHOE_ORDER.indexOf(a), ib = SHOE_ORDER.indexOf(b);
     if(ia === -1 && ib === -1) return a.localeCompare(b);
     if(ia === -1) return 1;
