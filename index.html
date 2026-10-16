@@ -1512,7 +1512,7 @@ const ZONELOAD_ZONES = [
 // Progress Analyzer: distance bands (km) shared by running & cycling. Each tab
 // keeps its own selected band since typical run vs ride distances differ.
 const PA_BANDS_RUN  = [[7,9],[9,12],[12,15],[15,99]];
-const PA_BANDS_BIKE = [[10,25],[25,40],[40,60],[60,90],[90,999]];
+const PA_BANDS_BIKE = [[25,40],[40,60],[60,90],[90,999]];
 let PA_BAND_RUN  = [9,12];    // default running band
 let PA_BAND_BIKE = [40,60];   // default cycling band
 // Activities the user excludes from the Progress Analyzer (outliers: hot/hilly/sick
@@ -2136,9 +2136,8 @@ function kmdDate(iso){ const p = (iso||'').split('-'); return p.length===3 ? `${
 // Per-shoe wear limit in km (matched by shoe name); DEFAULT_SHOE_LIMIT for anything else.
 const DEFAULT_SHOE_LIMIT = 500;
 const SHOE_LIMITS = {
-  'Kiprun Carbon': 400,
-  'Vomero Plus':   550,
-  'N/A':   500,
+  'Vom_Plus': 550,
+  'N/A':      500,
 };
 function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
 // Shoes no longer in rotation — shown dimmed with a "retired" tag (like the old
