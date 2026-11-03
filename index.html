@@ -391,6 +391,31 @@ td b{ font-family:var(--font-mono); }
   padding:2px 7px; color:var(--text);
 }
 
+/* ── TRAINING CALENDAR (Overview) ── */
+.cal-nav{ display:flex; align-items:center; gap:14px; margin:14px 0; font-family:var(--font-mono); }
+.cal-btn{ cursor:pointer; font-family:var(--font-mono); font-size:12px; color:var(--muted2);
+  background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:5px 13px; transition:all .15s; }
+.cal-btn:hover:not(:disabled){ border-color:var(--accent); color:var(--text); }
+.cal-btn:disabled{ opacity:.35; cursor:default; }
+.cal-range{ font-size:13px; color:var(--text); font-weight:500; min-width:150px; text-align:center; letter-spacing:.5px; }
+.cal-wrap{ padding-bottom:2px; }
+.cal{ display:flex; gap:10px; align-items:flex-start; flex-wrap:nowrap; }
+.cal .month{ flex:1 1 0; min-width:0; background:var(--card2); border:1px solid var(--border); border-radius:9px;
+  padding:9px 4px 10px; display:flex; flex-direction:column; align-items:center; }
+.cal .month-lbl{ align-self:flex-start; margin-left:5px; font-family:var(--font-display); font-size:14px; font-weight:700;
+  letter-spacing:.5px; color:var(--text); margin-bottom:7px; text-transform:uppercase; }
+.cal .dow{ display:grid; grid-template-columns:repeat(7,18px); gap:3px; margin-bottom:5px; }
+.cal .dow span{ font-family:var(--font-mono); font-size:9px; color:var(--muted); text-align:center; }
+.cal .grid7{ display:grid; grid-template-columns:repeat(7,18px); grid-auto-rows:18px; gap:3px; }
+.cal .day{ width:18px; height:18px; border-radius:3px; background:#17222e; display:flex; align-items:center; justify-content:center; }
+.cal .day.pad{ background:transparent; }
+.cal .day svg{ width:13px; height:13px; display:block; }
+.cal-legend{ display:flex; align-items:center; gap:7px; margin-top:14px; font-family:var(--font-mono); font-size:11px; color:var(--muted); flex-wrap:wrap; }
+.cal-legend .sw{ width:13px; height:13px; border-radius:3px; }
+.cal-streak{ display:flex; gap:28px; flex-wrap:wrap; margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
+.cal-streak b{ color:var(--text); font-weight:700; }
+@media(max-width:700px){ .cal{ flex-wrap:wrap; justify-content:flex-start; } .cal .month{ flex:0 0 auto; } }
+
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } .three-col{ grid-template-columns:1fr!important; } }
 @media(max-width:700px){ .two-col{ grid-template-columns:1fr; } }
 
@@ -534,6 +559,19 @@ td b{ font-family:var(--font-mono); }
       <div class="stat-card c-hr"><div class="stat-title">Avg BPM</div><div class="stat-value lightgray" id="homeBikeHr">—</div><div class="stat-sub" id="homeBikeHrRange">—</div></div>
       <div class="stat-card c-pow"><div class="stat-title">Total Calories</div><div class="stat-value orange" id="homeBikeCal">—</div><div class="stat-sub" id="homeBikeAvgCal">—</div></div>
       <div class="stat-card c-cad"><div class="stat-title">Elevation Gain</div><div class="stat-value purple" id="homeBikeElev">—</div><div class="stat-sub">D+ total</div></div>
+    </div>
+
+    <!-- HOME: Training Calendar (running + cycling combined, 6 months at a time) -->
+    <div class="card" id="homeCalSection" style="margin-top:20px;margin-bottom:20px;display:none;">
+      <div class="card-title"><span>Training Calendar</span> <span style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— 6 months at a time · icon = sport trained that day</span></div>
+      <div class="cal-nav">
+        <button class="cal-btn" id="calPrev" onclick="shiftCal(-1)">‹ Earlier</button>
+        <span class="cal-range" id="calRange">—</span>
+        <button class="cal-btn" id="calNext" onclick="shiftCal(1)">Later ›</button>
+      </div>
+      <div class="cal-wrap"><div class="cal" id="homeCal"></div></div>
+      <div class="cal-legend" id="homeCalLegend"></div>
+      <div class="cal-streak" id="homeCalStreak"></div>
     </div>
 
     <!-- HOME: Trend Performance side by side -->
@@ -3526,6 +3564,135 @@ function clearBikeLogFilters() {
   renderBikeTable(lastBikeTableData);
 }
 
+/* ── TRAINING CALENDAR (Overview, running + cycling combined) ── */
+const CAL_ICON_RUN='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>';
+const CAL_ICON_BIKE='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="17" r="4"/><circle cx="18.5" cy="17" r="4"/><circle cx="5.5" cy="17" r="1.4" fill="#17222e"/><circle cx="18.5" cy="17" r="1.4" fill="#17222e"/><path d="M10 7 L14.5 16.5 L9.8 9.2 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><rect x="12.5" y="4.5" width="4" height="2" rx="1"/></svg>';
+const CAL_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CAL_WIN=6, CAL_STEP=3;
+let calOffset=0;           // 0 = most recent window; increments page back in time
+let calByDay={};           // 'YYYY-MM-DD' → { sport, durationSec } (longest session that day)
+
+// Build the day map from all activities; one sport per day (keep the longest if two).
+function buildCalData(){
+  calByDay={};
+  [...allRuns, ...allBikes].forEach(a=>{
+    if(!a.date) return;
+    const prev=calByDay[a.date];
+    if(!prev || (a.durationSec||0) > (prev.durationSec||0)){
+      calByDay[a.date]={ sport:(a.sport==='cycling'?'bike':'run'), durationSec:a.durationSec||0 };
+    }
+  });
+}
+
+// The full list of [year, month0] blocks we can page through (first activity → this month).
+function calAllMonths(){
+  const dates=Object.keys(calByDay);
+  const now=new Date();
+  let startY=now.getFullYear(), startM=now.getMonth();
+  if(dates.length){ const d0=new Date(dates.sort()[0]); startY=d0.getFullYear(); startM=d0.getMonth(); }
+  const months=[]; let y=startY, m=startM;
+  const endY=now.getFullYear(), endM=now.getMonth();
+  while(y<endY || (y===endY && m<=endM)){ months.push([y,m]); m++; if(m>11){m=0;y++;} }
+  return months.length ? months : [[now.getFullYear(), now.getMonth()]];
+}
+
+function renderHomeCalendar(){
+  const section=document.getElementById('homeCalSection');
+  if(!section) return;
+  if(!allRuns.length && !allBikes.length){ section.style.display='none'; return; }
+  section.style.display='block';
+  buildCalData();
+  const all=calAllMonths();
+  const maxStart=Math.max(0, all.length-CAL_WIN);
+  // calOffset counts windows back from the end; translate to a start index.
+  let start=maxStart - calOffset*CAL_STEP;
+  start=Math.max(0, Math.min(maxStart, start));
+  const win=all.slice(start, start+CAL_WIN);
+
+  const host=document.getElementById('homeCal'); host.innerHTML='';
+  win.forEach(([yr,mo])=>{
+    const month=document.createElement('div'); month.className='month';
+    const lbl=document.createElement('div'); lbl.className='month-lbl'; lbl.textContent=CAL_MONTHS[mo]+" '"+String(yr).slice(-2); month.appendChild(lbl);
+    const dow=document.createElement('div'); dow.className='dow';
+    ['M','T','W','T','F','S','S'].forEach(d=>{ const e=document.createElement('span'); e.textContent=d; dow.appendChild(e); });
+    month.appendChild(dow);
+    const grid=document.createElement('div'); grid.className='grid7';
+    const daysInMonth=new Date(yr,mo+1,0).getDate();
+    let startDow=new Date(yr,mo,1).getDay(); startDow=(startDow+6)%7;  // Mon=0 … Sun=6
+    for(let p=0;p<startDow;p++){ const pad=document.createElement('div'); pad.className='day pad'; grid.appendChild(pad); }
+    for(let d=1;d<=daysInMonth;d++){
+      const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cell=document.createElement('div'); cell.className='day';
+      const ev=calByDay[key];
+      if(ev){
+        cell.innerHTML = ev.sport==='run' ? CAL_ICON_RUN : CAL_ICON_BIKE;
+        cell.style.color='#00e676';
+        cell.title=`${d} ${CAL_MONTHS[mo]} ${yr} — ${ev.sport==='run'?'Running':'Cycling'}${ev.durationSec?' · '+secondsToTime(ev.durationSec):''}`;
+      } else {
+        cell.title=`${d} ${CAL_MONTHS[mo]} ${yr} — rest`;
+      }
+      grid.appendChild(cell);
+    }
+    month.appendChild(grid); host.appendChild(month);
+  });
+
+  const a=win[0], b=win[win.length-1];
+  document.getElementById('calRange').textContent =
+    `${CAL_MONTHS[a[1]]} '${String(a[0]).slice(-2)} – ${CAL_MONTHS[b[1]]} '${String(b[0]).slice(-2)}`;
+  document.getElementById('calPrev').disabled = (start<=0);
+  document.getElementById('calNext').disabled = (start>=maxStart);
+
+  document.getElementById('homeCalLegend').innerHTML =
+    `<span class="sw" style="background:#17222e"></span> Rest`+
+    `<span style="display:inline-flex;align-items:center;gap:4px;margin-left:16px;color:var(--muted2)">`+
+      `<span style="width:15px;height:15px;color:#00e676;display:inline-flex">${CAL_ICON_RUN}</span> Running</span>`+
+    `<span style="display:inline-flex;align-items:center;gap:4px;margin-left:14px;color:var(--muted2)">`+
+      `<span style="width:15px;height:15px;color:#00e676;display:inline-flex">${CAL_ICON_BIKE}</span> Cycling</span>`;
+
+  // Streak stats across all history (not just the shown window).
+  renderCalStreaks(all);
+}
+
+// Weekly streaks + rest days + busiest weekday, over all months we can show.
+function renderCalStreaks(all){
+  const days=Object.keys(calByDay).sort();
+  if(!days.length){ document.getElementById('homeCalStreak').innerHTML=''; return; }
+  // weeks with ≥1 session (ISO-ish: bucket by Monday)
+  const mondayOf=iso=>{ const d=new Date(iso); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.toISOString().split('T')[0]; };
+  const activeWeeks=new Set(days.map(mondayOf));
+  // walk every week from first active week to the current week
+  let first=new Date(mondayOf(days[0])), now=new Date(mondayOf(new Date().toISOString().split('T')[0]));
+  let cur=0, best=0, running=0;
+  for(let w=new Date(first); w<=now; w.setDate(w.getDate()+7)){
+    const k=w.toISOString().split('T')[0];
+    if(activeWeeks.has(k)){ running++; best=Math.max(best,running); } else { running=0; }
+  }
+  cur=running; // trailing run up to the current week
+  // rest days in the last 30 calendar days
+  const today=new Date(); const ago=new Date(today.getTime()-30*86400000);
+  let active30=0;
+  for(const d of days){ const dt=new Date(d); if(dt>=ago && dt<=today) active30++; }
+  const rest30=30-active30;
+  // busiest weekday
+  const wdCount=[0,0,0,0,0,0,0];
+  days.forEach(d=>{ wdCount[(new Date(d).getDay()+6)%7]++; });
+  const wdNames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const busy=wdNames[wdCount.indexOf(Math.max(...wdCount))];
+  document.getElementById('homeCalStreak').innerHTML =
+    `<span>Current streak <b>${cur} week${cur===1?'':'s'}</b> with ≥1 session</span>`+
+    `<span>Longest streak <b>${best} week${best===1?'':'s'}</b></span>`+
+    `<span>Rest days last 30d <b>${rest30}</b></span>`+
+    `<span>Most active day <b>${busy}</b></span>`;
+}
+
+function shiftCal(dir){
+  // dir -1 = Earlier (further back → larger offset), +1 = Later
+  const all=calAllMonths();
+  const maxOffset=Math.ceil(Math.max(0, all.length-CAL_WIN)/CAL_STEP);
+  calOffset=Math.max(0, Math.min(maxOffset, calOffset - dir));
+  renderHomeCalendar();
+}
+
 function renderHomePage() {
   const runs = allRuns;
   const bikes = allBikes;
@@ -3584,6 +3751,9 @@ function renderHomePage() {
     document.getElementById('homeBikeAvgCal').textContent = totalBikeCal > 0 ? Math.round(totalBikeCal / bikes.length) + ' kcal avg' : '—';
     document.getElementById('homeBikeElev').textContent = withElev.length ? totalElev.toLocaleString() + ' m' : '—';
   }
+
+  // ── Home Training Calendar (combined run + bike) ──
+  renderHomeCalendar();
 
   // ── Home trend charts ──
   renderHomeTrendChart('homeTrendRun', 'homeTrendRunChart', allRuns);
