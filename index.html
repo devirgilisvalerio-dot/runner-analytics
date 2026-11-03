@@ -412,7 +412,7 @@ td b{ font-family:var(--font-mono); }
 .cal .day svg{ width:18px; height:18px; display:block; }
 .cal-legend{ display:flex; align-items:center; gap:7px; margin-top:14px; font-family:var(--font-mono); font-size:11px; color:var(--muted); flex-wrap:wrap; }
 .cal-legend .sw{ width:13px; height:13px; border-radius:3px; }
-.cal-streak{ display:flex; gap:28px; flex-wrap:wrap; margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--muted2); }
+.cal-streak{ display:flex; gap:6px 28px; flex-wrap:wrap; margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--muted2); line-height:1.4; }
 .cal-streak b{ color:var(--text); font-weight:700; }
 @media(max-width:700px){
   .cal{ flex-wrap:wrap; gap:10px; justify-content:space-between; }
@@ -422,6 +422,7 @@ td b{ font-family:var(--font-mono); }
   .cal .day{ width:18px; height:18px; }
   .cal .day svg{ width:13px; height:13px; }
   .cal .month-lbl{ font-size:14px; }
+  .cal-streak{ flex-direction:column; gap:5px; }   /* one line each, tight spacing */
 }
 
 @media(max-width:1100px){ .main-grid{ grid-template-columns:1fr; } .three-col{ grid-template-columns:1fr!important; } }
@@ -571,7 +572,7 @@ td b{ font-family:var(--font-mono); }
 
     <!-- HOME: Training Calendar (running + cycling combined, 6 months at a time) -->
     <div class="card" id="homeCalSection" style="margin-top:20px;margin-bottom:20px;display:none;">
-      <div class="card-title"><span>Training Calendar</span> <span id="calSubtitle" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono)">— icon = sport trained that day</span></div>
+      <div class="card-title"><span>Training Calendar</span></div>
       <div class="cal-nav">
         <button class="cal-btn" id="calPrev" onclick="shiftCal(-1)">‹ Earlier</button>
         <span class="cal-range" id="calRange">—</span>
@@ -3578,7 +3579,7 @@ const CAL_ICON_BIKE='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.
 const CAL_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 // Responsive window: 6 months on laptop, 4 on phone. Step matches (3 / 2).
 function calWin(){ return (typeof window!=='undefined' && window.innerWidth<=700) ? 4 : 6; }
-function calStep(){ return calWin()===4 ? 2 : 3; }
+function calStep(){ return 1; }   // Earlier/Later move by 1 month
 let calOffset=0;           // 0 = most recent window; increments page back in time
 let calByDay={};           // 'YYYY-MM-DD' → { sport, durationSec } (longest session that day)
 
@@ -3653,8 +3654,6 @@ function renderHomeCalendar(){
   document.getElementById('calPrev').disabled = (start<=0);
   document.getElementById('calNext').disabled = (start>=maxStart);
   calLastWin=WIN;
-  const sub=document.getElementById('calSubtitle');
-  if(sub) sub.textContent = `— ${WIN} months at a time · icon = sport trained that day`;
 
   document.getElementById('homeCalLegend').innerHTML =
     `<span class="sw" style="background:#17222e"></span> Rest`+
