@@ -412,13 +412,10 @@ td b{ font-family:var(--font-mono); }
 .cal .day svg{ width:18px; height:18px; display:block; }
 /* per-month footer: thin run/cycling split bar + day counts */
 .cal-ft{ margin-top:9px; padding-top:9px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:11.5px; }
-.cal-ft-bar{ height:3px; border-radius:2px; background:#17222e; overflow:hidden; display:flex; margin-bottom:6px; }
-.cal-ft-bar i{ height:100%; display:block; }
-.cal-ft-bar i.r{ background:#00e676; }
-.cal-ft-bar i.c{ background:#30d0e0; }
-.cal-ft-lab{ display:flex; justify-content:space-between; color:var(--muted2); }
+.cal-ft-lab{ display:flex; justify-content:space-between; align-items:center; color:var(--muted2); }
 .cal-ft-lab b{ color:var(--text); font-weight:700; }
 .cal-ft-lab .run, .cal-ft-lab .cyc{ display:inline-flex; align-items:center; gap:4px; }
+.cal-ft-lab .mid{ color:var(--muted); font-size:10.5px; letter-spacing:.5px; }
 .cal-ft-lab svg{ width:13px; height:13px; }
 .cal-ft-lab .run svg{ color:#00e676; }
 .cal-ft-lab .cyc svg{ color:#30d0e0; }
@@ -586,9 +583,9 @@ td b{ font-family:var(--font-mono); }
     <div class="card" id="homeCalSection" style="margin-top:20px;margin-bottom:20px;display:none;">
       <div class="card-title"><span>Training Calendar</span></div>
       <div class="cal-nav">
-        <button class="cal-btn" id="calPrev" onclick="shiftCal(-1)">‹ Earlier</button>
+        <button class="cal-btn" id="calPrev" onclick="shiftCal(-1)" aria-label="Earlier">‹</button>
         <span class="cal-range" id="calRange">—</span>
-        <button class="cal-btn" id="calNext" onclick="shiftCal(1)">Later ›</button>
+        <button class="cal-btn" id="calNext" onclick="shiftCal(1)" aria-label="Later">›</button>
       </div>
       <div class="cal-wrap"><div class="cal" id="homeCal"></div></div>
       <div class="cal-legend" id="homeCalLegend"></div>
@@ -3660,12 +3657,11 @@ function renderHomeCalendar(){
       grid.appendChild(cell);
     }
     month.appendChild(grid);
-    // Footer: thin green/cyan split bar + run vs cycling day-counts.
-    const tot=runDays+bikeDays||1;
+    // Footer: running (left) · "days" · cycling (right) — no bar.
     const ft=document.createElement('div'); ft.className='cal-ft';
     ft.innerHTML =
-      `<div class="cal-ft-bar"><i class="r" style="width:${runDays/tot*100}%"></i><i class="c" style="width:${bikeDays/tot*100}%"></i></div>`+
       `<div class="cal-ft-lab"><span class="run">${CAL_ICON_RUN}<b>${runDays}</b></span>`+
+      `<span class="mid">days</span>`+
       `<span class="cyc"><b>${bikeDays}</b>${CAL_ICON_BIKE}</span></div>`;
     month.appendChild(ft);
     host.appendChild(month);
@@ -3704,11 +3700,6 @@ function renderCalStreaks(all){
     if(activeWeeks.has(k)){ running++; best=Math.max(best,running); } else { running=0; }
   }
   cur=running; // trailing run up to the current week
-  // rest days in the last 30 calendar days
-  const today=new Date(); const ago=new Date(today.getTime()-30*86400000);
-  let active30=0;
-  for(const d of days){ const dt=new Date(d); if(dt>=ago && dt<=today) active30++; }
-  const rest30=30-active30;
   // busiest weekday
   const wdCount=[0,0,0,0,0,0,0];
   days.forEach(d=>{ wdCount[(new Date(d).getDay()+6)%7]++; });
@@ -3717,7 +3708,6 @@ function renderCalStreaks(all){
   document.getElementById('homeCalStreak').innerHTML =
     `<span>Current streak <b>${cur} week${cur===1?'':'s'}</b> with ≥1 session</span>`+
     `<span>Longest streak <b>${best} week${best===1?'':'s'}</b></span>`+
-    `<span>Rest days last 30d <b>${rest30}</b></span>`+
     `<span>Most active day <b>${busy}</b></span>`;
 }
 
