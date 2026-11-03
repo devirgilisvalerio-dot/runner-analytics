@@ -458,7 +458,8 @@ td b{ font-family:var(--font-mono); }
 .vc-mcard .mc-v{ font-family:var(--font-display); font-size:26px; font-weight:700; line-height:1; }
 .vc-mcard .mc-v .u{ font-size:15px; color:var(--muted); font-weight:700; margin-left:1px; }
 .vc-mcard .mc-days{ font-family:var(--font-mono); font-size:11px; color:var(--muted2); margin-top:9px; display:flex; align-items:center; gap:6px; }
-.vc-mcard .mc-split{ font-family:var(--font-mono); font-size:11px; color:var(--muted2); margin-top:5px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.vc-mcard .mc-split{ font-family:var(--font-mono); font-size:11px; color:var(--muted2); margin-top:5px; display:flex; align-items:center; gap:4px; flex-wrap:nowrap; white-space:nowrap; }
+.vc-mcard .mc-split .sep{ color:var(--muted); margin:0 1px; }
 .vc-mcard .ic{ width:13px; height:13px; vertical-align:-2px; }
 @media(max-width:900px){ .vc-cards{ grid-template-columns:repeat(2,1fr); } }
 
@@ -628,9 +629,9 @@ td b{ font-family:var(--font-mono); }
         <div class="vc-chip active" onclick="setVolMetric('time')" id="vcTime">Time</div>
         <div class="vc-avgsel">
           <span class="vc-avglbl">Avg over</span>
-          <div class="vc-chip" onclick="setVolAvg(3)" id="vcAvg3">3 mo</div>
-          <div class="vc-chip" onclick="setVolAvg(6)" id="vcAvg6">6 mo</div>
-          <div class="vc-chip" onclick="setVolAvg(9)" id="vcAvg9">9 mo</div>
+          <div class="vc-chip" onclick="setVolAvg(3)" id="vcAvg3">3m</div>
+          <div class="vc-chip" onclick="setVolAvg(6)" id="vcAvg6">6m</div>
+          <div class="vc-chip" onclick="setVolAvg(9)" id="vcAvg9">9m</div>
         </div>
       </div>
       <div class="vc-hero">
@@ -1280,7 +1281,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>03-Nov-2026 18:57 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>03-Nov-2026 19:11 CET</code></div>
   </div>
 </div>
 
@@ -3917,7 +3918,7 @@ function buildVolCards(full){
       <div class="mc-h">${title}</div>
       <div class="mc-v">${bigV}</div>
       <div class="mc-days">${CAL_ICON_RUN2}${daysRun} &nbsp; ${CAL_ICON_BIKE2}${daysBike} <span style="color:var(--muted)">days</span></div>
-      <div class="mc-split">${CAL_ICON_RUN2} ${volUnit(vRun)} &nbsp;·&nbsp; ${CAL_ICON_BIKE2} ${volUnit(vBike)}</div>
+      <div class="mc-split">${CAL_ICON_RUN2} ${volUnit(vRun)} <span class="sep">·</span> ${CAL_ICON_BIKE2} ${volUnit(vBike)}</div>
     </div>`;
   };
   let html=window.map(x=>{
