@@ -409,6 +409,7 @@ td b{ font-family:var(--font-mono); }
 .cal .grid7{ display:grid; grid-template-columns:repeat(7,26px); grid-auto-rows:26px; gap:4px; }
 .cal .day{ width:26px; height:26px; border-radius:4px; background:#17222e; display:flex; align-items:center; justify-content:center; }
 .cal .day.pad{ background:transparent; }
+.cal .day.future{ background:transparent; border:1px dashed rgba(139,155,173,.35); }   /* upcoming days */
 .cal .day svg{ width:18px; height:18px; display:block; }
 /* per-month footer: thin run/cycling split bar + day counts */
 .cal-ft{ margin-top:9px; padding-top:9px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:11.5px; }
@@ -435,9 +436,12 @@ td b{ font-family:var(--font-mono); }
 }
 
 /* ── VOLUME & CONSISTENCY (Overview) ── */
-.vc-seg{ display:flex; gap:6px; margin:0 0 20px; font-family:var(--font-mono); flex-wrap:wrap; }
+.vc-seg{ display:flex; align-items:center; gap:6px; margin:0 0 20px; font-family:var(--font-mono); flex-wrap:wrap; }
 .vc-chip{ cursor:pointer; font-size:12px; color:var(--muted2); background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:5px 13px; user-select:none; transition:all .15s; }
 .vc-chip.active{ color:var(--bg); background:var(--accent); border-color:var(--accent); font-weight:600; }
+.vc-avgsel{ display:flex; align-items:center; gap:6px; margin-left:auto; }   /* far right */
+.vc-avglbl{ font-size:11px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-right:2px; }
+@media(max-width:700px){ .vc-avgsel{ margin-left:0; } }   /* wrap under on phone */
 .vc-hero{ display:flex; align-items:center; gap:34px; flex-wrap:wrap; }
 .vc-left{ flex:0 0 300px; min-width:260px; }
 .vc-curlbl{ font-family:var(--font-mono); font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
@@ -622,6 +626,13 @@ td b{ font-family:var(--font-mono); }
       <div class="vc-seg">
         <div class="vc-chip" onclick="setVolMetric('km')" id="vcKm">Distance</div>
         <div class="vc-chip active" onclick="setVolMetric('time')" id="vcTime">Time</div>
+        <div class="vc-avgsel">
+          <span class="vc-avglbl">Avg over</span>
+          <div class="vc-chip" onclick="setVolAvg(3)" id="vcAvg3">3 mo</div>
+          <div class="vc-chip" onclick="setVolAvg(4)" id="vcAvg4">4 mo</div>
+          <div class="vc-chip" onclick="setVolAvg(6)" id="vcAvg6">6 mo</div>
+          <div class="vc-chip" onclick="setVolAvg(9)" id="vcAvg9">9 mo</div>
+        </div>
       </div>
       <div class="vc-hero">
         <div class="vc-left">
@@ -3672,6 +3683,7 @@ function renderHomeCalendar(){
   start=Math.max(0, Math.min(maxStart, start));
   const win=all.slice(start, start+WIN);
 
+  const todayKey=new Date().toISOString().split('T')[0];   // days after this are "future"
   const host=document.getElementById('homeCal'); host.innerHTML='';
   win.forEach(([yr,mo])=>{
     const month=document.createElement('div'); month.className='month';
@@ -3693,6 +3705,9 @@ function renderHomeCalendar(){
         cell.style.color = ev.sport==='run' ? '#00e676' : '#30d0e0';
         cell.title=`${d} ${CAL_MONTHS[mo]} ${yr} — ${ev.sport==='run'?'Running':'Cycling'}${ev.durationSec?' · '+secondsToTime(ev.durationSec):''}`;
         ev.sport==='run' ? runDays++ : bikeDays++;
+      } else if(key>todayKey){
+        cell.className='day future';   // hasn't happened yet — dashed outline, not a rest day
+        cell.title=`${d} ${CAL_MONTHS[mo]} ${yr} — upcoming`;
       } else {
         cell.title=`${d} ${CAL_MONTHS[mo]} ${yr} — rest`;
       }
@@ -3764,18 +3779,25 @@ function shiftCal(dir){
 }
 
 // Re-render on resize so the window flips between 6 (laptop) and 4 (phone) months.
-let calResizeTimer=null, calLastWin=null;
+let calResizeTimer=null, calLastWin=null, volLastPhone=null;
 window.addEventListener('resize', ()=>{
   clearTimeout(calResizeTimer);
   calResizeTimer=setTimeout(()=>{
     const w=calWin();
     if(w!==calLastWin){ calLastWin=w; calOffset=0; renderHomeCalendar(); }
+    // Volume: when crossing the phone/PC boundary, reset to the device default avg window.
+    const ph=volIsPhone();
+    if(ph!==volLastPhone){ volLastPhone=ph; VOL_AVG=null; if(document.getElementById('homeVolSection')) renderHomeVolume(); }
   },150);
 });
 
 /* ── VOLUME & CONSISTENCY (Overview, combined run + bike, monthly) ── */
 let VOL_METRIC='time';   // 'time' (minutes) | 'km'
+let VOL_AVG=null;        // months used for the average + # of closed-month cards (null → default by device)
 let volChart=null;
+function volIsPhone(){ return typeof window!=='undefined' && window.innerWidth<=700; }
+function volChartMonths(){ return volIsPhone() ? 6 : 12; }   // chart window
+function volAvgWindow(){ return VOL_AVG || (volIsPhone() ? 3 : 4); }   // avg + card count
 
 // Aggregate all activities into per-calendar-month buckets (run + bike split).
 function volMonthlyData(){
@@ -3808,8 +3830,7 @@ function volMonthlyData(){
       daysRun:b?b.dayRun.size:0, daysBike:b?b.dayBike.size:0 });
     m++; if(m>12){m=1;y++;}
   }
-  // show at most the last 12 months
-  return out.slice(-12);
+  return out;   // full continuous list; callers slice for chart / cards
 }
 
 const volFmtTime=min=>{ const h=Math.floor(min/60), mm=Math.round(min%60); return h+'.'+String(mm).padStart(2,'0'); };
@@ -3820,10 +3841,16 @@ const volLab=v=> VOL_METRIC==='km'? Math.round(v)+'' : volFmtTime(v);
 function renderHomeVolume(){
   const section=document.getElementById('homeVolSection');
   if(!section) return;
-  const d=volMonthlyData();
-  if(d.length<2){ section.style.display='none'; if(volChart){volChart.destroy();volChart=null;} return; }
+  const full=volMonthlyData();
+  if(full.length<2){ section.style.display='none'; if(volChart){volChart.destroy();volChart=null;} return; }
   section.style.display='block';
 
+  volLastPhone=volIsPhone();
+  // reflect the active avg window in the chips
+  const aw=volAvgWindow();
+  [3,4,6,9].forEach(n=>{ const el=document.getElementById('vcAvg'+n); if(el) el.classList.toggle('active',n===aw); });
+
+  const d=full.slice(-volChartMonths());   // chart: last 6 (phone) / 12 (PC) months
   const cur=d[d.length-1];
   const runV=d.map(x=>VOL_METRIC==='km'?x.kmRun:x.minRun);
   const bikeV=d.map(x=>VOL_METRIC==='km'?x.kmBike:x.minBike);
@@ -3836,10 +3863,10 @@ function renderHomeVolume(){
   document.getElementById('vcCurlbl').textContent = cur.lbl;
   document.getElementById('vcBig').innerHTML = bigNum;
   document.getElementById('vcMeta').innerHTML=
-    `${CAL_ICON_RUN2} <b style="color:var(--text)">${cur.daysRun}</b> &nbsp; ${CAL_ICON_BIKE2} <b style="color:var(--text)">${cur.daysBike}</b> active days<br>`+
+    `${CAL_ICON_RUN2} ${cur.daysRun} &nbsp; ${CAL_ICON_BIKE2} ${cur.daysBike} active days<br>`+
     `${CAL_ICON_RUN2} ${volUnit(VOL_METRIC==='km'?cur.kmRun:cur.minRun)} &nbsp;·&nbsp; ${CAL_ICON_BIKE2} ${volUnit(VOL_METRIC==='km'?cur.kmBike:cur.minBike)}`;
 
-  buildVolCards(d);
+  buildVolCards(full);
 
   // two fixed labels per point: running (green) + cycling (cyan) above the top line
   const splitLabels = { id:'vcSplitLabels', afterDatasetsDraw(c){
@@ -3879,8 +3906,10 @@ function renderHomeVolume(){
                y:{ display:false, beginAtZero:true } } }});
 }
 
-function buildVolCards(d){
-  const last4=d.slice(-5,-1);   // 4 closed months (current shown big above)
+function buildVolCards(full){
+  const w=volAvgWindow();                 // 3/4/6/9 closed months (+ avg box)
+  const closed=full.slice(0,-1);          // drop the current (in-progress) month
+  const window=closed.slice(-w);          // the last w closed months
   const card=(title,isAvg,total,daysRun,daysBike,vRun,vBike)=>{
     const bigV = VOL_METRIC==='time'
       ? `${Math.floor(total/60)}<span class="u">h</span> ${Math.round(total%60)}<span class="u">m</span>`
@@ -3892,14 +3921,18 @@ function buildVolCards(d){
       <div class="mc-split">${CAL_ICON_RUN2} ${volUnit(vRun)} &nbsp;·&nbsp; ${CAL_ICON_BIKE2} ${volUnit(vBike)}</div>
     </div>`;
   };
-  let html=last4.map(x=>{
+  let html=window.map(x=>{
     const total=VOL_METRIC==='km'?x.km:x.min, vRun=VOL_METRIC==='km'?x.kmRun:x.minRun, vBike=VOL_METRIC==='km'?x.kmBike:x.minBike;
     return card(x.lbl, false, total, x.daysRun, x.daysBike, vRun, vBike);
   }).join('');
-  const n=last4.length||1, s=k=>last4.reduce((a,x)=>a+x[k],0)/n;
+  const n=window.length||1, s=k=>window.reduce((a,x)=>a+x[k],0)/n;
   const aTot=VOL_METRIC==='km'?s('km'):s('min'), aRun=VOL_METRIC==='km'?s('kmRun'):s('minRun'), aBike=VOL_METRIC==='km'?s('kmBike'):s('minBike');
-  if(last4.length) html += card('4-month avg', true, aTot, Math.round(s('daysRun')), Math.round(s('daysBike')), aRun, aBike);
-  document.getElementById('vcCards').innerHTML=html;
+  if(window.length) html += card(`${window.length}-month avg`, true, aTot, Math.round(s('daysRun')), Math.round(s('daysBike')), aRun, aBike);
+  // card grid columns follow the number shown (window + avg); phone caps at 2 per row
+  const grid=document.getElementById('vcCards');
+  const cols=volIsPhone() ? 2 : (window.length+1);
+  grid.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
+  grid.innerHTML=html;
 }
 
 function setVolMetric(m){
@@ -3908,6 +3941,7 @@ function setVolMetric(m){
   document.getElementById('vcTime').classList.toggle('active',m==='time');
   renderHomeVolume();
 }
+function setVolAvg(n){ VOL_AVG=n; renderHomeVolume(); }   // user-picked avg window (overrides device default)
 
 // icon aliases for the volume card (green run / cyan bike), sized via .ic class
 const CAL_ICON_RUN2='<svg class="ic" viewBox="0 0 24 24" fill="currentColor" style="color:#00e676"><circle cx="15.5" cy="4" r="2.2"/><path d="M12.8 7.2 c-.5.2-3.7 2-4.2 2.4-.5.4-.5 1.1-.1 1.5l2.3 2.2-1 4.9c-.1.7.3 1.3 1 1.4.7.1 1.3-.3 1.4-1l1-5c.1-.5-.1-1-.5-1.3l-1.3-1.2 2-1.2 1.3 1.9c.3.4.7.6 1.2.5l2.4-.5c.6-.1 1-.7.9-1.4-.1-.6-.7-1-1.4-.9l-1.6.3-1.7-2.4c-.4-.6-1.2-.8-1.8-.5z"/></svg>';
