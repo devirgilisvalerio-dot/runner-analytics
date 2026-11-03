@@ -386,7 +386,7 @@ td b{ font-family:var(--font-mono); }
   display:inline-flex; align-items:center; gap:7px;
 }
 .buildstamp code{
-  font-family:var(--font-mono); font-size:10.5px; font-weight:700;
+  font-family:var(--font-mono); font-size:10.5px; font-weight:400;
   background:rgba(255,255,255,.07); border:1px solid var(--border); border-radius:5px;
   padding:2px 7px; color:var(--text);
 }
@@ -1280,7 +1280,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>03-Nov-2026 15:21 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>03-Nov-2026 18:57 CET</code></div>
   </div>
 </div>
 
@@ -3796,7 +3796,7 @@ let VOL_AVG=null;        // months used for the average + # of closed-month card
 let volChart=null;
 function volIsPhone(){ return typeof window!=='undefined' && window.innerWidth<=700; }
 function volChartMonths(){ return volIsPhone() ? 6 : 12; }   // chart window
-function volAvgWindow(){ return VOL_AVG || (volIsPhone() ? 3 : 6); }   // avg + card count (default 3 phone / 6 PC)
+function volAvgWindow(){ return VOL_AVG || (volIsPhone() ? 3 : 9); }   // avg + card count (default 3 phone / 9 PC)
 
 // Aggregate all activities into per-calendar-month buckets (run + bike split).
 function volMonthlyData(){
