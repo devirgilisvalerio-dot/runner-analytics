@@ -457,8 +457,8 @@ td b{ font-family:var(--font-mono); }
 .vc-mcard.avg .mc-h{ color:var(--accent); }
 .vc-mcard .mc-v{ font-family:var(--font-display); font-size:26px; font-weight:700; line-height:1; }
 .vc-mcard .mc-v .u{ font-size:15px; color:var(--muted); font-weight:700; margin-left:1px; }
-.vc-mcard .mc-days{ font-family:var(--font-mono); font-size:12px; color:var(--muted2); margin-top:9px; display:flex; align-items:center; gap:6px; }
-.vc-mcard .mc-split{ font-family:var(--font-mono); font-size:12px; color:var(--muted2); margin-top:5px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.vc-mcard .mc-days{ font-family:var(--font-mono); font-size:11px; color:var(--muted2); margin-top:9px; display:flex; align-items:center; gap:6px; }
+.vc-mcard .mc-split{ font-family:var(--font-mono); font-size:11px; color:var(--muted2); margin-top:5px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
 .vc-mcard .ic{ width:13px; height:13px; vertical-align:-2px; }
 @media(max-width:900px){ .vc-cards{ grid-template-columns:repeat(2,1fr); } }
 
@@ -629,7 +629,6 @@ td b{ font-family:var(--font-mono); }
         <div class="vc-avgsel">
           <span class="vc-avglbl">Avg over</span>
           <div class="vc-chip" onclick="setVolAvg(3)" id="vcAvg3">3 mo</div>
-          <div class="vc-chip" onclick="setVolAvg(4)" id="vcAvg4">4 mo</div>
           <div class="vc-chip" onclick="setVolAvg(6)" id="vcAvg6">6 mo</div>
           <div class="vc-chip" onclick="setVolAvg(9)" id="vcAvg9">9 mo</div>
         </div>
@@ -3797,7 +3796,7 @@ let VOL_AVG=null;        // months used for the average + # of closed-month card
 let volChart=null;
 function volIsPhone(){ return typeof window!=='undefined' && window.innerWidth<=700; }
 function volChartMonths(){ return volIsPhone() ? 6 : 12; }   // chart window
-function volAvgWindow(){ return VOL_AVG || (volIsPhone() ? 3 : 4); }   // avg + card count
+function volAvgWindow(){ return VOL_AVG || (volIsPhone() ? 3 : 6); }   // avg + card count (default 3 phone / 6 PC)
 
 // Aggregate all activities into per-calendar-month buckets (run + bike split).
 function volMonthlyData(){
@@ -3848,7 +3847,7 @@ function renderHomeVolume(){
   volLastPhone=volIsPhone();
   // reflect the active avg window in the chips
   const aw=volAvgWindow();
-  [3,4,6,9].forEach(n=>{ const el=document.getElementById('vcAvg'+n); if(el) el.classList.toggle('active',n===aw); });
+  [3,6,9].forEach(n=>{ const el=document.getElementById('vcAvg'+n); if(el) el.classList.toggle('active',n===aw); });
 
   const d=full.slice(-volChartMonths());   // chart: last 6 (phone) / 12 (PC) months
   const cur=d[d.length-1];
@@ -3863,7 +3862,7 @@ function renderHomeVolume(){
   document.getElementById('vcCurlbl').textContent = cur.lbl;
   document.getElementById('vcBig').innerHTML = bigNum;
   document.getElementById('vcMeta').innerHTML=
-    `${CAL_ICON_RUN2} ${cur.daysRun} &nbsp; ${CAL_ICON_BIKE2} ${cur.daysBike} active days<br>`+
+    `${CAL_ICON_RUN2} ${cur.daysRun} &nbsp; ${CAL_ICON_BIKE2} ${cur.daysBike} days<br>`+
     `${CAL_ICON_RUN2} ${volUnit(VOL_METRIC==='km'?cur.kmRun:cur.minRun)} &nbsp;·&nbsp; ${CAL_ICON_BIKE2} ${volUnit(VOL_METRIC==='km'?cur.kmBike:cur.minBike)}`;
 
   buildVolCards(full);
@@ -3898,7 +3897,7 @@ function renderHomeVolume(){
           filter:item=>item.dataset.label==='Cycling',
           callbacks:{ title:items=>d[items[0].dataIndex].lbl,
             label:c=>{ const x=d[c.dataIndex];
-              return [ `Total ${volUnit(volVal(x))} · ${x.days} active days`,
+              return [ `Total ${volUnit(volVal(x))} · ${x.days} days`,
                        `Running ${volUnit(VOL_METRIC==='km'?x.kmRun:x.minRun)} · ${x.daysRun}d`,
                        `Cycling ${volUnit(VOL_METRIC==='km'?x.kmBike:x.minBike)} · ${x.daysBike}d` ]; } } } },
       scales:{ x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxRotation:0,autoSkip:false,
@@ -3917,7 +3916,7 @@ function buildVolCards(full){
     return `<div class="vc-mcard${isAvg?' avg':''}">
       <div class="mc-h">${title}</div>
       <div class="mc-v">${bigV}</div>
-      <div class="mc-days">${CAL_ICON_RUN2}${daysRun} &nbsp; ${CAL_ICON_BIKE2}${daysBike} <span style="color:var(--muted)">active days</span></div>
+      <div class="mc-days">${CAL_ICON_RUN2}${daysRun} &nbsp; ${CAL_ICON_BIKE2}${daysBike} <span style="color:var(--muted)">days</span></div>
       <div class="mc-split">${CAL_ICON_RUN2} ${volUnit(vRun)} &nbsp;·&nbsp; ${CAL_ICON_BIKE2} ${volUnit(vBike)}</div>
     </div>`;
   };
@@ -3928,9 +3927,10 @@ function buildVolCards(full){
   const n=window.length||1, s=k=>window.reduce((a,x)=>a+x[k],0)/n;
   const aTot=VOL_METRIC==='km'?s('km'):s('min'), aRun=VOL_METRIC==='km'?s('kmRun'):s('minRun'), aBike=VOL_METRIC==='km'?s('kmBike'):s('minBike');
   if(window.length) html += card(`${window.length}-month avg`, true, aTot, Math.round(s('daysRun')), Math.round(s('daysBike')), aRun, aBike);
-  // card grid columns follow the number shown (window + avg); phone caps at 2 per row
+  // card grid columns: phone 2/row, PC max 5/row so 6-/9-month windows wrap to 2 rows
   const grid=document.getElementById('vcCards');
-  const cols=volIsPhone() ? 2 : (window.length+1);
+  const total=window.length+1;   // closed-month cards + avg box
+  const cols=volIsPhone() ? 2 : Math.min(5, total);
   grid.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
   grid.innerHTML=html;
 }
