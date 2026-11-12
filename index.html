@@ -1439,7 +1439,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>12-Nov-2026 11:14 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>12-Nov-2026 11:34 CET</code></div>
   </div>
 </div>
 
@@ -4697,7 +4697,7 @@ function renderHomeSeason(){
 
     // Hero = sessions this year, with a session delta vs last year.
     let heroDelta = '';
-    if(prev) heroDelta = seasonDelta(`${cur.n-prev.n>=0?'+':''}${cur.n-prev.n} vs ${prev.n} in ${String(prevYear).slice(-2)}`, cur.n-prev.n);
+    if(prev) heroDelta = seasonDelta(`${cur.n-prev.n>=0?'+':''}${cur.n-prev.n} vs ${prev.n} in ${prevYear}`, cur.n-prev.n);
     else heroDelta = `<span class="ss-d flat">new this year</span>`;
 
     const pills = [];
@@ -4714,13 +4714,13 @@ function renderHomeSeason(){
     // Distance (+ avg) — more is "better" (green).
     if(sp.dist){
       let d='';
-      if(prev) d = seasonDelta(`${cur.dist-prev.dist>=0?'+':''}${Math.round(cur.dist-prev.dist)} km vs ${String(prevYear).slice(-2)}`, cur.dist-prev.dist>=0?1:-1);
+      if(prev) d = seasonDelta(`${cur.dist-prev.dist>=0?'+':''}${Math.round(cur.dist-prev.dist)} km vs ${prevYear}`, cur.dist-prev.dist>=0?1:-1);
       pills.push(`<div class="ss-pill"><div class="pl">Distance · avg</div><div class="pv">${Math.round(cur.dist)}<small> km · ${cur.avgDist.toFixed(1)}</small></div>${d}</div>`);
     }
     // Time (+ avg) — more is "better" (green).
     {
       let d='';
-      if(prev){ const dh=(cur.secs-prev.secs)/3600; d = seasonDelta(`${dh>=0?'+':''}${dh.toFixed(0)}h vs ${String(prevYear).slice(-2)}`, dh>=0?1:-1); }
+      if(prev){ const dh=(cur.secs-prev.secs)/3600; d = seasonDelta(`${dh>=0?'+':''}${dh.toFixed(0)}h vs ${prevYear}`, dh>=0?1:-1); }
       pills.push(`<div class="ss-pill"><div class="pl">Time · avg</div><div class="pv">${(cur.secs/3600).toFixed(1)}<small> h · ${hmShort(cur.avgSec)}</small></div>${d}</div>`);
     }
     // Avg · max BPM — neutral (grey) delta; lower/higher HR isn't strictly better.
