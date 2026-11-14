@@ -556,7 +556,12 @@ td b{ font-family:var(--font-mono); }
 .ss-pill .pl{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
 .ss-pill .pv{ font-family:var(--font-display); font-size:27px; font-weight:800; }
 .ss-pill .pv small{ font-size:14px; color:var(--muted2); font-weight:600; }
+.ss-pill .pv .sv{ color:var(--text); font-weight:800; }        /* secondary value (avg/max): white + bold */
+.ss-pill .pv .sv small{ color:var(--muted2); }                 /* its unit stays muted */
+.ss-pill .pv .sep{ color:var(--muted); font-weight:400; margin:0 2px; }
 .ss-d{ font-family:var(--font-mono); font-size:12px; font-weight:500; margin-top:5px; display:inline-flex; align-items:center; gap:2px; }
+.ss-deltas{ display:flex; flex-direction:column; gap:2px; margin-top:6px; }   /* stack total + avg deltas */
+.ss-deltas .ss-d{ margin-top:0; }
 .ss-d.up{ color:var(--green); } .ss-d.dn{ color:var(--red); } .ss-d.flat{ color:var(--muted); }
 @media(max-width:700px){
   .ss-card{ padding:18px; }
@@ -1439,7 +1444,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>14-Nov-2026 15:19 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>14-Nov-2026 15:35 CET</code></div>
   </div>
 </div>
 
@@ -4716,23 +4721,39 @@ function renderHomeSeason(){
       }
       pills.push(`<div class="ss-pill"><div class="pl">Avg pace</div><div class="pv">${paceStr(cur.paceSecPerKm)}<small>/km</small></div>${d}</div>`);
     }
-    // Distance (+ avg) — more is "better" (green).
+    // Distance (+ avg) — more is "better" (green). Total and avg each get a delta line.
     if(sp.dist){
-      let d='';
-      if(prev) d = seasonDelta(`${cur.dist-prev.dist>=0?'+':''}${Math.round(cur.dist-prev.dist)} km vs ${prevYear}`, cur.dist-prev.dist>=0?1:-1);
-      pills.push(`<div class="ss-pill"><div class="pl">Distance · avg</div><div class="pv">${Math.round(cur.dist)}<small> km · ${cur.avgDist.toFixed(1)}</small></div>${d}</div>`);
+      let dTot='', dAvg='';
+      if(prev){
+        dTot = seasonDelta(`${cur.dist-prev.dist>=0?'+':''}${Math.round(cur.dist-prev.dist)} km vs ${prevYear}`, cur.dist-prev.dist>=0?1:-1);
+        const da = cur.avgDist - prev.avgDist;
+        dAvg = seasonDelta(`${da>=0?'+':''}${da.toFixed(1)} km avg vs ${prevYear}`, da>=0?1:-1);
+      }
+      pills.push(`<div class="ss-pill"><div class="pl">Distance · avg</div>`+
+        `<div class="pv">${Math.round(cur.dist)}<small> km</small><span class="sep">·</span><span class="sv">${cur.avgDist.toFixed(1)}<small> km</small></span></div>`+
+        `<div class="ss-deltas">${dTot}${dAvg}</div></div>`);
     }
-    // Time (+ avg) — more is "better" (green).
+    // Time (+ avg) — more is "better" (green). Total and avg each get a delta line.
     {
-      let d='';
-      if(prev){ const dh=(cur.secs-prev.secs)/3600; d = seasonDelta(`${dh>=0?'+':''}${dh.toFixed(0)}h vs ${prevYear}`, dh>=0?1:-1); }
-      pills.push(`<div class="ss-pill"><div class="pl">Time · avg</div><div class="pv">${(cur.secs/3600).toFixed(1)}<small> h · ${hmShort(cur.avgSec)}</small></div>${d}</div>`);
+      let dTot='', dAvg='';
+      if(prev){
+        const dh=(cur.secs-prev.secs)/3600;
+        dTot = seasonDelta(`${dh>=0?'+':''}${dh.toFixed(0)}h vs ${prevYear}`, dh>=0?1:-1);
+        const dm=Math.round((cur.avgSec-prev.avgSec)/60);
+        dAvg = seasonDelta(`${dm>=0?'+':''}${dm}m avg vs ${prevYear}`, dm>=0?1:-1);
+      }
+      pills.push(`<div class="ss-pill"><div class="pl">Time · avg</div>`+
+        `<div class="pv">${(cur.secs/3600).toFixed(1)}<small> h</small><span class="sep">·</span><span class="sv">${hmShort(cur.avgSec)}</span></div>`+
+        `<div class="ss-deltas">${dTot}${dAvg}</div></div>`);
     }
-    // Avg · max BPM — neutral (grey) delta; lower/higher HR isn't strictly better.
+    // Avg · max BPM — neutral (grey) deltas; lower/higher HR isn't strictly better.
     if(cur.avgHr!=null){
-      let d='';
-      if(prev && prev.avgHr!=null){ const diff=cur.avgHr-prev.avgHr; d = seasonDelta(`${diff>=0?'+':''}${diff} avg vs ${prev.avgHr}`,0); }
-      pills.push(`<div class="ss-pill"><div class="pl">Avg · max BPM</div><div class="pv">${cur.avgHr}<small> · ${cur.maxHr!=null?cur.maxHr:'—'}</small></div>${d}</div>`);
+      let dAvg='', dMax='';
+      if(prev && prev.avgHr!=null){ const diff=cur.avgHr-prev.avgHr; dAvg = seasonDelta(`${diff>=0?'+':''}${diff} avg vs ${prev.avgHr}`,0); }
+      if(prev && prev.maxHr!=null && cur.maxHr!=null){ const diff=cur.maxHr-prev.maxHr; dMax = seasonDelta(`${diff>=0?'+':''}${diff} max vs ${prev.maxHr}`,0); }
+      pills.push(`<div class="ss-pill"><div class="pl">Avg · max BPM</div>`+
+        `<div class="pv">${cur.avgHr}<span class="sep">·</span><span class="sv">${cur.maxHr!=null?cur.maxHr:'—'}</span></div>`+
+        `<div class="ss-deltas">${dAvg}${dMax}</div></div>`);
     }
 
     html += `
