@@ -1439,7 +1439,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>12-Nov-2026 11:34 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>14-Nov-2026 15:19 CET</code></div>
   </div>
 </div>
 
@@ -1995,9 +1995,14 @@ async function listFiles(){
     // 1) Download the seed from Drive first (fills SEED with the baked history).
     await loadSeedFromDrive();
     setStatus('Reading Drive folders…', 'loading');
-    // 2) Only fetch Drive files created AFTER the seed cutoff — everything older is already
-    // in SEED. (createdTime is the Drive upload time.) No cutoff (seed missing) = full sync.
-    const createdClause = SEED.cutoff ? ` and createdTime > '${SEED.cutoff}T00:00:00'` : '';
+    // 2) Only fetch Drive files NEWER than the seed cutoff — everything older is already in
+    // SEED. We check BOTH createdTime AND modifiedTime: depending on how a file lands on
+    // Drive (desktop sync, copy, "keep original"), createdTime can be an old date while
+    // modifiedTime is the real upload day — filtering on createdTime alone silently misses
+    // freshly-uploaded files. OR of the two catches them. No cutoff (seed missing) = full sync.
+    const createdClause = SEED.cutoff
+      ? ` and (createdTime > '${SEED.cutoff}T00:00:00' or modifiedTime > '${SEED.cutoff}T00:00:00')`
+      : '';
     const [respRun, respBike, respIndoor] = await Promise.all([
       gapi.client.drive.files.list({
         pageSize: 200,
