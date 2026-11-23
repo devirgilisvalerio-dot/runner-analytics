@@ -609,6 +609,12 @@ td b{ font-family:var(--font-mono); }
 .pred-head svg{ width:14px; height:14px; }
 .pred-body{ padding:6px 16px 18px; }
 .pred-val{ font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--text); }
+/* Overview strips: tighter margins so every header fits on one line → equal box heights left/right */
+#homePredStrip .pred-card, #homeBikePredStrip .pred-card{ min-width:0; }
+#homePredStrip .pred-head, #homeBikePredStrip .pred-head{ padding:10px 10px 8px; gap:5px; font-size:10.5px; letter-spacing:0.6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#homePredStrip .pred-head svg, #homeBikePredStrip .pred-head svg{ flex:0 0 auto; }
+#homePredStrip .pred-body, #homeBikePredStrip .pred-body{ padding:6px 10px 16px; }
 </style>
 </head>
 <body>
@@ -1444,7 +1450,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>14-Nov-2026 17:21 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>23-Nov-2026 11:03 CET</code></div>
   </div>
 </div>
 
@@ -2540,8 +2546,13 @@ const SHOE_LIMITS = {
   'N/A':       500,
   'Kip_Carb':  450,
   'Kip_Carb2': 450,
+  'Elite':     450,
 };
 function shoeLimit(name){ return SHOE_LIMITS[name] || DEFAULT_SHOE_LIMIT; }
+// Baseline km added to a shoe's total by default (km run without a recorded file).
+const SHOE_KM_OFFSET = {
+  'Kip_Carb2': 5,
+};
 // Shoes no longer in rotation — shown dimmed with a "retired" tag (like the old
 // chain/tyres on the Cycling tab). N/A = legacy runs with no shoe tag.
 const RETIRED_SHOES = new Set(['N/A']);
@@ -2554,8 +2565,9 @@ function renderShoes(data) {
     if(r.hr){ shoes[r.shoe].hrSum += r.hr; shoes[r.shoe].hrCount++; }
     if(r.paceSecPerKm){ shoes[r.shoe].paceSum += r.paceSecPerKm; shoes[r.shoe].paceCount++; }
   });
+  for(const [name, km] of Object.entries(SHOE_KM_OFFSET)) if(shoes[name]) shoes[name].km += km;
   // Explicit card order; any shoe not listed falls to the end (alphabetical).
-  const SHOE_ORDER = ['N/A', 'Vom_Plus', 'Kip_Carb', 'Kip_Carb2'];
+  const SHOE_ORDER = ['N/A', 'Vom_Plus', 'Kip_Carb', 'Kip_Carb2', 'Elite'];
   const orderedNames = Object.keys(shoes).sort((a, b) => {
     const ia = SHOE_ORDER.indexOf(a), ib = SHOE_ORDER.indexOf(b);
     if(ia === -1 && ib === -1) return a.localeCompare(b);
@@ -4586,16 +4598,35 @@ function renderHomeVolume(){
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       layout:{ padding:{ top:34, right:22 } },
       plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:'#0d151d', borderColor:'#33475a', borderWidth:1, padding:10, displayColors:false,
-          titleFont:{family:'Barlow Condensed',size:15,weight:'700'}, bodyFont:{family:'DM Mono',size:12},
+        tooltip:{ enabled:false,   // disabled: we render a custom HTML tooltip below so each sport row can carry its own colour
           filter:item=>item.dataset.label==='_top',
-          callbacks:{ title:items=>d[items[0].dataIndex].lbl,
-            label:c=>{ const x=d[c.dataIndex];
-              const rows=[ `Total ${volUnit(volVal(x))} · ${x.days} days`,
-                       `Running ${volUnit(VOL_METRIC==='km'?x.kmRun:x.minRun)} · ${x.daysRun}d`,
-                       `Cycling ${volUnit(VOL_METRIC==='km'?x.kmBike:x.minBike)} · ${x.daysBike}d` ];
-              if(showIndoor) rows.push(`Indoor ${volUnit(x.minInd)} · ${x.daysInd}d`);
-              return rows; } } } },
+          // Custom external tooltip: Running/Cycling/Indoor rows are tinted with the same colours as their chart lines
+          // (run #00e676, bike #30d0e0, indoor #c264ff). Title + Total stay neutral.
+          external:ctx=>{
+            const {chart,tooltip}=ctx;
+            let el=chart.canvas.parentNode.querySelector('.vc-tt');
+            if(!el){ el=document.createElement('div'); el.className='vc-tt';
+              el.style.cssText='position:absolute;pointer-events:none;background:#0d151d;border:1px solid #33475a;'
+                +'border-radius:6px;padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;color:#e8edf2;'
+                +'transition:opacity .12s ease;z-index:20;white-space:nowrap;';
+              chart.canvas.parentNode.appendChild(el); }
+            if(!tooltip.opacity){ el.style.opacity=0; return; }
+            const x=d[tooltip.dataPoints[0].dataIndex];
+            const row=(txt,col)=>`<div style="${col?`color:${col};`:''}line-height:1.5">${txt}</div>`;
+            let html=`<div style="font-family:'Barlow Condensed';font-size:15px;font-weight:700;margin-bottom:3px">${x.lbl}</div>`;
+            html+=row(`Total ${volUnit(volVal(x))} · ${x.days} days`);
+            html+=row(`Running ${volUnit(VOL_METRIC==='km'?x.kmRun:x.minRun)} · ${x.daysRun}d`, '#00e676');
+            html+=row(`Cycling ${volUnit(VOL_METRIC==='km'?x.kmBike:x.minBike)} · ${x.daysBike}d`, '#30d0e0');
+            if(showIndoor) html+=row(`Indoor ${volUnit(x.minInd)} · ${x.daysInd}d`, '#c264ff');
+            el.innerHTML=html;
+            const r=chart.canvas.getBoundingClientRect();
+            el.style.opacity=1;
+            // keep the tooltip inside the chart box horizontally
+            let left=tooltip.caretX+12;
+            if(left+el.offsetWidth>chart.width) left=tooltip.caretX-el.offsetWidth-12;
+            el.style.left=left+'px';
+            el.style.top=(tooltip.caretY-el.offsetHeight/2)+'px';
+          } } },
       scales:{ x:{ ticks:{color:'#5a6a7a',font:{family:'DM Mono',size:9},maxRotation:0,autoSkip:false,
           callback:(v,i)=> i===lastIdx ? '' : [d[i].lbl, volLab(topArr[i])+(VOL_METRIC==='km'?' km':' h')] }, grid:{display:false} },
                y:{ display:false, beginAtZero:true } } }});
