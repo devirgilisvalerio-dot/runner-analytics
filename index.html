@@ -1050,12 +1050,12 @@ td b{ font-family:var(--font-mono); }
           <tr>
             <th>Date</th><th>Distance</th><th>Duration</th>
             <th>Avg Pace</th><th>Best km</th>
-            <th>BPM</th><th>Cadence</th><th>Power</th>
+            <th>Avg BPM</th><th>Max BPM</th><th>Cadence</th><th>Power</th>
             <th>Vert.Osc</th><th>Shoe</th>
           </tr>
         </thead>
         <tbody id="runsTable">
-          <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+          <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
             No activities loaded. Connect Google Drive to get started.
           </td></tr>
         </tbody>
@@ -1450,7 +1450,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>23-Nov-2026 11:03 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>26-Nov-2026 18:44 CET</code></div>
   </div>
 </div>
 
@@ -2660,6 +2660,13 @@ function renderBikeComponents() {
 }
 
 /* TABLE */
+// Max BPM = highest bpm with any recorded time in the activity's HR histogram.
+function hrMaxOf(r){
+  if(!r.hrHist) return null;
+  let m = null;
+  for(const k in r.hrHist){ if(r.hrHist[k] > 0 && (m === null || +k > m)) m = +k; }
+  return m;
+}
 function renderTable(data) {
   const tbody = document.getElementById('runsTable');
   tbody.innerHTML = '';
@@ -2674,6 +2681,7 @@ function renderTable(data) {
       <td style="font-family:var(--font-mono);color:var(--green)">${pace}</td>
       <td style="font-family:var(--font-mono);color:var(--accent)">${bestPace}</td>
       <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${(hm => hm !== null ? hm + ' bpm' : nd())(hrMaxOf(r))}</td>
       <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
       <td>${r.power !== null ? r.power + ' W' : nd()}</td>
       <td>${r.vertOsc !== null ? r.vertOsc + ' mm' : nd()}</td>
