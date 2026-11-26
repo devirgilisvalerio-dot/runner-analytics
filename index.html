@@ -1295,12 +1295,12 @@ td b{ font-family:var(--font-mono); }
           <thead>
             <tr>
               <th>Date</th><th>Distance</th><th>Duration</th>
-              <th>Avg Speed</th><th>BPM</th><th>D+</th>
+              <th>Avg Speed</th><th>Avg BPM</th><th>Max BPM</th><th>D+</th>
               <th>Calories</th>
             </tr>
           </thead>
           <tbody id="bikeTable">
-            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
               No rides loaded. Connect Google Drive to get started.
             </td></tr>
           </tbody>
@@ -1430,10 +1430,10 @@ td b{ font-family:var(--font-mono); }
       <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Date</th><th>Duration</th><th>Avg BPM</th><th>Calories</th></tr>
+            <tr><th>Date</th><th>Duration</th><th>Avg BPM</th><th>Max BPM</th><th>Calories</th></tr>
           </thead>
           <tbody id="indoorTable">
-            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--font-mono);font-size:13px;">
               No sessions loaded. Connect Google Drive to get started.
             </td></tr>
           </tbody>
@@ -1450,7 +1450,7 @@ td b{ font-family:var(--font-mono); }
     <!-- Build stamp: a quiet serial number baked in at build time, so you can tell a
          freshly built copy from one sitting stale in a Downloads folder. Update the
          <code> below whenever you rebuild the file. -->
-    <div class="buildstamp">Dashboard build <code>26-Nov-2026 18:44 CET</code></div>
+    <div class="buildstamp">Dashboard build <code>26-Nov-2026 19:05 CET</code></div>
   </div>
 </div>
 
@@ -2680,8 +2680,8 @@ function renderTable(data) {
       <td style="font-family:var(--font-mono)">${r.duration}</td>
       <td style="font-family:var(--font-mono);color:var(--green)">${pace}</td>
       <td style="font-family:var(--font-mono);color:var(--accent)">${bestPace}</td>
-      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
-      <td>${(hm => hm !== null ? hm + ' bpm' : nd())(hrMaxOf(r))}</td>
+      <td>${r.hr !== null ? r.hr : nd()}</td>
+      <td>${(hm => hm !== null ? hm : nd())(hrMaxOf(r))}</td>
       <td>${r.cad !== null ? r.cad + ' spm' : nd()}</td>
       <td>${r.power !== null ? r.power + ' W' : nd()}</td>
       <td>${r.vertOsc !== null ? r.vertOsc + ' mm' : nd()}</td>
@@ -3799,7 +3799,8 @@ function renderBikeTable(data) {
       <td><b>${r.distance} km</b></td>
       <td style="font-family:var(--font-mono)">${r.duration}</td>
       <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
-      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.hr !== null ? r.hr : nd()}</td>
+      <td>${(hm => hm !== null ? hm : nd())(hrMaxOf(r))}</td>
       <td>${r.elevGain != null ? r.elevGain.toLocaleString() + ' m' : nd()}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
     </tr>`;
@@ -3837,7 +3838,8 @@ function filterBikeTable() {
       <td><b>${r.distance} km</b></td>
       <td style="font-family:var(--font-mono)">${r.duration}</td>
       <td style="font-family:var(--font-mono);color:var(--green)">${speed}</td>
-      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.hr !== null ? r.hr : nd()}</td>
+      <td>${(hm => hm !== null ? hm : nd())(hrMaxOf(r))}</td>
       <td>${r.elevGain != null ? r.elevGain.toLocaleString() + ' m' : nd()}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
     </tr>`;
@@ -4278,7 +4280,8 @@ function indoorRow(r){
     <tr>
       <td style="font-family:var(--font-mono)">${r.date}</td>
       <td style="font-family:var(--font-mono)">${r.duration}</td>
-      <td>${r.hr !== null ? r.hr + ' bpm' : nd()}</td>
+      <td>${r.hr !== null ? r.hr : nd()}</td>
+      <td>${(hm => hm !== null ? hm : nd())(hrMaxOf(r))}</td>
       <td>${r.calories ? r.calories + ' kcal' : nd()}</td>
     </tr>`;
 }
